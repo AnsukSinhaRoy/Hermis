@@ -39,6 +39,7 @@ def save_metadata(meta: Dict[str,Any], path: Path):
     with open(path, "w") as f:
         json.dump(meta, f, indent=2, default=str)
 
+# Replace run_experiment_from_config in portfolio_sim/experiment.py with this full function
 def run_experiment_from_config(params_path: str,
                                base_experiments_dir: str,
                                runner_func: Callable[[Dict[str,Any]], Dict[str,Any]],
@@ -58,34 +59,61 @@ def run_experiment_from_config(params_path: str,
     weights = outputs.get("weights")
     trades = outputs.get("trades")
     meta = outputs.get("meta", {})
+    prices = outputs.get("prices", None)  # <-- accept prices if runner returned them
+
     if nav is not None:
         save_series_as_parquet(nav, out_folder / "nav.parquet")
     if weights is not None:
         save_dataframe_as_parquet(weights, out_folder / "weights.parquet")
     if trades is not None:
         save_dataframe_as_parquet(trades, out_folder / "trades.parquet")
-    # metadata augmentation
+
+    # Save prices snapshot (exact data used in experiment) for reproducible viz
+    if prices is not None:
+        try:
+            save_dataframe_as_parquet(prices, exp_folder / "data" / "prices.parquet")
+        except Exception:
+            # best-effort: ignore if saving prices fails
+            pass
+
+    # metadata augmentation (unchanged)
     meta_update = {
         "runtime_seconds": end - start,
         "timestamp_utc": datetime.utcnow().isoformat(),
         "python_version": f"{os.sys.version}",
         "packages": {}
     }
+
+    try:
+        import importlib.metadata as importlib_metadata
+    except Exception:
+        import importlib_metadata
+
     for pkg in ["numpy","pandas","cvxpy","matplotlib","pyyaml","pyarrow"]:
         try:
-            meta_update["packages"][pkg] = pkg_resources.get_distribution(pkg).version
+            meta_update["packages"][pkg] = importlib_metadata.version(pkg)
         except Exception:
             meta_update["packages"][pkg] = None
-    # git commit
+
     try:
         import subprocess
-        commit = subprocess.check_output(["git","rev-parse","HEAD"], cwd=os.getcwd()).decode().strip()
-        meta_update["git_commit"] = commit
+        res = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=os.getcwd(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=True,
+            text=True
+        )
+        commit = res.stdout.strip()
+        meta_update["git_commit"] = commit if commit else None
     except Exception:
         meta_update["git_commit"] = None
+
     meta.update(meta_update)
     save_metadata(meta, out_folder / "metadata.json")
     return exp_folder
+
 
 def load_experiment(path: str) -> Dict[str,Any]:
     p = Path(path)

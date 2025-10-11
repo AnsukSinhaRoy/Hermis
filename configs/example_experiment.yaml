@@ -5,7 +5,7 @@ experiment:
   # Unique experiment name (used for folder naming)
   # ➤ Choose something short but descriptive. 
   # Example: "mean_var_k10" or "black_litterman_test"
-  name: "example_mv_k30"
+  name: "RealData_greedy_k5__prototype"
 
   # Optional label/tag for this run (e.g., "prototype", "baseline", "gpu_test")
   # Used to create experiment folder name like "20251010_182147__example_mv_k10__prototype"
@@ -13,8 +13,9 @@ experiment:
 
   # Start and end dates for the backtest or simulation period.
   # ➤ Applies to the price data window (synthetic or CSV).
-  start_date: "2015-01-01"
-  end_date: "2025-01-01"
+
+  # start_date: "2021-05-05 10:00:00"
+  # end_date: "2022-01-01 10:00:00"
 
   # Rebalancing frequency for the portfolio.
   # Options:
@@ -23,7 +24,7 @@ experiment:
   #   "monthly"   → rebalance first trading day of each month
   #   "quarterly" → rebalance every 3 months
   #   "yearly"    → rebalance every year
-  rebalance: "monthly"
+  rebalance: "weekly"
 
   # Random seed for reproducibility.
   # ➤ Use an integer value. Changing it affects synthetic data generation and stochastic processes.
@@ -45,7 +46,9 @@ data:
   #   "synthetic" → generate artificial price data (useful for testing)
   #   "csv"       → load your own price dataset from a CSV file
   # ➤ Keep "synthetic" until you are ready to feed real data.
-  mode: "synthetic"
+  
+  mode: "processed" # "synthetic" | "processed"
+  processed_path: "data/processed/prices_1D.parquet"
 
   # Path to the CSV file (used only when mode = "csv")
   # CSV format options:
@@ -79,7 +82,7 @@ optimizer:
   #   "mip"      → mixed-integer programming (exact k-cardinality, CPU-heavy)
   #   "greedy"   → greedy heuristic for k-cardinality (fast approximation)
   # ➤ Keep "mv" for baseline; the code automatically applies k-cardinality via greedy method if k_cardinality is set.
-  type: "mv"
+  type: "greedy"
 
   # Target return constraint for optimization.
   # Options:
@@ -91,14 +94,14 @@ optimizer:
   # Number of assets allowed to have non-zero weights (k-cardinality constraint)
   # ➤ Example: 10 means only 10 assets will be chosen in each portfolio.
   # If null, all assets are allowed.
-  k_cardinality: 5
+  k_cardinality: 25
 
   # Box constraints for individual asset weights.
   #   min → minimum allocation per asset (use 0.0 for long-only)
   #   max → maximum allocation per asset (e.g., 0.2 = 20%)
   # ➤ These control diversification and concentration limits.
   box:
-    min: 0.1
+    min: 0.0
     max: 0.2
 
   # Whether to restrict portfolio to long-only (no short selling).

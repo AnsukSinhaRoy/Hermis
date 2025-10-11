@@ -45,52 +45,89 @@ def load_prices_from_csv(path: str) -> pd.DataFrame:
         else:
             raise ValueError("CSV must contain either (date,ticker,price) or date + price columns per asset")
 
-def compute_returns(prices: pd.DataFrame, method: str = 'log') -> pd.DataFrame:
+def compute_returns(prices: pd.DataFrame, method: str = 'log', min_valid_obs:int=2) -> pd.DataFrame:
+    """
+    Compute returns robustly.
+    - Treat non-positive prices as NaN (can't take log or pct)
+    - Forward-fill small gaps (ffill), but avoid filling long missing tails
+    - Returns a DataFrame of returns (index shorter by one row for log/simple)
+    """
+    # copy to avoid mutating original
+    p = prices.copy()
+    # replace non-positive values with NaN
+    mask_nonpos = (p <= 0)
+    if mask_nonpos.any().any():
+        p = p.mask(mask_nonpos, other=pd.NA)
+
+    # forward-fill short gaps (limit can be tuned); here we fill up to 3 consecutive missing minutes/days
+    #p = p.fillna(method='ffill', limit=3)
+    p = p.ffill(limit=3)
+
     if method == 'log':
-        return np.log(prices).diff().dropna()
+        # drop remaining non-positive / NaN
+        p = p.dropna(how='all')
+        # if after ffill some columns still have NaN at first row, we will later drop them
+        # compute log prices then diff
+        with np.errstate(divide='ignore', invalid='ignore'):
+            logp = np.log(p.astype(float))
+        rets = logp.diff().dropna(how='all')
     elif method == 'simple':
-        return prices.pct_change().dropna()
+        p = p.dropna(how='all')
+        rets = p.pct_change().dropna(how='all')
     else:
         raise ValueError("method must be 'log' or 'simple'")
 
-def cov_matrix(prices: pd.DataFrame, method: str='log', use_gpu: bool=False) -> pd.DataFrame:
-    """
-    Compute sample covariance matrix using CPU (numpy) or GPU (cupy) backend.
-    Returns a pandas DataFrame (numpy) to be compatible with other libs.
+    # drop columns that are entirely NaN in returns
+    rets = rets.dropna(axis=1, how='all')
+    return rets
 
-    If the available price window has fewer than 2 observations (so returns are empty),
-    return a small-diagonal covariance matrix (eps*I) to keep optimizers stable.
+def cov_matrix(prices: pd.DataFrame, method: str='log', use_gpu: bool=False, min_obs:int=5) -> pd.DataFrame:
     """
-    import numpy as _np
-    xp, info = get_backend(use_gpu)
-    # convert to array on selected backend
-    arr = xp.asarray(prices.values, dtype=float)  # shape (T, N)
-    T = arr.shape[0]
-    cols = prices.columns.tolist()
-    if T < 2:
-        # Not enough data to compute returns -> return small diagonal covariance
+    Compute sample covariance matrix robustly.
+    - Uses compute_returns() which handles zeros/NaNs.
+    - Requires at least `min_obs` return observations; otherwise returns tiny-diagonal.
+    - Ensures the covariance is symmetric and finite before returning.
+    """
+    # compute returns using robust helper
+    rets = compute_returns(prices, method=method)
+    # If too few observations, return tiny diagonal
+    if rets.shape[0] < min_obs or rets.shape[1] == 0:
         eps = 1e-8
-        cov_np = _np.eye(len(cols)) * eps
+        cols = prices.columns.tolist()
+        cov_np = np.eye(len(cols)) * eps
         return pd.DataFrame(cov_np, index=cols, columns=cols)
 
-    if method == 'log':
-        logp = xp.log(arr)
-        rets = logp[1:] - logp[:-1]
-    else:
-        rets = (arr[1:] - arr[:-1]) / arr[:-1]
-
+    # Use numpy to compute covariance (always return numpy-backed DataFrame)
+    arr = rets.values.astype(float)  # shape (T-1, N_valid)
+    # align columns
+    cols = rets.columns.tolist()
     # demean
-    # convert to float64 on backend to avoid precision issues
-    rets = rets.astype(float)
-    mean = rets.mean(axis=0, keepdims=True)
-    rets_centered = rets - mean
-    n_obs = int(rets_centered.shape[0])
-    if n_obs < 2:
-        # fallback to tiny-diagonal cov if returns length is too small
+    arr = arr - np.nanmean(arr, axis=0, keepdims=True)
+    # compute covariance (pairwise) with nan-safe handling
+    # using np.nanmean and masked multiplication
+    T = arr.shape[0]
+    # if T <= 1 fallback
+    if T < 2:
         eps = 1e-8
-        cov_np = _np.eye(len(cols)) * eps
+        cov_np = np.eye(len(cols)) * eps
         return pd.DataFrame(cov_np, index=cols, columns=cols)
 
-    cov = (rets_centered.T @ rets_centered) / (n_obs - 1)
-    cov_np = to_numpy(cov)
+    cov_np = (arr.T @ arr) / float(T - 1)
+
+    # force symmetry numerically
+    cov_np = 0.5 * (cov_np + cov_np.T)
+
+    # clean non-finite values
+    if not np.isfinite(cov_np).all():
+        # replace non-finite with small diag eps
+        eps = 1e-8
+        # set diagonal to finite if possible
+        diag = np.diag(cov_np)
+        diag = np.where(np.isfinite(diag) & (diag > 0), diag, eps)
+        cov_np = np.nan_to_num(cov_np, nan=0.0, posinf=0.0, neginf=0.0)
+        np.fill_diagonal(cov_np, diag)
+
+    # final symmetry pass
+    cov_np = 0.5 * (cov_np + cov_np.T)
+
     return pd.DataFrame(cov_np, index=cols, columns=cols)

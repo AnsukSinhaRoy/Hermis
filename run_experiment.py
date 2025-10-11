@@ -7,6 +7,8 @@ from portfolio_sim.optimizer import greedy_k_cardinality, mv_optimize
 from portfolio_sim.backtest import run_backtest
 from portfolio_sim.experiment import run_experiment_from_config
 from portfolio_sim import viz
+from portfolio_sim.optimizer import mv_reg_optimize, min_variance_optimize, risk_parity_optimize, greedy_k_cardinality
+
 
 def expected_return_estimator(prices_window: pd.DataFrame):
     rets = compute_returns(prices_window, method='log')
@@ -17,43 +19,110 @@ def cov_estimator_factory(use_gpu: bool = False):
         return cov_matrix(prices_window, method='log', use_gpu=use_gpu)
     return cov_estimator
 
-def optimizer_wrapper_factory(cfg):
-    k = cfg['optimizer'].get('k_cardinality')
+def optimizer_wrapper_factory_from_cfg(cfg):
+    """
+    Build an optimizer function that matches run_backtest's expectation:
+      optimizer_func(expected_series, cov_df) -> dict with 'weights' and 'status'
+    This wrapper will read optimizer settings from cfg and dispatch to the right method.
+    """
+    opt_cfg = cfg['optimizer']
+    opt_type = opt_cfg.get('type', 'mv_reg')
+    k = opt_cfg.get('k_cardinality', None)  # could be None or int
+    box_cfg = opt_cfg.get('box', None)
     box = None
-    if cfg['optimizer'].get('box') is not None:
-        b = cfg['optimizer']['box']
-        box = (b['min'], b['max'])
-    long_only = cfg['optimizer'].get('long_only', True)
-    def optimizer_func(expected, cov):
-        if k is None:
-            return mv_optimize(expected, cov, target_return=None, box=box, long_only=long_only)
+    if box_cfg is not None:
+        # keep as dict for our optimizers which expect dicts not tuples
+        box = {"min": box_cfg.get("min", None), "max": box_cfg.get("max", None)}
+    long_only = bool(opt_cfg.get('long_only', True))
+
+    # pass through lambda list or other optimizer params
+    lambdas = opt_cfg.get('lambdas', None)
+
+    def optimizer_func(expected: pd.Series, cov: pd.DataFrame):
+        # ensure expected and cov are aligned and non-empty
+        if expected is None or cov is None:
+            return {"weights": None, "status": "invalid_inputs"}
+        # if k specified and >0, use greedy_k_cardinality selection first
+        if k is not None and int(k) > 0:
+            # greedy_k_cardinality will call requested method on subset
+            return greedy_k_cardinality(expected, cov, k=int(k), method=opt_type, box=box, long_only=long_only, lambdas=lambdas)
+        # otherwise call optimizer on full universe
+        if opt_type == "mv_reg":
+            return mv_reg_optimize(expected, cov, lambdas=lambdas, box=box, long_only=long_only)
+        elif opt_type == "minvar":
+            return min_variance_optimize(cov, box=box, long_only=long_only)
+        elif opt_type == "risk_parity":
+            return risk_parity_optimize(cov, long_only=long_only, box=box)
         else:
-            return greedy_k_cardinality(expected, cov, k=k, box=box, long_only=long_only)
+            # fallback to mv_reg
+            return mv_reg_optimize(expected, cov, lambdas=lambdas, box=box, long_only=long_only)
+
     return optimizer_func
 
+
 def runner_func(cfg: dict):
+    """
+    Runner that:
+      - loads prices
+      - builds estimator callables
+      - builds optimizer wrapper
+      - runs run_backtest and returns a dict with expected keys
+    """
     dcfg = cfg['data']
     exp_cfg = cfg['experiment']
     use_gpu = bool(exp_cfg.get('use_gpu', False))
+
+    # 1) load prices according to data.mode
     if dcfg['mode'] == 'synthetic':
-        prices = generate_synthetic_prices(n_assets=100,
-                                           start=exp_cfg.get('start_date'),
-                                           end=exp_cfg.get('end_date'),
-                                           seed=exp_cfg.get('seed', None))
+        prices = generate_synthetic_prices(
+            n_assets=dcfg.get('n_assets', 100),
+            start=exp_cfg.get('start_date'),
+            end=exp_cfg.get('end_date'),
+            seed=exp_cfg.get('seed', None)
+        )
+    elif dcfg['mode'] == 'processed':
+        prices = pd.read_parquet(dcfg['processed_path'])
     else:
         prices = load_prices_from_csv(dcfg['csv_path'])
-    cov_estimator = cov_estimator_factory(use_gpu=use_gpu)
-    optimizer = optimizer_wrapper_factory(cfg)
-    backtest_cfg = {'rebalance': exp_cfg.get('rebalance', 'monthly'),
-                    'transaction_costs': cfg.get('transaction_costs', {})}
-    result = run_backtest(prices, expected_return_estimator, cov_estimator, optimizer, backtest_cfg)
-    meta = {
-        "seed": exp_cfg.get('seed'),
-        "use_gpu": use_gpu,
-        "optimizer": cfg['optimizer'],
-        "risk_model": cfg['risk_model']
+
+    # 2) estimator callables
+    expected_return_estimator_callable = expected_return_estimator  # function, DO NOT CALL
+    cov_estimator_callable = cov_estimator_factory(use_gpu=use_gpu)
+
+    # 3) optimizer wrapper from config
+    optimizer_func = optimizer_wrapper_factory_from_cfg(cfg)
+
+    # 4) build backtest config (what run_backtest expects)
+    backtest_cfg = {
+        "rebalance": exp_cfg.get("rebalance", "monthly"),
+        "transaction_costs": cfg.get("transaction_costs", {}),
     }
-    return {"nav": result.nav, "weights": result.weights, "trades": result.trades, "meta": meta}
+
+    # 5) run backtest (returns BacktestResult)
+    bt_result = run_backtest(prices,
+                             expected_return_estimator_callable,
+                             cov_estimator_callable,
+                             optimizer_func,
+                             backtest_cfg)
+
+    # 6) convert BacktestResult -> plain dict expected by run_experiment_from_config
+    # bt_result has attributes: nav (pd.Series), weights (pd.DataFrame), turnover (pd.Series), trades (pd.DataFrame)
+    out = {
+        "nav": getattr(bt_result, "nav", None),
+        "weights": getattr(bt_result, "weights", None),
+        "turnover": getattr(bt_result, "turnover", None),
+        "trades": getattr(bt_result, "trades", None),
+        "meta": {
+            "cfg": cfg,
+            "n_assets": None if prices is None else prices.shape[1],
+            "price_index_start": None if prices is None else str(prices.index.min()),
+            "price_index_end": None if prices is None else str(prices.index.max()),
+        }
+    }
+
+    return out
+
+
 
 def main():
     # local imports so the function is drop-in
@@ -66,7 +135,7 @@ def main():
     from portfolio_sim import viz
     from portfolio_sim import data as data_module  # to access names if needed
 
-    cfg_path = "configs/example_experiment.yaml"
+    cfg_path = "configs/newconfig.yaml"
     experiments_base = "experiments"
     Path(experiments_base).mkdir(exist_ok=True)
 
@@ -83,37 +152,63 @@ def main():
     # -----------------------------
     # Determine prices used in the experiment
     # -----------------------------
-    # Prefer exact saved snapshot if present
+    # 1) Prefer exact saved snapshot if present in the experiment folder
+    prices = None
     prices_path = Path(exp_folder) / "data" / "prices.parquet"
     if prices_path.exists():
         try:
             prices = pd.read_parquet(prices_path)
-        except Exception:
-            prices = None
-    else:
-        prices = None
+            print(f"Loaded experiment snapshot prices from {prices_path}")
+        except Exception as e:
+            print(f"Warning: failed to read saved prices snapshot {prices_path}: {e}")
 
-    # If no saved prices, reconstruct based on YAML config
+    # 2) If no saved snapshot, consult config. Prefer processed_path (if present on disk).
     if prices is None:
         cfg = Config.load(cfg_path).raw
         dcfg = cfg.get("data", {})
         exp_cfg = cfg.get("experiment", {})
 
-        if dcfg.get("mode", "synthetic") == "synthetic":
-            # read n_assets if user added it to YAML, else default to 100
-            n_assets = dcfg.get("n_assets", 100)
-            prices = generate_synthetic_prices(
-                n_assets=n_assets,
-                start=exp_cfg.get("start_date"),
-                end=exp_cfg.get("end_date"),
-                seed=exp_cfg.get("seed", None)
-            )
+        processed_path = dcfg.get("processed_path", None)
+        csv_path = dcfg.get("csv_path", None)
+        mode = dcfg.get("mode", "synthetic")
+
+        # If a processed parquet path is provided and exists, use it regardless of mode
+        if processed_path is not None and Path(processed_path).exists():
+            try:
+                prices = pd.read_parquet(processed_path)
+                print(f"Loaded processed prices from {processed_path}")
+            except Exception as e:
+                raise RuntimeError(f"Failed to read processed_path '{processed_path}': {e}") from e
         else:
-            # csv mode: load file specified in csv_path
-            csv_path = dcfg.get("csv_path", "")
-            if not csv_path:
-                raise ValueError("data.mode == 'csv' but csv_path is empty in config.")
-            prices = load_prices_from_csv(csv_path)
+            # fallback by declared mode
+            if mode == "synthetic":
+                n_assets = dcfg.get("n_assets", 100)
+                prices = generate_synthetic_prices(
+                    n_assets=n_assets,
+                    start=exp_cfg.get("start_date"),
+                    end=exp_cfg.get("end_date"),
+                    seed=exp_cfg.get("seed", None)
+                )
+                print("Generated synthetic prices (mode=synthetic).")
+            elif mode == "processed":
+                # user requested processed but no valid file found
+                raise FileNotFoundError(
+                    f"data.mode == 'processed' but processed_path is not provided or does not exist: {processed_path}"
+                )
+            elif mode == "csv":
+                # CSV mode: require csv_path or fallback to processed_path if exists
+                if csv_path:
+                    prices = load_prices_from_csv(csv_path)
+                    print(f"Loaded prices from CSV at {csv_path}")
+                else:
+                    # final fallback: if processed_path was provided but missing, error
+                    raise ValueError("data.mode == 'csv' but csv_path is empty in config and no processed_path found.")
+            else:
+                raise ValueError(f"Unknown data.mode: {mode!r} in config {cfg_path}")
+
+    # at this point `prices` must be set
+    if prices is None:
+        raise RuntimeError("Failed to obtain prices from snapshot, processed_path, synthetic generator, or csv.")
 
     # -----------------------------
     # Save / show figures into experiment artifacts
