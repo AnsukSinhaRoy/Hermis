@@ -9,6 +9,7 @@ from portfolio_sim.experiment import run_experiment_from_config
 from portfolio_sim import viz
 from portfolio_sim.optimizer import mv_reg_optimize, min_variance_optimize, risk_parity_optimize, greedy_k_cardinality
 
+cfg_path = "configs/newconfig.yaml"
 
 def expected_return_estimator(prices_window: pd.DataFrame):
     rets = compute_returns(prices_window, method='log')
@@ -135,7 +136,7 @@ def main():
     from portfolio_sim import viz
     from portfolio_sim import data as data_module  # to access names if needed
 
-    cfg_path = "configs/newconfig.yaml"
+    
     experiments_base = "experiments"
     Path(experiments_base).mkdir(exist_ok=True)
 

@@ -8,22 +8,22 @@
     "end": "2025-03-05 00:00:00"
   },
   "failed_files": {
-    "data\\raw\\IRFC_minute.csv": {
+    "..\\raw\\IRFC_minute.csv": {
       "reason": "starts_after_start_datetime",
       "file_first_ts": "2021-01-29 10:00:00",
       "requested_start": "2020-05-05 10:00:00"
     },
-    "data\\raw\\JIOFIN_minute.csv": {
+    "..\\raw\\JIOFIN_minute.csv": {
       "reason": "starts_after_start_datetime",
       "file_first_ts": "2023-08-21 10:00:00",
       "requested_start": "2020-05-05 10:00:00"
     },
-    "data\\raw\\LICI_minute.csv": {
+    "..\\raw\\LICI_minute.csv": {
       "reason": "starts_after_start_datetime",
       "file_first_ts": "2022-05-17 10:00:00",
       "requested_start": "2020-05-05 10:00:00"
     },
-    "data\\raw\\LODHA_minute.csv": {
+    "..\\raw\\LODHA_minute.csv": {
       "reason": "starts_after_start_datetime",
       "file_first_ts": "2021-04-19 10:00:00",
       "requested_start": "2020-05-05 10:00:00"
@@ -60,16 +60,6 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "ADANIPORTS": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 3,
-      "rows_original": 903527,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
     "AMBUJACEM": {
       "nonpos_count_resampled": 0,
       "outlier_count": 3,
@@ -80,10 +70,10 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "ADANIENT": {
+    "ADANIPORTS": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 4,
-      "rows_original": 903469,
+      "outlier_count": 3,
+      "rows_original": 903527,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
@@ -94,6 +84,16 @@
       "nonpos_count_resampled": 0,
       "outlier_count": 0,
       "rows_original": 901837,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 1121,
+      "final_valid_points": 1121
+    },
+    "ADANIENT": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 4,
+      "rows_original": 903469,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
@@ -140,13 +140,13 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "BAJAJHLDNG": {
+    "BAJAJ-AUTO": {
       "nonpos_count_resampled": 0,
       "outlier_count": 2,
-      "rows_original": 898686,
+      "rows_original": 903526,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
-      "nonpos_count_original": 32,
+      "nonpos_count_original": 0,
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
@@ -157,16 +157,6 @@
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 1,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "BAJAJ-AUTO": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 2,
-      "rows_original": 903526,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
@@ -187,6 +177,16 @@
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
+      "resampled_rows": 1121,
+      "final_valid_points": 1121
+    },
+    "BAJAJHLDNG": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 2,
+      "rows_original": 898686,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 32,
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
@@ -250,16 +250,6 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "BOSCHLTD": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 2,
-      "rows_original": 903458,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
     "CHOLAFIN": {
       "nonpos_count_resampled": 0,
       "outlier_count": 1,
@@ -267,6 +257,16 @@
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 7,
+      "resampled_rows": 1121,
+      "final_valid_points": 1121
+    },
+    "BOSCHLTD": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 2,
+      "rows_original": 903458,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
@@ -310,6 +310,16 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
+    "DLF": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 0,
+      "rows_original": 903522,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 1121,
+      "final_valid_points": 1121
+    },
     "DIVISLAB": {
       "nonpos_count_resampled": 0,
       "outlier_count": 1,
@@ -324,16 +334,6 @@
       "nonpos_count_resampled": 0,
       "outlier_count": 2,
       "rows_original": 903523,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "DLF": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 903522,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
@@ -360,20 +360,20 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "GODREJCP": {
+    "HAL": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903517,
+      "outlier_count": 3,
+      "rows_original": 601417,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "HAL": {
+    "GODREJCP": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 3,
-      "rows_original": 601417,
+      "outlier_count": 1,
+      "rows_original": 903517,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
@@ -470,16 +470,6 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "ICICIPRULI": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 750488,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
     "ICICIBANK": {
       "nonpos_count_resampled": 0,
       "outlier_count": 2,
@@ -487,6 +477,16 @@
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 4500,
+      "resampled_rows": 1121,
+      "final_valid_points": 1121
+    },
+    "ICICIPRULI": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 1,
+      "rows_original": 750488,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
@@ -634,16 +634,6 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "INFY": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903522,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 4500,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
     "IOC": {
       "nonpos_count_resampled": 0,
       "outlier_count": 0,
@@ -651,6 +641,16 @@
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
+      "resampled_rows": 1121,
+      "final_valid_points": 1121
+    },
+    "INFY": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 1,
+      "rows_original": 903522,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 4500,
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
@@ -716,16 +716,6 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "JINDALSTEL": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903522,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
     "LODHA": {
       "ok": true,
       "errors": [],
@@ -778,6 +768,16 @@
       "nan_timestamps": 0,
       "rows": 330223
     },
+    "JINDALSTEL": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 1,
+      "rows_original": 903522,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 1121,
+      "final_valid_points": 1121
+    },
     "JSWENERGY": {
       "nonpos_count_resampled": 0,
       "outlier_count": 0,
@@ -808,20 +808,20 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "LTIM": {
+    "LT": {
       "nonpos_count_resampled": 0,
       "outlier_count": 1,
-      "rows_original": 767905,
+      "rows_original": 903519,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "LT": {
+    "LTIM": {
       "nonpos_count_resampled": 0,
       "outlier_count": 1,
-      "rows_original": 903519,
+      "rows_original": 767905,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
@@ -888,16 +888,6 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "PFC": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903514,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
     "ONGC": {
       "nonpos_count_resampled": 0,
       "outlier_count": 2,
@@ -908,10 +898,10 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "PIDILITIND": {
+    "PFC": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 903516,
+      "outlier_count": 1,
+      "rows_original": 903514,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
@@ -922,6 +912,16 @@
       "nonpos_count_resampled": 0,
       "outlier_count": 2,
       "rows_original": 903520,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 1121,
+      "final_valid_points": 1121
+    },
+    "PIDILITIND": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 0,
+      "rows_original": 903516,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
@@ -1028,20 +1028,20 @@
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "TATAMOTORS": {
+    "TATAPOWER": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 2,
-      "rows_original": 903514,
+      "outlier_count": 1,
+      "rows_original": 903518,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
       "resampled_rows": 1121,
       "final_valid_points": 1121
     },
-    "TATAPOWER": {
+    "TATAMOTORS": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903518,
+      "outlier_count": 2,
+      "rows_original": 903514,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,

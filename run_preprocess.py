@@ -4,7 +4,7 @@
 from portfolio_sim.preprocess import preprocess_pipeline
 
 summary = preprocess_pipeline(
-    raw_dir="data/raw",
+    raw_dir="../raw",
     processed_dir="data/processed",
     freq="1D",
     max_workers=8,

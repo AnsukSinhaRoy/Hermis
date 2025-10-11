@@ -17,10 +17,10 @@ restrict_msg=No restriction to common intersection applied.
 
 Failed files summary:
 
-data\raw\IRFC_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2021-01-29 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
+..\raw\IRFC_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2021-01-29 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
 
-data\raw\JIOFIN_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2023-08-21 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
+..\raw\JIOFIN_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2023-08-21 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
 
-data\raw\LICI_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2022-05-17 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
+..\raw\LICI_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2022-05-17 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
 
-data\raw\LODHA_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2021-04-19 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
+..\raw\LODHA_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2021-04-19 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
