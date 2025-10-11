@@ -9,6 +9,7 @@ summary = preprocess_pipeline(
     freq="1D",
     max_workers=8,
     start_datetime="2015-02-02 10:00:00",   # <-- your requested start
+    end_datetime="2024-11-06 15:45:00",     # <-- your requested end
     min_coverage_frac=0.5,
     drop_tickers_with_low_coverage=True,
     restrict_to_common_intersection=False

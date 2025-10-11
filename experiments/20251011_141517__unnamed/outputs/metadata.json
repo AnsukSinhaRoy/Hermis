@@ -1,0 +1,47 @@
+{
+  "cfg": {
+    "experiment": {
+      "name": "mvreg_Real_K10_lb252_daily",
+      "tag": "mvreg",
+      "rebalance": "daily",
+      "seed": 42,
+      "use_gpu": false
+    },
+    "data": {
+      "mode": "processed",
+      "processed_path": "data/processed/prices_1D.parquet"
+    },
+    "risk_model": {
+      "type": "sample_cov",
+      "lookback": 252
+    },
+    "csv_path": "",
+    "optimizer": {
+      "type": "mv_reg",
+      "k_cardinality": 10,
+      "box": {
+        "min": 0.005,
+        "max": 0.1
+      },
+      "long_only": true
+    },
+    "transaction_costs": {
+      "proportional": 0.0005
+    }
+  },
+  "n_assets": 71,
+  "price_index_start": "2015-02-02 00:00:00",
+  "price_index_end": "2025-03-05 00:00:00",
+  "runtime_seconds": 263.49577498435974,
+  "timestamp_utc": "2025-10-11T14:19:41.318398",
+  "python_version": "3.13.7 | packaged by Anaconda, Inc. | (main, Sep  9 2025, 19:54:37) [MSC v.1929 64 bit (AMD64)]",
+  "packages": {
+    "numpy": "2.3.3",
+    "pandas": "2.3.3",
+    "cvxpy": "1.7.3",
+    "matplotlib": "3.10.7",
+    "pyyaml": "6.0.3",
+    "pyarrow": "21.0.0"
+  },
+  "git_commit": "cf2a566c5cf321f7496527d719be43d97baea60f"
+}

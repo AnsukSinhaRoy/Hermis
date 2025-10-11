@@ -16,7 +16,7 @@ import numpy as np
 # portfolio_sim imports (local package)
 from portfolio_sim.config import Config
 from portfolio_sim.data import generate_synthetic_prices, load_prices_from_csv, compute_returns, cov_matrix
-from portfolio_sim.optimizer import greedy_k_cardinality, mv_reg_optimize, min_variance_optimize, risk_parity_optimize
+from portfolio_sim.optimizer import greedy_k_cardinality, mv_reg_optimize, risk_parity_optimize
 from portfolio_sim.backtest import run_backtest
 from portfolio_sim.experiment import run_experiment_from_config, load_experiment
 from portfolio_sim import viz
@@ -53,30 +53,33 @@ def optimizer_wrapper_factory_from_cfg(cfg):
     if box_cfg is not None:
         box = {"min": box_cfg.get("min", None), "max": box_cfg.get("max", None)}
     long_only = bool(opt_cfg.get('long_only', True))
-    lambdas = opt_cfg.get('lambdas', None)
+    lambda_reg = opt_cfg.get('lambda_reg', 1.0) # Use lambda_reg
 
     def optimizer_func(expected: pd.Series, cov: pd.DataFrame):
         if expected is None or cov is None:
             return {"weights": None, "status": "invalid_inputs"}
+        
+        # Consolidate common arguments
+        common_args = {"box": box, "long_only": long_only}
+
         if k is not None and int(k) > 0:
-            return greedy_k_cardinality(expected, cov, k=int(k), method=opt_type, box=box, long_only=long_only, lambdas=lambdas)
+            return greedy_k_cardinality(expected, cov, k=int(k), method=opt_type, **common_args, lambda_reg=lambda_reg)
+        
         if opt_type == "mv_reg":
-            return mv_reg_optimize(expected, cov, lambdas=lambdas, box=box, long_only=long_only)
-        elif opt_type == "minvar":
-            return min_variance_optimize(cov, box=box, long_only=long_only)
+            return mv_reg_optimize(expected, cov, **common_args, lambda_reg=lambda_reg)
         elif opt_type == "risk_parity":
-            return risk_parity_optimize(cov, long_only=long_only, box=box)
-        else:
-            return mv_reg_optimize(expected, cov, lambdas=lambdas, box=box, long_only=long_only)
+            return risk_parity_optimize(cov, **common_args)
+        else: # Default to mv_reg
+            return mv_reg_optimize(expected, cov, **common_args, lambda_reg=lambda_reg)
+            
     return optimizer_func
 
 
 def runner_func(cfg: dict):
     """
     Runner used by run_experiment_from_config.
-    Loads prices (synthetic/processed/csv), builds estimators & optimizer, runs backtest,
-    and RETURNS a dict containing nav/weights/trades/turnover/prices/meta so the experiment
-    saving routine can snapshot the exact prices and outputs.
+    Loads prices, builds estimators & optimizer, runs backtest,
+    and RETURNS a dict containing results for the experiment saving routine.
     """
     dcfg = cfg.get('data', {})
     exp_cfg = cfg.get('experiment', {})
@@ -94,13 +97,13 @@ def runner_func(cfg: dict):
         )
     elif mode == 'processed':
         processed_path = dcfg.get('processed_path')
-        if processed_path is None:
-            raise ValueError("data.mode == 'processed' but data.processed_path is not set in config")
+        if not processed_path:
+            raise ValueError("data.mode == 'processed' but data.processed_path is not set")
         prices = pd.read_parquet(processed_path)
     elif mode == 'csv':
         csv_path = dcfg.get('csv_path')
-        if csv_path is None:
-            raise ValueError("data.mode == 'csv' but data.csv_path is not set in config")
+        if not csv_path:
+            raise ValueError("data.mode == 'csv' but data.csv_path is not set")
         prices = load_prices_from_csv(csv_path)
     else:
         raise ValueError(f"Unknown data.mode: {mode!r}")
@@ -113,28 +116,9 @@ def runner_func(cfg: dict):
     optimizer_func = optimizer_wrapper_factory_from_cfg(cfg)
 
     # 4) backtest config
-    import time
-    from pathlib import Path
-
-    # base experiment directory that will be created by run_experiment_from_config
-    # If run_experiment_from_config doesn't create the folder before calling runner_func,
-    # we keep logs in ./runs/ for visibility and the file is printed so you can move it later.
-    runs_dir = Path.cwd() / "runs"
-    runs_dir.mkdir(parents=True, exist_ok=True)
-
-    ts = time.strftime("%Y%m%d_%H%M%S")
-    live_log_filename = f"live_{ts}.log"
-    log_path = str(runs_dir / live_log_filename)
-
-    print(f"[runner] Writing live backtest log to: {log_path}")
-    Path(log_path).parent.mkdir(parents=True, exist_ok=True)        
-
     backtest_cfg = {
-    "rebalance": exp_cfg.get("rebalance", "monthly"),
-    "transaction_costs": cfg.get("transaction_costs", {}),
-    # NEW: enable verbose per-step logging and write updates to log_path
-    "verbose": True,
-    "log_path": log_path,
+        "rebalance": exp_cfg.get("rebalance", "monthly"),
+        "transaction_costs": cfg.get("transaction_costs", {}),
     }
 
     # 5) run backtest
@@ -146,16 +130,16 @@ def runner_func(cfg: dict):
 
     # 6) produce output dict (include prices snapshot and meta)
     out = {
-        "nav": getattr(bt_result, "nav", None),
-        "weights": getattr(bt_result, "weights", None),
-        "turnover": getattr(bt_result, "turnover", None),
-        "trades": getattr(bt_result, "trades", None),
+        "nav": bt_result.nav,
+        "weights": bt_result.weights,
+        "turnover": bt_result.turnover,
+        "trades": bt_result.trades,
         "prices": prices,
         "meta": {
             "cfg": cfg,
-            "n_assets": None if prices is None else prices.shape[1],
-            "price_index_start": None if prices is None else str(prices.index.min()),
-            "price_index_end": None if prices is None else str(prices.index.max()),
+            "n_assets": prices.shape[1],
+            "price_index_start": str(prices.index.min()),
+            "price_index_end": str(prices.index.max()),
         }
     }
     return out
@@ -165,15 +149,32 @@ def _ann_stats(nav_s: pd.Series):
     """Compute a small set of annualized stats for JSON-friendly saving."""
     if nav_s is None or len(nav_s) < 2:
         return {"total_return": None, "ann_return": None, "ann_vol": None, "max_drawdown": None}
-    days = (nav_s.index[-1] - nav_s.index[0]).days or 1
-    total_ret = float(nav_s.iloc[-1] / nav_s.iloc[0] - 1.0)
-    ann_ret = (1 + total_ret) ** (365.0 / days) - 1
+    
+    days = (nav_s.index[-1] - nav_s.index[0]).days
+    # Avoid division by zero if backtest is less than a day
+    days = max(days, 1)
+
+    # --- FIX for FutureWarning ---
+    # Ensure scalar values are extracted before converting to float.
+    total_ret = nav_s.iloc[-1] / nav_s.iloc[0] - 1.0
+    ann_ret = (1 + total_ret) ** (365.0 / days) - 1.0
+    
     dr = nav_s.pct_change().dropna()
-    ann_vol = float(dr.std() * np.sqrt(252)) if not dr.empty else 0.0
+    ann_vol = dr.std() * np.sqrt(252) if not dr.empty else 0.0
+    
     roll_max = nav_s.cummax()
     drawdown = (nav_s - roll_max) / roll_max
-    max_dd = float(drawdown.min()) if not drawdown.empty else 0.0
-    return {"total_return": total_ret, "ann_return": ann_ret, "ann_vol": ann_vol, "max_drawdown": max_dd}
+    # .min() on a Series returns a scalar, but on a DataFrame returns a Series.
+    # To be safe, ensure we handle both cases.
+    min_drawdown = drawdown.min()
+    max_dd = min_drawdown if isinstance(min_drawdown, (int, float)) else min_drawdown.iloc[0]
+
+    return {
+        "total_return": float(total_ret),
+        "ann_return": float(ann_ret),
+        "ann_vol": float(ann_vol),
+        "max_drawdown": float(max_dd)
+    }
 
 
 def main():
@@ -189,120 +190,72 @@ def main():
     nav = out.get("nav")
     weights = out.get("weights")
     trades = out.get("trades")
-    meta = out.get("meta", {})
-
-    # Determine prices used in the experiment (prefer exact saved snapshot)
-    prices = None
-    prices_path = Path(exp_folder) / "data" / "prices.parquet"
-    if prices_path.exists():
-        try:
-            prices = pd.read_parquet(prices_path)
-            print(f"Loaded experiment snapshot prices from {prices_path}")
-        except Exception as e:
-            print(f"Warning: failed to read saved prices snapshot {prices_path}: {e}")
-
-    # fallback: if snapshot not present, check config or synthetic generator
-    if prices is None:
-        try:
-            cfg = Config.load(cfg_path).raw
-            dcfg = cfg.get("data", {})
-            exp_cfg = cfg.get("experiment", {})
-            processed_path = dcfg.get("processed_path", None)
-            csv_path = dcfg.get("csv_path", None)
-            mode = dcfg.get("mode", "synthetic")
-            if processed_path and Path(processed_path).exists():
-                prices = pd.read_parquet(processed_path)
-                print(f"Loaded processed prices from {processed_path}")
-            elif mode == "synthetic":
-                prices = generate_synthetic_prices(
-                    n_assets=dcfg.get("n_assets", 100),
-                    start=exp_cfg.get("start_date"),
-                    end=exp_cfg.get("end_date"),
-                    seed=exp_cfg.get("seed", None)
-                )
-                print("Generated synthetic prices (mode=synthetic).")
-            elif mode == "csv" and csv_path:
-                prices = load_prices_from_csv(csv_path)
-                print(f"Loaded prices from CSV at {csv_path}")
-            else:
-                print("No prices snapshot found and no valid fallback available.")
-        except Exception as e:
-            print("Warning while attempting fallback price load:", e)
-
-    if prices is None:
-        raise RuntimeError("Failed to obtain prices from snapshot, processed_path, synthetic generator, or csv.")
-
-    # Save / show figures into experiment artifacts
-    figures_dir = Path(exp_folder) / "artifacts" / "figures"
-    figures_dir.mkdir(parents=True, exist_ok=True)
-
-    try:
-        if nav is not None:
-            viz.plot_nav(nav, save_path=str(figures_dir / "nav.png"))
-        if weights is not None:
-            viz.plot_allocation_heatmap(weights, save_path=str(figures_dir / "alloc.png"))
-        # plot prices and nav (saves to file)
-        viz.plot_prices_and_nav(
-            prices,
-            nav,
-            normalize_prices=True,
-            sample_max_assets=None,
-            alpha=0.25,
-            figsize=(14, 6),
-            save_path=str(figures_dir / "prices_and_nav.png")
-        )
-        print("Saved figures to:", str(figures_dir))
-    except Exception as e:
-        print("Warning while saving figures:", e)
-
-    # Precompute and save performance artifacts (into outputs/performance/)
-    out_dir = Path(exp_folder) / "outputs"
-    perf_dir = out_dir / "performance"
+    
+    # Precompute and save performance artifacts
+    perf_dir = Path(exp_folder) / "outputs" / "performance"
     perf_dir.mkdir(parents=True, exist_ok=True)
-
+    
     try:
-        if nav is not None:
-            # metrics.json
+        if nav is not None and not nav.empty:
+            # Save metrics
             metrics = _ann_stats(nav)
             with open(perf_dir / "metrics.json", "w") as f:
                 json.dump(metrics, f, indent=2)
 
-            # rolling_sharpe (63 day)
+            # Save rolling sharpe
             returns = nav.pct_change().dropna()
-            if not returns.empty:
+            if len(returns) > 63:
                 win = 63
                 r_mean = returns.rolling(win).mean()
                 r_std = returns.rolling(win).std()
-                rs = (r_mean / r_std) * np.sqrt(252)
-                rs = rs.dropna()
-                if not rs.empty:
-                    rs.to_frame(name="rolling_sharpe").to_parquet(perf_dir / "rolling_sharpe.parquet")
+                rs = (r_mean / (r_std + 1e-8)) * np.sqrt(252)
+                rs.to_frame(name="rolling_sharpe").to_parquet(perf_dir / "rolling_sharpe.parquet")
 
-            # drawdown series
+            # Save drawdown series
             roll_max = nav.cummax()
-            drawdown = ((nav - roll_max) / roll_max).to_frame(name="drawdown")
-            drawdown.to_parquet(perf_dir / "drawdown.parquet")
+            drawdown = ((nav - roll_max) / roll_max)
+            drawdown.to_frame(name="drawdown").to_parquet(perf_dir / "drawdown.parquet")
 
-            # cumulative returns
-            cum = (nav / float(nav.iloc[0])).to_frame(name="cum_returns")
-            cum.to_parquet(perf_dir / "cum_returns.parquet")
+            # Save cumulative returns
+            cum = (nav / nav.iloc[0])
+            cum.to_frame(name="cum_returns").to_parquet(perf_dir / "cum_returns.parquet")
 
-        # save selected mapping if trades exist and include 'selected'
-        if trades is not None:
-            try:
-                if 'selected' in trades.columns:
-                    # trades['date'] might be a column; ensure index is date
-                    sel = trades.set_index('date')['selected'] if 'date' in trades.columns else trades['selected']
-                    sel.to_frame(name="selected").to_parquet(perf_dir / "selected.parquet")
-            except Exception:
-                pass
+        # --- FIX for artifact saving error ---
+        # The backtester now returns trades with the date as the index.
+        # We can simplify this logic to directly select the column as a DataFrame.
+        if trades is not None and 'selected' in trades.columns and not trades.empty:
+            # Select as a DataFrame and save
+            trades[['selected']].to_parquet(perf_dir / "selected.parquet")
 
         print(f"Saved performance artifacts to {perf_dir}")
+
     except Exception as e:
-        print("Warning: failed to write performance artifacts:", e)
+        print(f"Warning: failed to write some performance artifacts: {e}")
+        import traceback
+        traceback.print_exc()
+
+    # Load prices for plotting
+    prices_path = Path(exp_folder) / "data" / "prices.parquet"
+    if prices_path.exists():
+        prices = pd.read_parquet(prices_path)
+    else:
+        print("Warning: Could not find prices snapshot for plotting.")
+        prices = None
+
+    # Save figures
+    if prices is not None:
+        figures_dir = Path(exp_folder) / "artifacts" / "figures"
+        figures_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            if nav is not None:
+                viz.plot_nav(nav, save_path=str(figures_dir / "nav.png"))
+                viz.plot_prices_and_nav(prices, nav, save_path=str(figures_dir / "prices_and_nav.png"))
+            if weights is not None:
+                viz.plot_allocation_heatmap(weights, save_path=str(figures_dir / "alloc.png"))
+            print("Saved figures to:", str(figures_dir))
+        except Exception as e:
+            print(f"Warning: failed to save figures: {e}")
 
 
 if __name__ == "__main__":
     main()
-
-

@@ -1,0 +1,30 @@
+experiment:
+  name: "example_mvreg_k10"
+  tag: "mvreg"
+  start_date: "2015-01-01"
+  end_date: "2022-12-31"
+  rebalance: "weekly"
+  seed: 42
+  use_gpu: false
+
+data:
+  mode: "synthetic"  # 👈 choose one: synthetic | processed
+  #processed_path: "data/processed/prices_1D.parquet"
+
+risk_model:
+  type: "sample_cov"
+  lookback: 56
+
+csv_path: ""
+
+optimizer:
+  type: "mv_reg"         # 👈 choose one: mv_reg | risk_parity | minvar
+  k_cardinality: 25
+  # lambdas: [0.001, 0.01, 0.1, 1.0]
+  box:
+    min: 0.02
+    max: 0.15
+  long_only: true
+
+transaction_costs:
+  proportional: 0.0005

@@ -1,0 +1,48 @@
+{
+  "cfg": {
+    "experiment": {
+      "name": "mvreg_Synthetic_K15_lb252_monthly",
+      "tag": "mvreg",
+      "start_date": "2015-02-02",
+      "end_date": "2022-12-31",
+      "rebalance": "monthly",
+      "seed": 42,
+      "use_gpu": false
+    },
+    "data": {
+      "mode": "synthetic"
+    },
+    "risk_model": {
+      "type": "sample_cov",
+      "lookback": 252
+    },
+    "csv_path": "",
+    "optimizer": {
+      "type": "mv_reg",
+      "k_cardinality": 15,
+      "box": {
+        "min": 0.005,
+        "max": 0.2
+      },
+      "long_only": true
+    },
+    "transaction_costs": {
+      "proportional": 0.0005
+    }
+  },
+  "n_assets": 100,
+  "price_index_start": "2015-02-02 00:00:00",
+  "price_index_end": "2022-12-30 00:00:00",
+  "runtime_seconds": 56.19233512878418,
+  "timestamp_utc": "2025-10-11T15:51:48.910390",
+  "python_version": "3.13.7 | packaged by Anaconda, Inc. | (main, Sep  9 2025, 19:54:37) [MSC v.1929 64 bit (AMD64)]",
+  "packages": {
+    "numpy": "2.3.3",
+    "pandas": "2.3.3",
+    "cvxpy": "1.7.3",
+    "matplotlib": "3.10.7",
+    "pyyaml": "6.0.3",
+    "pyarrow": "21.0.0"
+  },
+  "git_commit": "9c57ab03291b13c63dc8bddc2fe9910f7ff35ff0"
+}

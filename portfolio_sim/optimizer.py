@@ -68,14 +68,30 @@ def _clip_box_and_long_only(w: pd.Series, box: Optional[dict], long_only: bool) 
 def mv_reg_optimize(mu: pd.Series,
                     Sigma: pd.DataFrame,
                     lambdas: Optional[List[float]] = None,
+                    lambda_reg: Optional[float] = None,
                     box: Optional[dict] = None,
                     long_only: bool = True,
-                    solver: Optional[str] = None) -> Dict:
+                    solver: Optional[str] = None,
+                    **kwargs) -> Dict:
     """
     Regularized mean-variance: maximize mu^T w - lambda * w^T Sigma w
+    Backwards-compatible: accepts either `lambdas` (list) or `lambda_reg` (single float)
+    and normalizes to a list of lambda values to try.
     We try several lambda values and pick the best in-sample Sharpe.
     Returns dict {weights: pd.Series, status: "ok"/"failed", lambda: chosen}
     """
+    # support legacy single-value param `lambda_reg`
+    if lambdas is None and lambda_reg is not None:
+        # if user passed a single float, turn it into a list for the sweep
+        lambdas = [float(lambda_reg)]
+
+    # if someone passed a single scalar in lambdas, coerce to list
+    if lambdas is not None and not isinstance(lambdas, (list, tuple, set)):
+        try:
+            lambdas = [float(lambdas)]
+        except Exception:
+            lambdas = None
+
     if lambdas is None:
         lambdas = [1e-4, 1e-3, 1e-2, 1e-1, 0.5, 1.0, 2.0]
 
@@ -94,7 +110,7 @@ def mv_reg_optimize(mu: pd.Series,
         try:
             w = cp.Variable(n)
             # objective: maximize mu^T w - lam * w^T Sigma w
-            obj = cp.Maximize(mu_np @ w - lam * cp.quad_form(w, Sigma_np))
+            obj = cp.Maximize(mu_np @ w - float(lam) * cp.quad_form(w, Sigma_np))
             constraints = [cp.sum(w) == 1]
             if long_only:
                 constraints += [w >= 0]
@@ -123,7 +139,7 @@ def mv_reg_optimize(mu: pd.Series,
             if sharpe > best_sharpe:
                 best_sharpe = sharpe
                 best_res = {"weights": pd.Series(w_np, index=assets), "status": "ok", "lambda": lam, "sharpe_insample": float(sharpe)}
-        except Exception as e:
+        except Exception:
             # skip failing lambda
             continue
 
@@ -137,6 +153,7 @@ def mv_reg_optimize(mu: pd.Series,
             w0 = pd.Series(w0, index=assets)
         return {"weights": w0, "status": "fallback_equal", "lambda": None, "sharpe_insample": None}
     return best_res
+
 
 # ---------------------------
 # Minimum variance (convex)

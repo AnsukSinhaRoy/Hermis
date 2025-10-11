@@ -1,0 +1,30 @@
+experiment:
+  name: "mvreg_Real_FREE_lb252_weekly"
+  tag: "mvreg"
+  # start_date: "2015-02-02"
+  # end_date: "2022-12-31"
+  rebalance: "weekly"  # 👈 choose one: daily | weekly | monthly
+  seed: 42
+  use_gpu: false
+
+data:
+  mode: "processed"  # 👈 choose one: synthetic | processed
+  processed_path: "data/processed/prices_1D.parquet"
+
+risk_model:
+  type: "sample_cov"
+  lookback: 252
+
+csv_path: ""
+
+optimizer:
+  type: "mv_reg"         # 👈 choose one: mv_reg | risk_parity | minvar
+  k_cardinality: 50
+  # lambdas: [0.001, 0.01, 0.1, 1.0]
+  box:
+    min: 0
+    max: 1
+  long_only: true
+
+transaction_costs:
+  proportional: 0.0005
