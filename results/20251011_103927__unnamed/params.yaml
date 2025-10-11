@@ -3,7 +3,7 @@ experiment:
   tag: "mvreg"
   start_date: "2015-01-01"
   end_date: "2022-12-31"
-  rebalance: "weekly"
+  rebalance: "monthly"
   seed: 42
   use_gpu: false
 
@@ -13,7 +13,7 @@ data:
 
 risk_model:
   type: "sample_cov"
-  lookback: 56
+  lookback: 252
 
 csv_path: ""
 
@@ -22,8 +22,8 @@ optimizer:
   k_cardinality: 25
   # lambdas: [0.001, 0.01, 0.1, 1.0]
   box:
-    min: 0.02
-    max: 0.15
+    min: 0.0
+    max: 0.2
   long_only: true
 
 transaction_costs:

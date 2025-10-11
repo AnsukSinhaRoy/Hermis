@@ -84,7 +84,7 @@ def ann_stats(nav_s: pd.Series) -> Dict[str, float]:
 
 # Sidebar
 st.sidebar.title("Experiment Explorer")
-root = st.sidebar.text_input("Experiments root folder", value="experiments")
+root = st.sidebar.text_input("Experiments root folder", value="results")
 rootp = Path(root)
 exp_dirs = load_experiment_list(rootp)
 

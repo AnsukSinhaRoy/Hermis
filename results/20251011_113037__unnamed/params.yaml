@@ -22,8 +22,8 @@ optimizer:
   k_cardinality: 25
   # lambdas: [0.001, 0.01, 0.1, 1.0]
   box:
-    min: 0.02
-    max: 0.15
+    min: 0.0
+    max: 0.2
   long_only: true
 
 transaction_costs:
