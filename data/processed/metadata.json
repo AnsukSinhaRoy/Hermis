@@ -1,64 +1,248 @@
 {
   "n_tickers_processed": 87,
-  "n_tickers_saved": 83,
+  "n_tickers_saved": 71,
   "saved_prices": "data\\processed\\prices_1D.parquet",
   "freq": "1D",
   "range": {
-    "start": "2020-05-05 00:00:00",
+    "start": "2015-02-02 00:00:00",
     "end": "2025-03-05 00:00:00"
   },
   "failed_files": {
+    "..\\raw\\ADANIGREEN_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2018-06-18 10:00:00",
+      "requested_start": "2015-02-02 10:00:00"
+    },
+    "..\\raw\\ADANIENSOL_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2015-07-31 10:00:00",
+      "requested_start": "2015-02-02 10:00:00"
+    },
+    "..\\raw\\ATGL_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2018-11-05 10:00:00",
+      "requested_start": "2015-02-02 10:00:00"
+    },
+    "..\\raw\\DMART_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2017-03-21 10:00:00",
+      "requested_start": "2015-02-02 10:00:00"
+    },
+    "..\\raw\\HAL_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2018-03-28 09:45:00",
+      "requested_start": "2015-02-02 10:00:00"
+    },
+    "..\\raw\\HDFCLIFE_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2017-11-17 10:00:00",
+      "requested_start": "2015-02-02 10:00:00"
+    },
+    "..\\raw\\ICICIGI_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2017-09-27 10:00:00",
+      "requested_start": "2015-02-02 10:00:00"
+    },
+    "..\\raw\\ICICIPRULI_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2016-09-29 10:00:00",
+      "requested_start": "2015-02-02 10:00:00"
+    },
+    "..\\raw\\INDIGO_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2015-11-10 10:00:00",
+      "requested_start": "2015-02-02 10:00:00"
+    },
     "..\\raw\\IRFC_minute.csv": {
       "reason": "starts_after_start_datetime",
       "file_first_ts": "2021-01-29 10:00:00",
-      "requested_start": "2020-05-05 10:00:00"
+      "requested_start": "2015-02-02 10:00:00"
+    },
+    "..\\raw\\IRCTC_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2019-10-14 10:00:00",
+      "requested_start": "2015-02-02 10:00:00"
     },
     "..\\raw\\JIOFIN_minute.csv": {
       "reason": "starts_after_start_datetime",
       "file_first_ts": "2023-08-21 10:00:00",
-      "requested_start": "2020-05-05 10:00:00"
+      "requested_start": "2015-02-02 10:00:00"
     },
     "..\\raw\\LICI_minute.csv": {
       "reason": "starts_after_start_datetime",
       "file_first_ts": "2022-05-17 10:00:00",
-      "requested_start": "2020-05-05 10:00:00"
+      "requested_start": "2015-02-02 10:00:00"
     },
     "..\\raw\\LODHA_minute.csv": {
       "reason": "starts_after_start_datetime",
       "file_first_ts": "2021-04-19 10:00:00",
-      "requested_start": "2020-05-05 10:00:00"
+      "requested_start": "2015-02-02 10:00:00"
+    },
+    "..\\raw\\LTIM_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2016-07-21 10:00:00",
+      "requested_start": "2015-02-02 10:00:00"
+    },
+    "..\\raw\\SBILIFE_minute.csv": {
+      "reason": "starts_after_start_datetime",
+      "file_first_ts": "2017-10-03 10:00:00",
+      "requested_start": "2015-02-02 10:00:00"
     }
   },
   "diagnostics": {
     "ADANIGREEN": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 3,
-      "rows_original": 590214,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          590214,
+          5
+        ],
+        "head": [
+          {
+            "open": 29.4,
+            "high": 30.7,
+            "low": 28.5,
+            "close": 29.0,
+            "volume": 1079421
+          },
+          {
+            "open": 29.0,
+            "high": 29.9,
+            "low": 29.0,
+            "close": 29.5,
+            "volume": 187904
+          },
+          {
+            "open": 29.5,
+            "high": 29.5,
+            "low": 28.5,
+            "close": 28.5,
+            "volume": 435943
+          },
+          {
+            "open": 28.5,
+            "high": 28.95,
+            "low": 28.5,
+            "close": 28.55,
+            "volume": 85359
+          },
+          {
+            "open": 28.6,
+            "high": 28.9,
+            "low": 28.5,
+            "close": 28.5,
+            "volume": 99192
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 590214
     },
     "ADANIENSOL": {
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          850689,
+          5
+        ],
+        "head": [
+          {
+            "open": 27.6,
+            "high": 27.6,
+            "low": 27.6,
+            "close": 27.6,
+            "volume": 258863
+          },
+          {
+            "open": 27.6,
+            "high": 27.6,
+            "low": 27.6,
+            "close": 27.6,
+            "volume": 145857
+          },
+          {
+            "open": 27.6,
+            "high": 27.6,
+            "low": 27.6,
+            "close": 27.6,
+            "volume": 3241
+          },
+          {
+            "open": 27.6,
+            "high": 27.6,
+            "low": 27.6,
+            "close": 27.6,
+            "volume": 5892
+          },
+          {
+            "open": 27.6,
+            "high": 27.6,
+            "low": 27.6,
+            "close": 27.6,
+            "volume": 5822
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 850689
+    },
+    "ADANIENT": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 2,
-      "rows_original": 850689,
+      "outlier_count": 3,
+      "rows_original": 903469,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "ADANIPOWER": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 3,
       "rows_original": 903512,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "ABB": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 3,
+      "rows_original": 901837,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "ADANIPORTS": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 4,
+      "rows_original": 903527,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "APOLLOHOSP": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 4,
+      "rows_original": 903528,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "AMBUJACEM": {
       "nonpos_count_resampled": 0,
@@ -67,138 +251,140 @@
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
-    "ADANIPORTS": {
+    "ATGL": {
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          555736,
+          5
+        ],
+        "head": [
+          {
+            "open": 75.6,
+            "high": 75.6,
+            "low": 75.6,
+            "close": 75.6,
+            "volume": 290372
+          },
+          {
+            "open": 75.6,
+            "high": 75.6,
+            "low": 75.6,
+            "close": 75.6,
+            "volume": 22063
+          },
+          {
+            "open": 75.6,
+            "high": 75.6,
+            "low": 75.6,
+            "close": 75.6,
+            "volume": 244100
+          },
+          {
+            "open": 75.6,
+            "high": 75.6,
+            "low": 75.6,
+            "close": 75.6,
+            "volume": 41541
+          },
+          {
+            "open": 75.6,
+            "high": 75.6,
+            "low": 75.6,
+            "close": 75.6,
+            "volume": 10208
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 555736
+    },
+    "ASIANPAINT": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 1,
+      "rows_original": 903529,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "AXISBANK": {
       "nonpos_count_resampled": 0,
       "outlier_count": 3,
       "rows_original": 903527,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "ABB": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 901837,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "ADANIENT": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 4,
-      "rows_original": 903469,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "APOLLOHOSP": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903528,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "ATGL": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 2,
-      "rows_original": 555736,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "ASIANPAINT": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 903529,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "AXISBANK": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903527,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "BAJAJ-AUTO": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 2,
+      "outlier_count": 4,
       "rows_original": 903526,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "BAJAJFINSV": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 1,
       "rows_original": 903518,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 1,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "BAJFINANCE": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 1,
       "rows_original": 903521,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 1,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "BANKBARODA": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903529,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "BAJAJHLDNG": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 2,
+      "outlier_count": 4,
       "rows_original": 898686,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 32,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "BANKBARODA": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 5,
+      "rows_original": 903529,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "BEL": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 2,
       "rows_original": 903525,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "BHARTIARTL": {
       "nonpos_count_resampled": 0,
@@ -207,168 +393,252 @@
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "BHEL": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 2,
+      "outlier_count": 3,
       "rows_original": 903525,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "BPCL": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903526,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "BRITANNIA": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903524,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "CANBK": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903529,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "CHOLAFIN": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903289,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 7,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "BOSCHLTD": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 2,
+      "outlier_count": 1,
       "rows_original": 903458,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
-    "CIPLA": {
+    "BRITANNIA": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 903526,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "COALINDIA": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903528,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "DABUR": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 903521,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "DMART": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 706928,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "DLF": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 903522,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "DIVISLAB": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 3,
       "rows_original": 903524,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
-    "DRREDDY": {
+    "BPCL": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 2,
-      "rows_original": 903523,
+      "outlier_count": 3,
+      "rows_original": 903526,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
-    "EICHERMOT": {
+    "CHOLAFIN": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 903520,
+      "outlier_count": 3,
+      "rows_original": 903289,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 7,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "CANBK": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 4,
+      "rows_original": 903529,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
-    "GAIL": {
+    "CIPLA": {
       "nonpos_count_resampled": 0,
       "outlier_count": 1,
+      "rows_original": 903526,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "COALINDIA": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 2,
+      "rows_original": 903528,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "DMART": {
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          706928,
+          5
+        ],
+        "head": [
+          {
+            "open": 600.2,
+            "high": 612.15,
+            "low": 596.0,
+            "close": 596.2,
+            "volume": 7665903
+          },
+          {
+            "open": 597.0,
+            "high": 598.05,
+            "low": 575.0,
+            "close": 576.05,
+            "volume": 2731231
+          },
+          {
+            "open": 576.35,
+            "high": 576.35,
+            "low": 560.0,
+            "close": 563.0,
+            "volume": 3012908
+          },
+          {
+            "open": 564.3,
+            "high": 568.6,
+            "low": 560.75,
+            "close": 562.0,
+            "volume": 1714593
+          },
+          {
+            "open": 562.45,
+            "high": 579.05,
+            "low": 561.3,
+            "close": 577.0,
+            "volume": 1868479
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 706928
+    },
+    "DABUR": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 2,
+      "rows_original": 903521,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "DLF": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 4,
       "rows_original": 903522,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
-    "HAL": {
+    "DIVISLAB": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 3,
-      "rows_original": 601417,
+      "outlier_count": 4,
+      "rows_original": 903524,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "DRREDDY": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 5,
+      "rows_original": 903523,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "EICHERMOT": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 2,
+      "rows_original": 903520,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "GAIL": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 4,
+      "rows_original": 903522,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "HAL": {
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          601417,
+          5
+        ],
+        "head": [
+          {
+            "open": 576.0,
+            "high": 576.0,
+            "low": 576.0,
+            "close": 576.0,
+            "volume": 188102
+          },
+          {
+            "open": 576.0,
+            "high": 591.3,
+            "low": 575.75,
+            "close": 589.0,
+            "volume": 405688
+          },
+          {
+            "open": 588.5,
+            "high": 589.8,
+            "low": 584.2,
+            "close": 587.5,
+            "volume": 142532
+          },
+          {
+            "open": 587.8,
+            "high": 588.0,
+            "low": 584.15,
+            "close": 585.6,
+            "volume": 102706
+          },
+          {
+            "open": 585.9,
+            "high": 586.8,
+            "low": 581.0,
+            "close": 584.6,
+            "volume": 118168
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 601417
     },
     "GODREJCP": {
       "nonpos_count_resampled": 0,
@@ -377,138 +647,296 @@
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "HDFCLIFE": {
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          645567,
+          5
+        ],
+        "head": [
+          {
+            "open": 311.05,
+            "high": 313.05,
+            "low": 311.05,
+            "close": 312.5,
+            "volume": 9003223
+          },
+          {
+            "open": 312.5,
+            "high": 313.65,
+            "low": 312.5,
+            "close": 312.85,
+            "volume": 4394573
+          },
+          {
+            "open": 312.55,
+            "high": 312.9,
+            "low": 308.45,
+            "close": 308.75,
+            "volume": 4314347
+          },
+          {
+            "open": 309.25,
+            "high": 312.5,
+            "low": 309.25,
+            "close": 312.5,
+            "volume": 3423273
+          },
+          {
+            "open": 312.15,
+            "high": 315.0,
+            "low": 312.15,
+            "close": 314.3,
+            "volume": 4469888
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 645567
     },
     "GRASIM": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 3,
       "rows_original": 903491,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "HDFCLIFE": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 645567,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "HAVELLS": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 2,
       "rows_original": 903519,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "HCLTECH": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 2,
       "rows_original": 903520,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "HDFCBANK": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 6,
       "rows_original": 903519,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "HEROMOTOCO": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 3,
       "rows_original": 903520,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "HINDALCO": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 1,
       "rows_original": 903522,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "ICICIGI": {
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          658336,
+          5
+        ],
+        "head": [
+          {
+            "open": 651.0,
+            "high": 653.95,
+            "low": 638.9,
+            "close": 644.4,
+            "volume": 1313535
+          },
+          {
+            "open": 644.25,
+            "high": 646.85,
+            "low": 640.85,
+            "close": 641.2,
+            "volume": 630935
+          },
+          {
+            "open": 641.5,
+            "high": 649.75,
+            "low": 641.5,
+            "close": 646.45,
+            "volume": 527921
+          },
+          {
+            "open": 646.4,
+            "high": 653.25,
+            "low": 645.1,
+            "close": 653.25,
+            "volume": 704311
+          },
+          {
+            "open": 653.5,
+            "high": 655.8,
+            "low": 650.6,
+            "close": 650.6,
+            "volume": 564532
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 658336
     },
     "HINDUNILVR": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 4,
       "rows_original": 903518,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
-    "ICICIGI": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 658336,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+    "ICICIPRULI": {
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          750488,
+          5
+        ],
+        "head": [
+          {
+            "open": 328.5,
+            "high": 333.6,
+            "low": 328.4,
+            "close": 333.6,
+            "volume": 3505907
+          },
+          {
+            "open": 333.6,
+            "high": 333.6,
+            "low": 331.05,
+            "close": 333.0,
+            "volume": 1561649
+          },
+          {
+            "open": 333.15,
+            "high": 333.2,
+            "low": 331.95,
+            "close": 332.0,
+            "volume": 1204284
+          },
+          {
+            "open": 331.95,
+            "high": 332.0,
+            "low": 329.3,
+            "close": 329.4,
+            "volume": 1444487
+          },
+          {
+            "open": 329.4,
+            "high": 330.8,
+            "low": 329.35,
+            "close": 330.5,
+            "volume": 814301
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 750488
     },
     "ICICIBANK": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 2,
+      "nonpos_count_resampled": 12,
+      "outlier_count": 3,
       "rows_original": 903521,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 4500,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "ICICIPRULI": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 750488,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "INDIA": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 938695,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1201,
-      "final_valid_points": 1201
+      "resampled_rows": 2411,
+      "final_valid_points": 2409
     },
     "INDIGO": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 831535,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          831535,
+          5
+        ],
+        "head": [
+          {
+            "open": 865.0,
+            "high": 879.35,
+            "low": 865.0,
+            "close": 876.0,
+            "volume": 1901886
+          },
+          {
+            "open": 875.4,
+            "high": 883.35,
+            "low": 875.4,
+            "close": 877.95,
+            "volume": 1143299
+          },
+          {
+            "open": 878.25,
+            "high": 884.5,
+            "low": 875.0,
+            "close": 884.5,
+            "volume": 635837
+          },
+          {
+            "open": 885.15,
+            "high": 897.0,
+            "low": 885.15,
+            "close": 894.0,
+            "volume": 1106889
+          },
+          {
+            "open": 893.4,
+            "high": 898.5,
+            "low": 888.0,
+            "close": 888.0,
+            "volume": 762867
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 831535
     },
     "IRFC": {
       "ok": true,
@@ -562,6 +990,68 @@
       "nan_timestamps": 0,
       "rows": 349644
     },
+    "IRCTC": {
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          470776,
+          5
+        ],
+        "head": [
+          {
+            "open": 130.0,
+            "high": 133.8,
+            "low": 125.6,
+            "close": 132.85,
+            "volume": 19951390
+          },
+          {
+            "open": 132.7,
+            "high": 134.75,
+            "low": 132.0,
+            "close": 134.6,
+            "volume": 9915095
+          },
+          {
+            "open": 134.6,
+            "high": 135.0,
+            "low": 134.0,
+            "close": 134.95,
+            "volume": 5122340
+          },
+          {
+            "open": 134.85,
+            "high": 135.4,
+            "low": 134.15,
+            "close": 135.05,
+            "volume": 4012215
+          },
+          {
+            "open": 135.4,
+            "high": 136.95,
+            "low": 135.0,
+            "close": 136.2,
+            "volume": 4607645
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 470776
+    },
+    "INDIA": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 3,
+      "rows_original": 938695,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2491,
+      "final_valid_points": 2491
+    },
     "JIOFIN": {
       "ok": true,
       "errors": [],
@@ -614,45 +1104,35 @@
       "nan_timestamps": 0,
       "rows": 113154
     },
-    "IRCTC": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 470776,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
     "INDUSINDBK": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 8,
       "rows_original": 903521,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "IOC": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 2,
       "rows_original": 903519,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "INFY": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "nonpos_count_resampled": 12,
+      "outlier_count": 4,
       "rows_original": 903522,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 4500,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2408
     },
     "LICI": {
       "ok": true,
@@ -706,16 +1186,6 @@
       "nan_timestamps": 0,
       "rows": 230584
     },
-    "ITC": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 903521,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 4500,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
     "LODHA": {
       "ok": true,
       "errors": [],
@@ -768,85 +1238,137 @@
       "nan_timestamps": 0,
       "rows": 330223
     },
+    "ITC": {
+      "nonpos_count_resampled": 12,
+      "outlier_count": 5,
+      "rows_original": 903521,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 4500,
+      "resampled_rows": 2411,
+      "final_valid_points": 2408
+    },
     "JINDALSTEL": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 2,
       "rows_original": 903522,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "JSWENERGY": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "nonpos_count_resampled": 3,
+      "outlier_count": 1,
       "rows_original": 901763,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 1121,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "KOTAKBANK": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 4,
+      "rows_original": 903519,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "JSWSTEEL": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 3,
       "rows_original": 903521,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
-    "KOTAKBANK": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 2,
-      "rows_original": 903519,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+    "LTIM": {
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          767905,
+          5
+        ],
+        "head": [
+          {
+            "open": 667.05,
+            "high": 694.9,
+            "low": 667.05,
+            "close": 694.4,
+            "volume": 975432
+          },
+          {
+            "open": 696.0,
+            "high": 700.5,
+            "low": 693.65,
+            "close": 696.75,
+            "volume": 924803
+          },
+          {
+            "open": 696.95,
+            "high": 700.35,
+            "low": 694.45,
+            "close": 696.9,
+            "volume": 410895
+          },
+          {
+            "open": 696.45,
+            "high": 699.5,
+            "low": 695.3,
+            "close": 696.7,
+            "volume": 169902
+          },
+          {
+            "open": 696.95,
+            "high": 696.95,
+            "low": 693.4,
+            "close": 694.65,
+            "volume": 191782
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 767905
     },
     "LT": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 3,
       "rows_original": 903519,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "LTIM": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 767905,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "MARUTI": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 3,
       "rows_original": 903517,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "MOTHERSON": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 5,
       "rows_original": 903489,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "NAUKRI": {
       "nonpos_count_resampled": 0,
@@ -855,28 +1377,28 @@
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 3,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "NESTLEIND": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 4,
       "rows_original": 903502,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "NHPC": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 3,
+      "outlier_count": 4,
       "rows_original": 903300,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "NTPC": {
       "nonpos_count_resampled": 0,
@@ -885,48 +1407,100 @@
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "ONGC": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 2,
+      "outlier_count": 6,
       "rows_original": 903521,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "PFC": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 2,
       "rows_original": 903514,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "PNB": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 2,
+      "outlier_count": 1,
       "rows_original": 903520,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "PIDILITIND": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 1,
       "rows_original": 903516,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "SBILIFE": {
+      "ok": true,
+      "errors": [],
+      "df": {
+        "_type": "DataFrame",
+        "shape": [
+          657139,
+          5
+        ],
+        "head": [
+          {
+            "open": 734.0,
+            "high": 738.0,
+            "low": 730.0,
+            "close": 733.35,
+            "volume": 2347703
+          },
+          {
+            "open": 733.4,
+            "high": 735.45,
+            "low": 733.4,
+            "close": 734.45,
+            "volume": 974701
+          },
+          {
+            "open": 734.05,
+            "high": 734.5,
+            "low": 733.0,
+            "close": 733.35,
+            "volume": 897570
+          },
+          {
+            "open": 733.3,
+            "high": 733.75,
+            "low": 730.5,
+            "close": 730.7,
+            "volume": 714061
+          },
+          {
+            "open": 731.3,
+            "high": 732.2,
+            "low": 730.1,
+            "close": 731.15,
+            "volume": 461204
+          }
+        ]
+      },
+      "dup_timestamps": 0,
+      "nonpos_count": 0,
+      "nan_timestamps": 0,
+      "rows": 657139
     },
     "POWERGRID": {
       "nonpos_count_resampled": 0,
@@ -935,138 +1509,128 @@
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "SBILIFE": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
-      "rows_original": 657139,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "RECLTD": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 2,
       "rows_original": 903515,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "RELIANCE": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 4,
       "rows_original": 903474,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "SBIN": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "nonpos_count_resampled": 3,
+      "outlier_count": 3,
       "rows_original": 903518,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 1125,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "SHREECEM": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 1,
       "rows_original": 903392,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 8,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "SHRIRAMFIN": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 5,
       "rows_original": 903515,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "SIEMENS": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 2,
+      "outlier_count": 4,
       "rows_original": 903517,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "SUNPHARMA": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 2,
       "rows_original": 903513,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "TATACONSUM": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "outlier_count": 2,
       "rows_original": 903516,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
-    },
-    "TATAPOWER": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 1,
-      "rows_original": 903518,
-      "nan_timestamps_original": 0,
-      "dup_timestamps_original": 0,
-      "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "TATAMOTORS": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 2,
+      "outlier_count": 4,
       "rows_original": 903514,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
+    },
+    "TATAPOWER": {
+      "nonpos_count_resampled": 0,
+      "outlier_count": 3,
+      "rows_original": 903518,
+      "nan_timestamps_original": 0,
+      "dup_timestamps_original": 0,
+      "nonpos_count_original": 0,
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "TCS": {
-      "nonpos_count_resampled": 0,
-      "outlier_count": 0,
+      "nonpos_count_resampled": 1,
+      "outlier_count": 3,
       "rows_original": 903518,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 375,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     },
     "TVSMOTOR": {
       "nonpos_count_resampled": 0,
-      "outlier_count": 1,
+      "outlier_count": 4,
       "rows_original": 903513,
       "nan_timestamps_original": 0,
       "dup_timestamps_original": 0,
       "nonpos_count_original": 0,
-      "resampled_rows": 1121,
-      "final_valid_points": 1121
+      "resampled_rows": 2411,
+      "final_valid_points": 2411
     }
   },
   "restrict_to_common_intersection": false,

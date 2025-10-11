@@ -113,9 +113,28 @@ def runner_func(cfg: dict):
     optimizer_func = optimizer_wrapper_factory_from_cfg(cfg)
 
     # 4) backtest config
+    import time
+    from pathlib import Path
+
+    # base experiment directory that will be created by run_experiment_from_config
+    # If run_experiment_from_config doesn't create the folder before calling runner_func,
+    # we keep logs in ./runs/ for visibility and the file is printed so you can move it later.
+    runs_dir = Path.cwd() / "runs"
+    runs_dir.mkdir(parents=True, exist_ok=True)
+
+    ts = time.strftime("%Y%m%d_%H%M%S")
+    live_log_filename = f"live_{ts}.log"
+    log_path = str(runs_dir / live_log_filename)
+
+    print(f"[runner] Writing live backtest log to: {log_path}")
+    Path(log_path).parent.mkdir(parents=True, exist_ok=True)        
+
     backtest_cfg = {
-        "rebalance": exp_cfg.get("rebalance", "monthly"),
-        "transaction_costs": cfg.get("transaction_costs", {}),
+    "rebalance": exp_cfg.get("rebalance", "monthly"),
+    "transaction_costs": cfg.get("transaction_costs", {}),
+    # NEW: enable verbose per-step logging and write updates to log_path
+    "verbose": True,
+    "log_path": log_path,
     }
 
     # 5) run backtest
@@ -158,7 +177,7 @@ def _ann_stats(nav_s: pd.Series):
 
 
 def main():
-    experiments_base = "results"
+    experiments_base = "experiments"
     Path(experiments_base).mkdir(exist_ok=True)
 
     print("Running experiment from config:", cfg_path)
@@ -243,16 +262,6 @@ def main():
 
     try:
         if nav is not None:
-            # make nav a Series if user returns a single-column DataFrame
-            if isinstance(nav, pd.DataFrame):
-                if nav.shape[1] == 1:
-                    nav = nav.iloc[:, 0]
-                elif 'value' in nav.columns:
-                    nav = nav['value']
-                else:
-                    # pick first column as fallback
-                    nav = nav.iloc[:, 0]
-
             # metrics.json
             metrics = _ann_stats(nav)
             with open(perf_dir / "metrics.json", "w") as f:
@@ -266,46 +275,24 @@ def main():
                 r_std = returns.rolling(win).std()
                 rs = (r_mean / r_std) * np.sqrt(252)
                 rs = rs.dropna()
-                # rs might be Series or DataFrame; handle both
                 if not rs.empty:
-                    if isinstance(rs, pd.Series):
-                        rs.to_frame(name="rolling_sharpe").to_parquet(perf_dir / "rolling_sharpe.parquet")
-                    else:
-                        # DataFrame: if single column, save that with known name, else save all columns
-                        if rs.shape[1] == 1:
-                            rs.iloc[:, 0].to_frame(name="rolling_sharpe").to_parquet(perf_dir / "rolling_sharpe.parquet")
-                        else:
-                            rs.to_parquet(perf_dir / "rolling_sharpe.parquet")
+                    rs.to_frame(name="rolling_sharpe").to_parquet(perf_dir / "rolling_sharpe.parquet")
 
             # drawdown series
             roll_max = nav.cummax()
-            drawdown = ((nav - roll_max) / roll_max)
-            if isinstance(drawdown, pd.Series):
-                drawdown.to_frame(name="drawdown").to_parquet(perf_dir / "drawdown.parquet")
-            else:
-                if drawdown.shape[1] == 1:
-                    drawdown.iloc[:, 0].to_frame(name="drawdown").to_parquet(perf_dir / "drawdown.parquet")
-                else:
-                    drawdown.to_parquet(perf_dir / "drawdown.parquet")
+            drawdown = ((nav - roll_max) / roll_max).to_frame(name="drawdown")
+            drawdown.to_parquet(perf_dir / "drawdown.parquet")
 
             # cumulative returns
-            cum = (nav / float(nav.iloc[0]))
-            if isinstance(cum, pd.Series):
-                cum.to_frame(name="cum_returns").to_parquet(perf_dir / "cum_returns.parquet")
-            else:
-                if cum.shape[1] == 1:
-                    cum.iloc[:, 0].to_frame(name="cum_returns").to_parquet(perf_dir / "cum_returns.parquet")
-                else:
-                    cum.to_parquet(perf_dir / "cum_returns.parquet")
+            cum = (nav / float(nav.iloc[0])).to_frame(name="cum_returns")
+            cum.to_parquet(perf_dir / "cum_returns.parquet")
 
         # save selected mapping if trades exist and include 'selected'
         if trades is not None:
             try:
                 if 'selected' in trades.columns:
+                    # trades['date'] might be a column; ensure index is date
                     sel = trades.set_index('date')['selected'] if 'date' in trades.columns else trades['selected']
-                    # coerce to Series if DataFrame present
-                    if isinstance(sel, pd.DataFrame) and sel.shape[1] >= 1:
-                        sel = sel.iloc[:, 0]
                     sel.to_frame(name="selected").to_parquet(perf_dir / "selected.parquet")
             except Exception:
                 pass
@@ -315,6 +302,7 @@ def main():
         print("Warning: failed to write performance artifacts:", e)
 
 
-
 if __name__ == "__main__":
     main()
+
+

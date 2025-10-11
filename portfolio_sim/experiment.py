@@ -48,7 +48,22 @@ def run_experiment_from_config(params_path: str,
     import yaml
     with open(params_path, "r") as f:
         cfg = yaml.safe_load(f)
-    exp_name = name_override or cfg.get("result", {}).get("name", "unnamed")
+        # Resolve experiment name from multiple possible locations in the config.
+    # Priority (highest -> lowest):
+    #   1) name_override
+    #   2) result.name
+    #   3) experiment.name
+    #   4) top-level name
+    #   5) fallback 'unnamed'
+    exp_name = name_override or \
+               cfg.get('result', {}).get('name') or \
+               cfg.get('experiment', {}).get('name') or \
+               cfg.get('name') or \
+               'unnamed'
+
+    # sanitize folder-friendly name (replace whitespace/newlines)
+    exp_name = str(exp_name).strip().replace(' ', '_').replace('\n', '_')
+
     exp_folder = make_experiment_folder(base_experiments_dir, exp_name, tag)
     save_params_yaml(params_path, exp_folder)
     start = time.time()

@@ -14,7 +14,7 @@ def get_rebalance_dates(prices: pd.DataFrame, freq: str='monthly') -> List[pd.Ti
     if freq == 'daily':
         return list(idx)
     if freq == 'weekly':
-        # pick last trading date of each week
+        # pick first trading date of each week
         weeks = idx.to_period('W')
         picks = idx[weeks != weeks.shift(1)].tolist()
         return picks
@@ -59,153 +59,113 @@ def run_backtest(prices: pd.DataFrame,
     """
     Robust backtest that:
       - Rebalances according to config['rebalance'] frequency.
-      - Skips rebalances if expected returns or covariance are missing/empty.
-      - Falls back to single-asset or equal-weight when necessary.
+      - Correctly handles portfolio weight drift between rebalances.
+      - Falls back to equal-weight when necessary and holds position if all else fails.
       - Records opt_status in trades for diagnostics.
     """
-    rebalance = config.get('rebalance', 'monthly')
+    rebalance_freq = config.get('rebalance', 'monthly')
     tc = config.get('transaction_costs', {}).get('proportional', 0.0)
     dates = prices.index
-    reb_dates = set(get_rebalance_dates(prices, rebalance))
-    nav = pd.Series(index=dates, dtype=float)
-    weights_df = pd.DataFrame(0.0, index=dates, columns=prices.columns)
-    turnover_series = pd.Series(0.0, index=dates)
+    rebalance_dates = set(get_rebalance_dates(prices, rebalance_freq))
+
+    # --- Data structures to store results ---
+    nav_series = pd.Series(index=dates, dtype=float)
+    weights_df = pd.DataFrame(index=dates, columns=prices.columns, dtype=float)
+    turnover_series = pd.Series(index=dates, dtype=float)
     trades_list: List[Dict] = []
+
+    # --- State variables for the loop ---
     current_weights = pd.Series(0.0, index=prices.columns)
-    nav_val = 1.0
+    nav = 1.0
 
+    # --- Main backtest loop ---
     for i, date in enumerate(dates):
-        if i == 0:
-            nav.iloc[0] = nav_val
+        prev_date = dates[i-1] if i > 0 else None
 
-        if date in reb_dates:
-            past = prices.loc[:date]
-            expected = expected_return_estimator(past)
-            cov = cov_estimator(past)
+        # --- Daily Weight Drift Calculation ---
+        # Before any rebalancing, update weights based on last day's returns.
+        if i > 0:
+            # Calculate daily returns
+            with np.errstate(invalid='ignore', divide='ignore'):
+                daily_returns = (prices.loc[date] / prices.loc[prev_date]) - 1.0
+            daily_returns = daily_returns.fillna(0.0)
 
-            # Quick validation of estimators
-            if (expected is None) or (cov is None):
-                trades_list.append({
-                    "date": date,
-                    "turnover": 0.0,
-                    "cost": 0.0,
-                    "opt_status": "skipped_no_estimators",
-                    "selected": []
-                })
-                weights_df.loc[date] = current_weights
-                turnover_series.loc[date] = 0.0
-                continue
+            # Calculate portfolio return based on *previous day's* weights
+            portfolio_return = (current_weights * daily_returns).sum()
+            nav *= (1.0 + portfolio_return)
 
-            # Align expected & cov (common tickers)
-            common = [t for t in expected.index if t in cov.index]
-            if len(common) == 0:
-                trades_list.append({
-                    "date": date,
-                    "turnover": 0.0,
-                    "cost": 0.0,
-                    "opt_status": "skipped_no_common_tickers",
-                    "selected": []
-                })
-                weights_df.loc[date] = current_weights
-                turnover_series.loc[date] = 0.0
-                continue
-
-            expected_r = expected.reindex(common).dropna()
-            cov_r = cov.reindex(index=common, columns=common).fillna(0.0)
-
-            if expected_r.shape[0] == 0 or cov_r.shape[0] == 0:
-                trades_list.append({
-                    "date": date,
-                    "turnover": 0.0,
-                    "cost": 0.0,
-                    "opt_status": "skipped_insufficient_data",
-                    "selected": []
-                })
-                weights_df.loc[date] = current_weights
-                turnover_series.loc[date] = 0.0
-                continue
-
-            # Single-asset fallback
-            if expected_r.shape[0] == 1:
-                only = expected_r.index[0]
-                new_w = pd.Series(0.0, index=prices.columns)
-                new_w[only] = 1.0
-                turnover = np.abs(new_w - current_weights).sum()
-                cost = turnover * tc
-                nav_val = nav_val * (1.0 - cost)
-                nav.loc[date] = nav_val
-                current_weights = new_w.copy()
-                trades_list.append({
-                    "date": date,
-                    "turnover": float(turnover),
-                    "cost": float(cost),
-                    "opt_status": "single_asset_fallback",
-                    "selected": [only]
-                })
-                weights_df.loc[date] = current_weights
-                turnover_series.loc[date] = turnover
-                continue
-
-            # Try optimizer; fallback on failure
-            try:
-                opt = optimizer_func(expected_r, cov_r)
-                new_w = opt.get('weights', None)
-                opt_status = opt.get('status', 'ok')
-                selected = opt.get('selected', list(new_w[new_w>0].index) if (new_w is not None) else [])
-                if new_w is None:
-                    # equal-weight fallback among common
-                    k = len(common)
-                    ew = pd.Series(0.0, index=prices.columns)
-                    ew.loc[common] = 1.0 / k
-                    new_w = ew
-                    opt_status = "fallback_equal_no_weights"
-            except Exception as e:
-                # fallback equal-weight or keep previous
-                try:
-                    k = len(common)
-                    ew = pd.Series(0.0, index=prices.columns)
-                    ew.loc[common] = 1.0 / k
-                    new_w = ew
-                    opt_status = f"optimizer_failed:{repr(e)}"
-                    selected = list(common)
-                except Exception:
-                    new_w = current_weights.copy()
-                    opt_status = f"optimizer_failed_and_fallback_failed:{repr(e)}"
-                    selected = list(current_weights[current_weights>0].index)
-
-            # Ensure new_w is full-length and numeric
-            new_w = new_w.reindex(prices.columns).fillna(0.0).astype(float)
-
-            turnover = float(np.abs(new_w - current_weights).sum())
-            cost = turnover * tc
-            nav_val = nav_val * (1.0 - cost)
-            nav.loc[date] = nav_val
-            current_weights = new_w.copy()
-            trades_list.append({
-                "date": date,
-                "turnover": float(turnover),
-                "cost": float(cost),
-                "opt_status": opt_status,
-                "selected": selected
-            })
-            weights_df.loc[date] = current_weights
-            turnover_series.loc[date] = turnover
-
-        else:
-            # update NAV using returns; handle NaNs gracefully
-            if i > 0:
-                prev = dates[i-1]
-                # compute simple returns for this day across assets
-                with np.errstate(invalid='ignore', divide='ignore'):
-                    ret = (prices.loc[date] / prices.loc[prev]) - 1.0
-                ret = ret.fillna(0.0)
-                port_ret = (current_weights * ret).sum()
-                nav_val = nav_val * (1.0 + port_ret)
-                nav.iloc[i] = nav_val
+            # Update weights due to market drift
+            # Numerator: weight * (1 + asset_return)
+            new_weights_drifted = current_weights * (1 + daily_returns)
+            # Denominator: 1 + portfolio_return
+            total_portfolio_value = new_weights_drifted.sum()
+            
+            # The new weights are the proportion of the new total value
+            if total_portfolio_value > 1e-8:
+                current_weights = new_weights_drifted / total_portfolio_value
             else:
-                nav.iloc[i] = nav_val
+                # If portfolio value collapsed, weights go to zero
+                current_weights.values[:] = 0.0
 
-    # forward fill weights for days between rebalances, fill nan as 0 after ffilling
-    weights_df = weights_df.replace(0.0, np.nan).ffill().fillna(0.0)
+        # --- Rebalancing Logic ---
+        if date in rebalance_dates:
+            past_prices = prices.loc[:date]
+            expected_returns = expected_return_estimator(past_prices)
+            covariance = cov_estimator(past_prices)
+
+            target_weights = None
+            opt_status = "ok"
+
+            # Align inputs and run optimizer
+            common_assets = list(set(expected_returns.index) & set(covariance.index))
+            if not common_assets:
+                opt_status = "skipped_no_common_tickers"
+            else:
+                try:
+                    opt_result = optimizer_func(expected_returns[common_assets], covariance.loc[common_assets, common_assets])
+                    target_weights = opt_result.get('weights')
+                    opt_status = opt_result.get('status', 'ok')
+                except Exception as e:
+                    opt_status = f"optimizer_failed:{repr(e)}"
+
+            # Fallback to equal weight if optimizer fails
+            if target_weights is None:
+                opt_status = opt_status if opt_status != "ok" else "fallback_ew"
+                valid_assets = prices.loc[date].dropna().index.tolist()
+                if valid_assets:
+                    ew = 1.0 / len(valid_assets)
+                    target_weights = pd.Series(ew, index=valid_assets)
+                else: # If no valid assets, hold position
+                    opt_status = "hold_no_valid_assets"
+                    target_weights = current_weights
+
+            # --- Apply Transaction Costs and Update Weights ---
+            if target_weights is not None:
+                # Align with main price columns before calculating turnover
+                target_weights = target_weights.reindex(prices.columns).fillna(0.0)
+                
+                # Calculate turnover
+                turnover = float(np.abs(target_weights - current_weights).sum())
+
+                # FIX: Do not charge transaction costs on the very first day (i==0)
+                cost = turnover * tc if i > 0 else 0.0
+                
+                nav *= (1.0 - cost) # Apply cost to NAV
+
+                # Update to the new target weights
+                current_weights = target_weights.copy()
+                
+                # Log the trade
+                trades_list.append({
+                    "date": date, "turnover": turnover, "cost": cost, "opt_status": opt_status,
+                    "selected": list(current_weights[current_weights > 1e-6].index)
+                })
+                turnover_series.loc[date] = turnover
+
+        # --- Store daily results ---
+        nav_series.loc[date] = nav
+        weights_df.loc[date] = current_weights
+
+    # --- Finalize and return ---
     trades_df = pd.DataFrame(trades_list)
-    return BacktestResult(nav=nav, weights=weights_df, turnover=turnover_series, trades=trades_df)
+    return BacktestResult(nav=nav_series, weights=weights_df, turnover=turnover_series, trades=trades_df)

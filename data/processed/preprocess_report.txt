@@ -4,9 +4,9 @@ processed_files=87
 
 tickers_processed=87
 
-tickers_saved=83
+tickers_saved=71
 
-index_range={'start': '2020-05-05 00:00:00', 'end': '2025-03-05 00:00:00'}
+index_range={'start': '2015-02-02 00:00:00', 'end': '2025-03-05 00:00:00'}
 
 drop_tickers_count=0
 
@@ -17,10 +17,34 @@ restrict_msg=No restriction to common intersection applied.
 
 Failed files summary:
 
-..\raw\IRFC_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2021-01-29 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
+..\raw\ADANIGREEN_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2018-06-18 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
 
-..\raw\JIOFIN_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2023-08-21 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
+..\raw\ADANIENSOL_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2015-07-31 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
 
-..\raw\LICI_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2022-05-17 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
+..\raw\ATGL_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2018-11-05 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
 
-..\raw\LODHA_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2021-04-19 10:00:00', 'requested_start': '2020-05-05 10:00:00'}
+..\raw\DMART_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2017-03-21 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\HAL_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2018-03-28 09:45:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\HDFCLIFE_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2017-11-17 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\ICICIGI_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2017-09-27 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\ICICIPRULI_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2016-09-29 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\INDIGO_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2015-11-10 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\IRFC_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2021-01-29 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\IRCTC_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2019-10-14 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\JIOFIN_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2023-08-21 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\LICI_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2022-05-17 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\LODHA_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2021-04-19 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\LTIM_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2016-07-21 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
+
+..\raw\SBILIFE_minute.csv -> {'reason': 'starts_after_start_datetime', 'file_first_ts': '2017-10-03 10:00:00', 'requested_start': '2015-02-02 10:00:00'}
