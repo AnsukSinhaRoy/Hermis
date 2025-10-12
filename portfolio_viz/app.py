@@ -1,17 +1,104 @@
-# portfolio_viz/app.py
-import streamlit as st
-from pathlib import Path
-import pandas as pd
-import numpy as np
+"""
+A Streamlit web application for visualizing and analyzing portfolio backtest results.
+
+This application allows users to:
+- Select and load different experiment outputs.
+- View performance overview, including NAV charts and key metrics.
+- Analyze portfolio allocation over time with heatmaps.
+- Inspect underlying asset prices.
+- Review trade logs and turnover.
+- Dive deep into performance analytics with drawdown and rolling Sharpe plots.
+- Compare multiple experiments side-by-side with detailed metrics tables and charts.
+- Analyze hyperparameter sensitivity across all experiments.
+"""
+
 import json
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+import yaml
+
+import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from typing import Optional, Dict, Any, List
+import streamlit as st
 
-try:
-    from portfolio_sim.experiment import load_experiment
-except Exception:
-    def load_experiment(path: str) -> Dict[str, Any]:
+# --- Page Configuration ---
+st.set_page_config(
+    page_title="Portfolio Viz",
+    page_icon="🧪",
+    layout="wide"
+)
+
+# --- CORRECTED: CSS for Tabs and NEW CSS for Sidebar ---
+st.markdown("""
+<style>
+    /* --- Tab Styling (Theme-Aware) --- */
+    /* Tab container */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px; /* Spacing between tabs */
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Inactive tab buttons */
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        background-color: transparent; /* Start with no background */
+        border: none;
+        border-radius: 8px 8px 0 0;
+        padding: 12px 16px;
+        color: var(--text-color);
+        opacity: 0.7; /* Make inactive tabs slightly faded */
+        transition: all 0.2s ease-in-out; /* Smooth transitions */
+        border-bottom: 2px solid transparent; /* Placeholder for the active indicator */
+    }
+    
+    /* Tab button on hover */
+    .stTabs [data-baseweb="tab"]:hover {
+        background-color: var(--secondary-background-color);
+        opacity: 1;
+        transform: translateY(-2px); /* Subtle lift effect */
+    }
+
+    /* Active tab button */
+    .stTabs [aria-selected="true"] {
+        background-color: var(--secondary-background-color);
+        font-weight: 600; /* Make active tab text bold */
+        opacity: 1;
+        color: var(--primary-color); /* Use accent color for active tab text */
+        border-bottom: 2px solid var(--primary-color); /* Use accent color for the indicator line */
+    }
+
+    /* --- NEW: Sidebar Styling --- */
+    /* The main sidebar container */
+    [data-testid="stSidebar"] {
+        border-right: 1px solid var(--border-color);
+    }
+
+    /* Styling for the headers within the sidebar */
+    [data-testid="stSidebar"] h2 {
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        color: var(--text-color);
+        opacity: 0.8;
+        letter-spacing: 1.5px;
+        padding-bottom: 8px;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+# --- Data Loading & Utilities ---
+
+@st.cache_data
+def load_experiment(path: str) -> Dict[str, Any]:
+    """Loads experiment artifacts from a directory."""
+    try:
+        from portfolio_sim.experiment import load_experiment as load_sim_experiment
+        return load_sim_experiment(path)
+    except (ImportError, ModuleNotFoundError):
         out = Path(path) / "outputs"
         nav = pd.read_parquet(out / "nav.parquet") if (out / "nav.parquet").exists() else None
         weights = pd.read_parquet(out / "weights.parquet") if (out / "weights.parquet").exists() else None
@@ -19,440 +106,445 @@ except Exception:
         meta = json.load(open(out / "metadata.json")) if (out / "metadata.json").exists() else {}
         return {"nav": nav, "weights": weights, "trades": trades, "meta": meta}
 
-st.set_page_config(page_title="Portfolio Viz", layout="wide")
-
-# Utilities
-def ensure_series(nav) -> Optional[pd.Series]:
-    if nav is None:
+def ensure_series(data: Any) -> Optional[pd.Series]:
+    """Ensures the input data is a Pandas Series."""
+    if data is None:
         return None
-    if isinstance(nav, pd.Series):
-        return nav
-    if isinstance(nav, pd.DataFrame):
-        if nav.shape[1] == 1:
-            return nav.iloc[:, 0]
-        if "value" in nav.columns and nav.shape[1] == 1:
-            return nav["value"]
-        return nav.iloc[:, 0]
-    return pd.Series(nav)
+    if isinstance(data, pd.Series):
+        return data
+    if isinstance(data, pd.DataFrame):
+        return data.iloc[:, 0]
+    return pd.Series(data)
 
 def load_experiment_list(experiments_root: Path) -> List[Path]:
+    """Scans a root directory and returns a sorted list of valid experiment paths."""
     if not experiments_root.exists():
         return []
-    dirs = [p for p in sorted(experiments_root.iterdir(), reverse=True) if p.is_dir() and (p / "outputs").exists()]
-    return dirs
+    dirs = [
+        p for p in experiments_root.iterdir()
+        if p.is_dir() and (p / "outputs").exists()
+    ]
+    return sorted(dirs, reverse=True)
 
+@st.cache_data
 def safe_read_prices(exp_folder: Path) -> Optional[pd.DataFrame]:
+    """Safely reads the prices.parquet file."""
     p = exp_folder / "data" / "prices.parquet"
     if p.exists():
         try:
             return pd.read_parquet(p)
-        except Exception:
-            pass
+        except Exception as e:
+            st.error(f"Failed to read prices file: {e}")
+            return None
     return None
 
-# Attempt to load precomputed performance artifacts
+@st.cache_data
 def load_precomputed_perf(exp_folder: Path) -> Dict[str, Any]:
+    """Loads pre-computed performance artifacts."""
     perf = {}
     perf_dir = Path(exp_folder) / 'outputs' / 'performance'
     if not perf_dir.exists():
         return perf
     try:
         if (perf_dir / 'metrics.json').exists():
-            perf['metrics'] = json.load(open(perf_dir / 'metrics.json'))
-        if (perf_dir / 'rolling_sharpe.parquet').exists():
-            perf['rolling_sharpe'] = pd.read_parquet(perf_dir / 'rolling_sharpe.parquet').iloc[:,0]
-        if (perf_dir / 'drawdown.parquet').exists():
-            perf['drawdown'] = pd.read_parquet(perf_dir / 'drawdown.parquet').iloc[:,0]
-        if (perf_dir / 'cum_returns.parquet').exists():
-            perf['cum_returns'] = pd.read_parquet(perf_dir / 'cum_returns.parquet').iloc[:,0]
-        if (perf_dir / 'selected.parquet').exists():
-            perf['selected'] = pd.read_parquet(perf_dir / 'selected.parquet')
-    except Exception:
-        perf = {}
+            with open(perf_dir / 'metrics.json') as f:
+                perf['metrics'] = json.load(f)
+        for fname in ['rolling_sharpe', 'drawdown', 'cum_returns']:
+            fpath = perf_dir / f'{fname}.parquet'
+            if fpath.exists():
+                perf[fname] = pd.read_parquet(fpath).iloc[:, 0]
+    except Exception as e:
+        st.warning(f"Could not load some precomputed performance files: {e}")
     return perf
 
-# Performance helpers (fallback)
+# --- Helper for Parameter Analysis ---
+@st.cache_data
+def load_all_experiment_parameters_and_metrics(root_path: Path) -> pd.DataFrame:
+    """Scans all experiments, loads their parameters and metrics, and returns a unified DataFrame."""
+    all_experiments_data = []
+    exp_paths = load_experiment_list(root_path)
+
+    for path in exp_paths:
+        params_path = path / "params.yaml"
+        metrics_path = path / "outputs" / "performance" / "metrics.json"
+
+        if params_path.exists() and metrics_path.exists():
+            try:
+                with open(params_path, 'r') as f:
+                    params = yaml.safe_load(f)
+                params_flat = pd.json_normalize(params, sep='.')
+                params_dict = params_flat.to_dict(orient='records')[0]
+                
+                with open(metrics_path, 'r') as f:
+                    metrics = json.load(f)
+                
+                combined_data = {**params_dict, **metrics}
+                combined_data['experiment_name'] = path.name
+                all_experiments_data.append(combined_data)
+            except Exception as e:
+                st.warning(f"Could not process experiment {path.name}: {e}")
+    
+    if not all_experiments_data:
+        return pd.DataFrame()
+    return pd.DataFrame(all_experiments_data)
+
+# --- Performance Calculation Helpers ---
+
 def ann_stats(nav_s: pd.Series) -> Dict[str, float]:
+    """Calculates annualized statistics for a given NAV series."""
+    if nav_s.empty:
+        return {"total_return": 0, "ann_return": 0, "ann_vol": 0, "max_drawdown": 0}
     days = (nav_s.index[-1] - nav_s.index[0]).days or 1
-    total_ret = float(nav_s.iloc[-1] / nav_s.iloc[0] - 1.0)
+    total_ret = nav_s.iloc[-1] / nav_s.iloc[0] - 1.0
     ann_ret = (1 + total_ret) ** (365.0 / days) - 1
     dr = nav_s.pct_change().dropna()
     ann_vol = dr.std() * np.sqrt(252) if not dr.empty else 0.0
     roll_max = nav_s.cummax()
     drawdown = (nav_s - roll_max) / roll_max
-    max_dd = float(drawdown.min())
-    return {"total_return": total_ret, "ann_return": ann_ret, "ann_vol": ann_vol, "max_drawdown": max_dd}
+    max_dd = drawdown.min()
+    return {
+        "total_return": total_ret, "ann_return": ann_ret,
+        "ann_vol": ann_vol, "max_drawdown": max_dd,
+    }
 
+def create_calendar_heatmap(nav_s: pd.Series) -> pd.DataFrame:
+    """Creates a pivot table of monthly returns for a calendar heatmap."""
+    returns = nav_s.pct_change().dropna()
+    returns.name = "returns"
+    res = returns.reset_index()
+    res['year'] = res['index'].dt.year
+    res['month'] = res['index'].dt.month
+    monthly_returns = res.groupby(['year', 'month'])['returns'].apply(lambda x: (1 + x).prod() - 1)
+    heatmap = monthly_returns.unstack(level='month')
+    yearly_returns = res.groupby('year')['returns'].apply(lambda x: (1 + x).prod() - 1)
+    heatmap['Year'] = yearly_returns
+    month_names = {i: pd.to_datetime(i, format='%m').strftime('%b') for i in range(1, 13)}
+    heatmap = heatmap.rename(columns=month_names)
+    return heatmap
 
-# Sidebar
-st.sidebar.title("Experiment Explorer")
-root = st.sidebar.text_input("Experiments root folder", value="experiments")
-rootp = Path(root)
-exp_dirs = load_experiment_list(rootp)
+# --- Main App UI ---
 
-if not exp_dirs:
-    st.sidebar.warning(f"No experiments found under {root}. Run an experiment first.")
-    st.stop()
+st.title("🧪 Portfolio Analysis Workbench")
+st.markdown("Analyze and compare backtesting experiments with interactive charts and metrics.")
 
-exp_labels = [f"{p.name}" for p in exp_dirs]
-sel_label = st.sidebar.selectbox("Choose an experiment", exp_labels, index=0)
-selected_path = exp_dirs[exp_labels.index(sel_label)]
+# --- Sidebar ---
 
-cmp_paths = []
-if st.sidebar.checkbox("Enable comparison mode"):
-    cmp_choices = st.sidebar.multiselect("Pick experiments to compare (NAV)", exp_labels, default=[exp_labels[0]])
-    cmp_paths = [exp_dirs[exp_labels.index(x)] for x in cmp_choices]
+with st.sidebar:
+    st.header("⚙️ Controls")
+    root = st.text_input("Experiments Root Folder", value="experiments")
+    rootp = Path(root)
+    exp_dirs = load_experiment_list(rootp)
 
-st.sidebar.markdown("---")
-st.sidebar.write("Plot options")
-sample_max = st.sidebar.number_input("Max assets to draw (prices tab)", min_value=10, max_value=2000, value=100, step=10)
-normalize_default = st.sidebar.checkbox("Normalize prices & NAV to 1 at start", value=True)
+    if not exp_dirs:
+        st.warning(f"No valid experiments found in `{root}`. Please run a simulation first.")
+        st.stop()
 
-# Load experiment
-with st.spinner('Loading experiment...'):
+    exp_labels = [p.name for p in exp_dirs]
+    sel_label = st.selectbox("Choose an Experiment", exp_labels, index=0)
+    selected_path = exp_dirs[exp_labels.index(sel_label)]
+
+    st.header("📊 Comparison Mode")
+    if st.checkbox("Enable Comparison"):
+        default_choices = [sel_label] if sel_label in exp_labels else []
+        cmp_choices = st.multiselect("Select Experiments to Compare", exp_labels, default=default_choices)
+        cmp_paths = [exp_dirs[exp_labels.index(x)] for x in cmp_choices]
+    else:
+        cmp_paths = []
+
+    st.header("🎨 Plot Options")
+    sample_max = st.number_input("Max Assets to Plot", min_value=10, max_value=2000, value=100, step=10)
+    normalize_default = st.checkbox("Normalize Prices & NAV to 1", value=True)
+
+# --- Load Selected Experiment Data ---
+with st.spinner(f"Loading experiment `{selected_path.name}`..."):
     exp = load_experiment(str(selected_path))
-    nav_raw = exp.get("nav")
-    nav = ensure_series(nav_raw)
+    nav = ensure_series(exp.get("nav"))
     weights = exp.get("weights")
     trades = exp.get("trades")
     meta = exp.get("meta", {})
     prices = safe_read_prices(selected_path)
     preperf = load_precomputed_perf(selected_path)
 
-tabs = st.tabs(["Overview", "Allocation", "Prices", "Trades", "Performance", "Asset Inspector", "Compare"])
+# --- Tabs for Different Views ---
+tabs = st.tabs([
+    "🌟 Overview", "📊 Allocation", "📈 Prices", "🔄 Trades",
+    "🏆 Performance", "📅 Deep Dive", "🔬 Parameter Analysis",
+    "🔍 Asset Inspector", "🆚 Compare"
+])
 
-# Overview
+# Overview Tab
 with tabs[0]:
-    col1, col2 = st.columns([3,1])
+    st.header(f"Experiment Overview: `{selected_path.name}`")
+    col1, col2 = st.columns([2, 1])
     with col1:
-        st.header("Experiment Overview")
-        st.write(f"**Folder:** `{selected_path}`")
-        st.write("**Metadata (quick)**")
-        # show a compact subset of metadata for speed
-        try:
-            compact_meta = {k: meta.get(k) for k in ['python_version','runtime_seconds','packages'] if k in meta}
-        except Exception:
-            compact_meta = meta
-        st.json(compact_meta)
-        st.markdown("---")
         if nav is not None:
-            nav_df = nav.reset_index()
-            nav_df.columns = ["date", "nav"]
-            fig = px.line(nav_df, x="date", y="nav", title="Portfolio NAV")
+            metrics = preperf.get('metrics', ann_stats(nav))
+            st.subheader("Key Performance Indicators")
+            m_cols = st.columns(4)
+            m_cols[0].metric("Total Return", f"{metrics.get('total_return', 0)*100:.2f}%")
+            m_cols[1].metric("Annualized Return", f"{metrics.get('ann_return', 0)*100:.2f}%")
+            m_cols[2].metric("Annualized Volatility", f"{metrics.get('ann_vol', 0)*100:.2f}%")
+            m_cols[3].metric("Max Drawdown", f"{metrics.get('max_drawdown', 0)*100:.2f}%", delta_color="inverse")
+            st.markdown("---")
+            fig = px.area(nav, title="Portfolio Net Asset Value (NAV)", labels={"index": "Date", "value": "NAV"})
+            fig.update_layout(showlegend=False)
             st.plotly_chart(fig, use_container_width=True)
-
-            # prefer precomputed metrics
-            metrics = preperf.get('metrics') if preperf.get('metrics') else ann_stats(nav)
-            st.metric("Total return", f"{metrics['total_return']*100:.2f} %")
-            st.metric("Annualized return", f"{metrics['ann_return']*100:.2f} %")
-            st.metric("Annualized vol", f"{metrics['ann_vol']*100:.2f} %")
-            st.metric("Max drawdown", f"{metrics['max_drawdown']*100:.2f} %")
         else:
-            st.warning("NAV not found for this experiment.")
+            st.warning("NAV data not found for this experiment.")
     with col2:
-        st.header("Quick actions")
-        if st.button("Open outputs folder (print path)"):
-            st.write(str(selected_path / "outputs"))
+        st.subheader("Details & Actions")
+        st.info(f"**Folder:** `{selected_path}`")
         if prices is None:
-            st.info("No saved prices snapshot found in experiment/data. Prices tab may be unavailable.")
-        # allow downloads of precomputed perf if present
+            st.warning("Prices snapshot not found. Some tabs may be limited.")
+        with st.expander("Show Experiment Metadata", expanded=False):
+            st.json(meta)
+        st.download_button("Download Metadata (JSON)", data=json.dumps(meta, indent=2), file_name="metadata.json")
         perf_dir = selected_path / 'outputs' / 'performance'
-        if perf_dir.exists():
-            if (perf_dir / 'metrics.json').exists():
-                st.download_button("Download precomputed metrics.json", data=open(perf_dir / 'metrics.json').read(), file_name='metrics.json')
-            if (perf_dir / 'rolling_sharpe.parquet').exists():
-                st.download_button("Download rolling_sharpe.parquet", data=(perf_dir / 'rolling_sharpe.parquet').read_bytes(), file_name='rolling_sharpe.parquet')
-        st.download_button("Download metadata.json", data=json.dumps(meta, indent=2), file_name="metadata.json")
+        if (perf_dir / 'metrics.json').exists():
+            st.download_button("Download Precomputed Metrics", data=(perf_dir / 'metrics.json').read_bytes(), file_name='metrics.json')
 
-# Allocation
+# Allocation Tab
 with tabs[1]:
-    st.header("Allocation Over Time")
-    if weights is None:
-        st.warning("No weights file found for this experiment.")
-    else:
-        top_n = st.slider("Show top N assets by average weight", min_value=5, max_value=min(200, weights.shape[1]), value=20)
-        avg_weights = weights.mean().sort_values(ascending=False)
-        top_assets = avg_weights.head(top_n).index.tolist()
-        sub = weights[top_assets]
-        fig = go.Figure(data=go.Heatmap(
-            z=sub.T.values,
-            x=[d.strftime("%Y-%m-%d") for d in sub.index],
-            y=list(sub.columns),
-            colorscale="Viridis"
-        ))
-        fig.update_layout(height=600, title=f"Allocation heatmap (top {top_n})", xaxis_nticks=10)
-        st.plotly_chart(fig, use_container_width=True)
+    with st.container():
+        st.header("Portfolio Allocation")
+        if weights is None:
+            st.warning("No weights file found for this experiment.")
+        else:
+            st.subheader("Allocation Heatmap")
+            top_n = st.slider("Show Top N Assets (by average weight)", 5, min(200, weights.shape[1]), 20)
+            avg_weights = weights.mean().sort_values(ascending=False)
+            top_assets = avg_weights.head(top_n).index.tolist()
+            sub = weights[top_assets]
+            fig = go.Figure(data=go.Heatmap(
+                z=sub.T.values, x=sub.index, y=sub.columns, colorscale="Viridis",
+                hovertemplate='Date: %{x}<br>Asset: %{y}<br>Weight: %{z:.2%}<extra></extra>'
+            ))
+            fig.update_layout(height=600, title=f"Top {top_n} Asset Weights Over Time", yaxis_nticks=top_n)
+            st.plotly_chart(fig, use_container_width=True)
+            st.subheader("Holdings at Rebalance Dates")
+            with st.expander("View detailed holdings per rebalance date", expanded=False):
+                selected_each = weights.apply(lambda row: row[row > 1e-6].index.tolist(), axis=1)
+                show_n = st.number_input("Show Last N Rebalances", 1, len(selected_each), min(10, len(selected_each)))
+                for d, holdings in selected_each.dropna().tail(show_n).items():
+                    assets_str = ', '.join(holdings[:10]) + ('...' if len(holdings) > 10 else '')
+                    st.markdown(f"**{d.date()}** ({len(holdings)} assets): `{assets_str}`")
 
-        st.markdown("### Selected assets each rebalance")
-        selected_each = weights.apply(lambda row: row[row>0].index.tolist(), axis=1)
-        show_n = st.number_input("Show last N rebalances", min_value=1, max_value=len(selected_each), value=min(10, len(selected_each)))
-        rows_to_show = selected_each.dropna().tail(show_n)
-        iterator = rows_to_show.items() if hasattr(rows_to_show, "items") else rows_to_show.iteritems()
-        for d, sel in iterator:
-            st.write(f"**{d.date()}** — {len(sel)} assets — {', '.join(sel[:10])}{'...' if len(sel)>10 else ''}")
-
-# Prices
+# Prices Tab
 with tabs[2]:
-    st.header("Price Paths & NAV")
+    st.header("Asset Prices & NAV Overlay")
     if prices is None:
-        st.info("Saved price snapshot not found. Upload CSV or regenerate if synthetic.")
-        uploaded = st.file_uploader("Upload price CSV (long or wide)", type=["csv"])
-        if uploaded:
-            try:
-                df_csv = pd.read_csv(uploaded, parse_dates=['date'])
-                if {'date','ticker','price'}.issubset(df_csv.columns):
-                    pivot = df_csv.pivot(index='date', columns='ticker', values='price').sort_index()
-                else:
-                    pivot = df_csv.set_index('date').sort_index()
-                prices = pivot
-                st.success("Loaded CSV into prices.")
-            except Exception as e:
-                st.error(f"Failed to parse uploaded CSV: {e}")
-    if prices is not None:
-        st.write(f"Universe size: {prices.shape[1]} assets — {prices.shape[0]} dates")
-        normalize = st.checkbox("Normalize to 1 at start (prices and NAV)", value=normalize_default)
-        max_assets = st.number_input("Max assets to draw", min_value=10, max_value=1000, value=int(sample_max))
-        tickers = sorted(prices.columns)[:max_assets] if max_assets and max_assets < prices.shape[1] else prices.columns.tolist()
+        st.info("Saved price snapshot not found. You can upload a CSV to proceed.")
+    else:
+        st.write(f"Universe size: {prices.shape[1]} assets over {prices.shape[0]} dates.")
+        normalize = st.checkbox("Normalize to 1 at start", value=normalize_default, key="prices_normalize")
+        max_assets_to_plot = min(sample_max, prices.shape[1])
+        tickers = sorted(prices.columns)[:max_assets_to_plot]
+        if sample_max > prices.shape[1]:
+            st.info(f"Plotting all {prices.shape[1]} available assets (sidebar setting is {sample_max}).")
         plot_prices = prices[tickers].copy()
         if normalize:
-            first_vals = plot_prices.apply(lambda col: col.dropna().iloc[0] if col.dropna().shape[0]>0 else np.nan)
+            first_vals = plot_prices.apply(lambda col: col.dropna().iloc[0] if not col.dropna().empty else np.nan)
             plot_prices = plot_prices.divide(first_vals, axis=1)
         fig = go.Figure()
         for col in plot_prices.columns:
-            fig.add_trace(go.Scatter(x=plot_prices.index, y=plot_prices[col], mode='lines', line=dict(width=1), opacity=0.25, name=col, showlegend=False))
-        try:
-            median_series = plot_prices.median(axis=1)
-            fig.add_trace(go.Scatter(x=plot_prices.index, y=median_series, mode='lines', line=dict(color='gray', width=1.5), name='Median asset'))
-        except Exception:
-            pass
+            fig.add_trace(go.Scatter(x=plot_prices.index, y=plot_prices[col], mode='lines', line=dict(width=0.5, color='grey'), opacity=0.5, name=col, showlegend=False))
+        median_series = plot_prices.median(axis=1)
+        fig.add_trace(go.Scatter(x=median_series.index, y=median_series, mode='lines', line=dict(color='blue', width=2, dash='dash'), name='Median Asset'))
         if nav is not None:
-            nav_s = ensure_series(nav)
-            nav_aligned = nav_s.reindex(plot_prices.index).ffill().bfill()
+            nav_aligned = nav.reindex(plot_prices.index, method='ffill')
             if normalize:
-                nav_aligned = nav_aligned / float(nav_aligned.iloc[0])
-            fig.add_trace(go.Scatter(x=nav_aligned.index, y=nav_aligned.values, mode='lines', line=dict(color='red', width=3), name='Portfolio NAV'))
-        fig.update_layout(title="Price Paths and NAV", height=600, xaxis_rangeslider_visible=True)
+                nav_aligned /= nav_aligned.dropna().iloc[0]
+            fig.add_trace(go.Scatter(x=nav_aligned.index, y=nav_aligned, mode='lines', line=dict(color='red', width=3), name='Portfolio NAV'))
+        fig.update_layout(title="Asset Price Paths and Portfolio NAV", height=600, xaxis_rangeslider_visible=True)
         st.plotly_chart(fig, use_container_width=True)
 
-# Trades
+# Trades Tab
 with tabs[3]:
-    st.header("Trades & Turnover")
+    st.header("Trades and Turnover")
     if trades is None:
-        st.info("No trades data found.")
+        st.info("No trades data found for this experiment.")
     else:
-        if 'date' not in trades.columns:
-            trades_display = trades.reset_index()
-        else:
-            trades_display = trades.copy()
-        st.dataframe(trades_display.sort_values(by='date', ascending=False).head(500))
+        trades_display = trades.reset_index() if 'date' not in trades.columns else trades.copy()
+        st.subheader("Recent Trades")
+        st.dataframe(trades_display.sort_values(by='date', ascending=False).head(500), use_container_width=True)
         if 'turnover' in trades.columns:
+            st.subheader("Portfolio Turnover")
             t = trades.set_index('date')['turnover'].sort_index()
-            fig = px.bar(t.reset_index(), x='date', y='turnover', title='Turnover per rebalance')
+            fig = px.bar(t.reset_index(), x='date', y='turnover', title='Turnover per Rebalance')
+            fig.update_layout(yaxis_tickformat=".2%")
             st.plotly_chart(fig, use_container_width=True)
 
-# Performance
+# Performance Tab
 with tabs[4]:
-    st.header("Performance Analytics")
+    st.header("Deep-Dive Performance Analytics")
     if nav is None:
-        st.info("No NAV available to compute performance.")
+        st.info("No NAV data available to compute performance metrics.")
     else:
-        nav_s = ensure_series(nav)
-        # prefer precomputed cum_returns if available
-        if 'cum_returns' in preperf:
-            cum = preperf['cum_returns']
+        cum_returns = preperf.get('cum_returns', nav / nav.iloc[0])
+        fig_cum = px.line(cum_returns, title="Cumulative Returns (Normalized to 1)", labels={"index": "Date", "value": "Cumulative Return"})
+        st.plotly_chart(fig_cum, use_container_width=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            drawdown = preperf.get('drawdown', (nav - nav.cummax()) / nav.cummax())
+            fig_dd = go.Figure()
+            fig_dd.add_trace(go.Scatter(x=drawdown.index, y=drawdown, fill='tozeroy', name='Drawdown', line=dict(color='indianred')))
+            fig_dd.update_layout(title="Portfolio Drawdown", yaxis_tickformat=".2%", height=400)
+            st.plotly_chart(fig_dd, use_container_width=True)
+        with col2:
+            if 'rolling_sharpe' in preperf:
+                rs = preperf['rolling_sharpe']
+                title = "Rolling Sharpe (Precomputed)"
+            else:
+                win = st.slider("Sharpe Rolling Window (days)", 21, 252, 63)
+                dr = nav.pct_change()
+                rs = dr.rolling(win).mean() / dr.rolling(win).std() * np.sqrt(252)
+                title = f"{win}-Day Rolling Sharpe Ratio"
+            fig_rs = px.line(rs, title=title)
+            st.plotly_chart(fig_rs, use_container_width=True)
+
+# Deep Dive Tab
+with tabs[5]:
+    with st.container():
+        st.header("Deep Dive Analytics")
+        if nav is None:
+            st.info("No NAV data available for deep dive analysis.")
         else:
-            cum = nav_s / float(nav_s.iloc[0])
+            st.subheader("📅 Calendar Returns Heatmap")
+            heatmap_df = create_calendar_heatmap(nav)
+            styled_heatmap = heatmap_df.style.background_gradient(cmap='RdYlGn', axis=None, low=0.4, high=0.4).format("{:.2%}")
+            st.dataframe(styled_heatmap, use_container_width=True)
+            st.caption("Heatmap shows compounded monthly returns.")
 
-        dr = nav_s.pct_change().dropna()
+# Parameter Analysis Tab
+with tabs[6]:
+    st.header("🔬 Hyperparameter Sensitivity Analysis")
+    st.markdown("Visualize how changing algorithm parameters affects performance metrics across all experiments.")
+    
+    param_df = load_all_experiment_parameters_and_metrics(rootp)
 
-        # cumulative returns plot
-        fig = px.line(x=cum.index, y=cum.values, title="Cumulative NAV (start=1)", labels={"x":"date","y":"cum_return"})
+    if param_df.empty:
+        st.warning("No experiment data found for parameter analysis. Ensure experiments have `params.yaml` and `outputs/performance/metrics.json` files.")
+    else:
+        metric_cols = [
+            'total_return', 'ann_return', 'ann_vol', 'max_drawdown', 'sharpe',
+            'sortino', 'calmar', 'win_rate', 'avg_turnover'
+        ]
+        available_metrics = sorted([m for m in metric_cols if m in param_df.columns])
+        parameter_cols = sorted([c for c in param_df.columns if c not in available_metrics and c != 'experiment_name'])
+
+        if not parameter_cols:
+            st.error("No parameter columns found. Check the structure of your `params.yaml` files.")
+            st.stop()
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            x_axis_val = st.selectbox("X-Axis (Parameter)", options=parameter_cols, index=0)
+        with col2:
+            y_axis_val = st.selectbox("Y-Axis (Metric)", options=available_metrics, index=len(available_metrics)-1 if 'sharpe' in available_metrics else 0)
+        with col3:
+            color_val = st.selectbox("Color By (Parameter)", options=[None] + parameter_cols, index=0)
+        
+        fig = px.scatter(
+            param_df,
+            x=x_axis_val,
+            y=y_axis_val,
+            color=color_val,
+            title=f"{y_axis_val} vs. {x_axis_val}",
+            hover_name='experiment_name',
+            hover_data=parameter_cols + available_metrics
+        )
+        fig.update_layout(height=600)
         st.plotly_chart(fig, use_container_width=True)
 
-        # drawdown
-        if 'drawdown' in preperf:
-            dd = preperf['drawdown']
-        else:
-            roll_max = nav_s.cummax()
-            dd = ((nav_s - roll_max) / roll_max)
-        fig2 = go.Figure()
-        fig2.add_trace(go.Scatter(x=dd.index, y=dd.values, fill='tozeroy', name='Drawdown'))
-        fig2.update_layout(title="Drawdown", yaxis_tickformat="%", height=400)
-        st.plotly_chart(fig2, use_container_width=True)
+        with st.expander("Show Raw Parameter & Metric Data"):
+            st.dataframe(param_df[['experiment_name'] + parameter_cols + available_metrics], use_container_width=True)
 
-        # rolling sharpe
-        if 'rolling_sharpe' in preperf:
-            rs = preperf['rolling_sharpe']
-        else:
-            win = st.slider("Sharpe rolling window (days)", min_value=21, max_value=252, value=63)
-            rs = dr.rolling(win).mean() / dr.rolling(win).std() * np.sqrt(252)
-            rs = rs.dropna()
-        fig3 = px.line(x=rs.index, y=rs.values, title=f"Rolling Sharpe")
-        st.plotly_chart(fig3, use_container_width=True)
-
-        # table metrics
-        metrics = preperf.get('metrics') if preperf.get('metrics') else ann_stats(nav_s)
-        st.subheader("Summary metrics")
-        st.write({
-            "Total return": f"{metrics['total_return']*100:.2f} %",
-            "Annualized return": f"{metrics['ann_return']*100:.2f} %",
-            "Annualized volatility": f"{metrics['ann_vol']*100:.2f} %",
-            "Max drawdown": f"{metrics['max_drawdown']*100:.2f} %"
-        })
-
-# Asset Inspector
-with tabs[5]:
+# Asset Inspector Tab
+with tabs[7]:
     st.header("Asset Inspector")
     if prices is None:
-        st.info("No prices snapshot to inspect assets.")
+        st.info("No prices snapshot available to inspect assets.")
     else:
-        ticker_search = st.text_input("Filter tickers (substring, comma-separated list)", value="")
-        tickers_all = sorted(list(prices.columns))
-        if ticker_search.strip():
-            tokens = [t.strip().lower() for t in ticker_search.split(",") if t.strip()]
-            filtered = [t for t in tickers_all if any(tok in t.lower() for tok in tokens)]
+        all_tickers = sorted(prices.columns.tolist())
+        search_query = st.text_input("Filter tickers by name (e.g., 'AAPL, MSFT')", "")
+        if search_query:
+            tokens = [t.strip().lower() for t in search_query.split(",")]
+            filtered_tickers = [t for t in all_tickers if any(tok in t.lower() for tok in tokens)]
         else:
-            filtered = tickers_all
-        max_show = st.number_input("Max tickers to show", min_value=1, max_value=min(500, len(filtered)), value=min(20, len(filtered)))
-        chosen = st.multiselect("Choose tickers to highlight", options=filtered, default=filtered[:max_show])
-        if chosen:
-            plot_prices = prices[chosen].copy()
-            normalize = st.checkbox("Normalize selected to 1 at start", value=True)
+            filtered_tickers = all_tickers
+        selected_tickers = st.multiselect("Select assets to plot", options=filtered_tickers, default=filtered_tickers[:5])
+        if selected_tickers:
+            plot_prices = prices[selected_tickers]
+            normalize = st.checkbox("Normalize selected prices", value=True, key="inspector_normalize")
             if normalize:
-                first_vals = plot_prices.apply(lambda col: col.dropna().iloc[0] if col.dropna().shape[0]>0 else np.nan)
-                plot_prices = plot_prices.divide(first_vals, axis=1)
-            fig = go.Figure()
-            for col in plot_prices.columns:
-                fig.add_trace(go.Scatter(x=plot_prices.index, y=plot_prices[col], mode='lines', name=col))
-            # overlay weights (if present) as markers at rebalances
-            if weights is not None:
-                wsub = weights[chosen].copy()
-                for col in wsub.columns:
-                    fig.add_trace(go.Scatter(x=wsub.index, y=wsub[col], mode='markers', name=f"w:{col}", marker=dict(size=4), yaxis="y2", showlegend=True))
-                fig.update_layout(yaxis2=dict(overlaying='y', side='right', title='Weight'), height=600)
-            fig.update_layout(title="Selected asset prices (and weights)", height=600, xaxis_rangeslider_visible=True)
+                plot_prices = plot_prices / plot_prices.apply(lambda col: col.dropna().iloc[0] if not col.dropna().empty else np.nan)
+            fig = px.line(plot_prices, title="Selected Asset Prices")
+            fig.update_layout(height=600, xaxis_rangeslider_visible=True)
             st.plotly_chart(fig, use_container_width=True)
-            csv = plot_prices.to_csv(index=True)
-            st.download_button("Download selected prices CSV", data=csv, file_name="selected_prices.csv")
+            csv = plot_prices.to_csv().encode('utf-8')
+            st.download_button("Download Selected Prices (CSV)", data=csv, file_name="selected_prices.csv")
 
-# ---------- Compare (enhanced) ----------
-with tabs[6]:
-    st.header("Compare Experiments (detailed metrics)")
-
+# Compare Tab
+with tabs[8]:
+    st.header("Compare Experiments")
     if not cmp_paths:
-        st.info("Enable comparison mode in the sidebar to pick experiments.")
+        st.info("To compare, enable 'Comparison Mode' in the sidebar and select multiple experiments.")
     else:
-        def compute_returns_from_nav(nav_s: pd.Series) -> pd.Series:
-            return nav_s.pct_change().dropna()
+        @st.cache_data
+        def get_comparison_data(paths: List[Path]) -> pd.DataFrame:
+            metric_rows = []
+            for p in paths:
+                exp_data = load_experiment(str(p))
+                nav_s = ensure_series(exp_data.get("nav"))
+                if nav_s is None or nav_s.empty:
+                    continue
+                perf_data = load_precomputed_perf(p)
+                metrics = perf_data.get('metrics', ann_stats(nav_s))
+                row = {
+                    "Experiment": p.name, "Total Return": metrics.get('total_return'),
+                    "CAGR": metrics.get('ann_return'), "Volatility": metrics.get('ann_vol'),
+                    "Max Drawdown": metrics.get('max_drawdown'),
+                }
+                metric_rows.append(row)
+            return pd.DataFrame(metric_rows).set_index("Experiment")
 
-        def sharpe_ratio(nav_s: pd.Series, rf=0.0):
-            r = compute_returns_from_nav(nav_s)
-            if r.empty:
-                return np.nan
-            mean_excess = r.mean() - rf/252.0
-            return float((mean_excess / r.std()) * np.sqrt(252))
+        metrics_df = get_comparison_data(cmp_paths)
 
-        def sortino_ratio(nav_s: pd.Series, rf=0.0):
-            r = compute_returns_from_nav(nav_s)
-            if r.empty:
-                return np.nan
-            downside = r[r < 0]
-            dd = downside.std() * np.sqrt(252) if not downside.empty else 1e-9
-            mean_excess = r.mean() - rf/252.0
-            return float((mean_excess * np.sqrt(252)) / dd) if dd != 0 else np.nan
-
-        def calmar_ratio(nav_s: pd.Series):
-            metrics = ann_stats(nav_s)
-            ann_ret = metrics['ann_return']
-            max_dd = abs(metrics['max_drawdown'])
-            return float(ann_ret / max_dd) if max_dd > 0 else np.nan
-
-        def win_rate(nav_s: pd.Series):
-            r = compute_returns_from_nav(nav_s)
-            if r.empty:
-                return np.nan
-            return float((r > 0).sum() / len(r))
-
-        metric_rows = []
-        nav_series_dict = {}
-        for p in cmp_paths:
-            e = load_experiment(str(p))
-            n = e.get("nav")
-            if n is None:
-                continue
-            n_s = ensure_series(n).dropna()
-            nav_series_dict[p.name] = n_s
-            basic = ann_stats(n_s)  # contains total_return, ann_return, ann_vol, max_drawdown
-            row = {
-                "experiment": p.name,
-                "total_return": basic["total_return"],
-                "cagr": basic["ann_return"],
-                "ann_vol": basic["ann_vol"],
-                "max_drawdown": basic["max_drawdown"],
-                "sharpe": sharpe_ratio(n_s),
-                "sortino": sortino_ratio(n_s),
-                "calmar": calmar_ratio(n_s),
-                "win_rate": win_rate(n_s)
-            }
-            metric_rows.append(row)
-
-        if not metric_rows:
-            st.warning("No NAV data found for the selected experiments.")
+        if metrics_df.empty:
+            st.warning("No valid NAV data found for the selected experiments to compare.")
         else:
-            metrics_df = pd.DataFrame(metric_rows).set_index("experiment")
-            # Formatting for display
-            display_df = metrics_df.copy()
-            fmt_pct = ["total_return", "cagr", "ann_vol", "max_drawdown", "sharpe", "sortino", "calmar", "win_rate"]
-            # Show sortable table
-            st.subheader("Metrics table (click column to sort in UI)")
-            st.dataframe(display_df.style.format({
-                "total_return": "{:.2%}",
-                "cagr": "{:.2%}",
-                "ann_vol": "{:.2%}",
-                "max_drawdown": "{:.2%}",
-                "sharpe": "{:.2f}",
-                "sortino": "{:.2f}",
-                "calmar": "{:.2f}",
-                "win_rate": "{:.2%}"
-            }))
+            st.subheader("Comparative Performance Metrics")
+            format_mapping = {
+                "Total Return": "{:.2%}", "CAGR": "{:.2%}",
+                "Volatility": "{:.2%}", "Max Drawdown": "{:.2%}"
+            }
+            styled_df = metrics_df.style.format(format_mapping).highlight_max(
+                subset=["Total Return", "CAGR"], color='lightgreen'
+            ).highlight_min(
+                subset=["Volatility", "Max Drawdown"], color='lightcoral'
+            )
+            st.dataframe(styled_df, use_container_width=True)
+            st.subheader("Metric Comparison Charts")
+            metric_to_plot = st.selectbox("Select metric to visualize", options=metrics_df.columns)
+            if metric_to_plot:
+                fig = px.bar(
+                    metrics_df[metric_to_plot].sort_values(ascending=False),
+                    orientation='h', title=f"Comparison: {metric_to_plot}", text_auto=True
+                )
+                fig.update_layout(yaxis_title="Experiment", xaxis_title=metric_to_plot, showlegend=False)
+                if metric_to_plot in format_mapping:
+                    fig.update_traces(texttemplate='%{x:.2%}')
+                else:
+                    fig.update_traces(texttemplate='%{x:.2f}')
+                st.plotly_chart(fig, use_container_width=True)
 
-            # Allow CSV download
-            csv_buf = metrics_df.to_csv(index=True)
-            st.download_button("Download metrics CSV", data=csv_buf, file_name="compare_metrics.csv")
-
-            # Choose metric(s) to plot
-            all_metrics = list(metrics_df.columns)
-            sel_metrics = st.multiselect("Select metric(s) to plot", options=all_metrics, default=["cagr", "sharpe", "max_drawdown"])
-
-            if sel_metrics:
-                # Bar chart for each selected metric
-                for m in sel_metrics:
-                    fig = px.bar(metrics_df.reset_index(), x="experiment", y=m, title=f"Comparison: {m}", text=metrics_df.reset_index()[m])
-                    fig.update_layout(xaxis_tickangle=-45, height=450)
-                    # For percentage-like metrics label formatting on hover
-                    if m in ["total_return", "cagr", "ann_vol", "max_drawdown", "win_rate"]:
-                        fig.update_traces(texttemplate="%{text:.2%}", textposition="outside")
-                    else:
-                        fig.update_traces(texttemplate="%{text:.2f}", textposition="outside")
-                    st.plotly_chart(fig, use_container_width=True)
-
-                # Optional radar chart when multiple metrics selected and experiments <= 6 (for readability)
-                if len(sel_metrics) > 1 and len(metrics_df) <= 6:
-                    radar_df = metrics_df[sel_metrics].copy()
-                    # normalize metrics to 0..1 per metric for radar (min-max)
-                    radar_norm = (radar_df - radar_df.min()) / (radar_df.max() - radar_df.min() + 1e-12)
-                    fig = go.Figure()
-                    for idx, row in radar_norm.iterrows():
-                        fig.add_trace(go.Scatterpolar(r=row.values.tolist(), theta=radar_norm.columns.tolist(), fill='toself', name=idx))
-                    fig.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=True, title="Radar (normalized) comparison")
-                    st.plotly_chart(fig, use_container_width=True)
-
-            # Keep NAV time-series comparison (normalized)
-            st.markdown("---")
-            st.subheader("NAV time-series (normalized)")
+            st.subheader("Normalized NAV Comparison")
             fig_ts = go.Figure()
-            for name, s in nav_series_dict.items():
-                s_aligned = s / float(s.iloc[0])
-                fig_ts.add_trace(go.Scatter(x=s_aligned.index, y=s_aligned.values, mode='lines', name=name))
-            fig_ts.update_layout(height=500, xaxis_rangeslider_visible=True)
+            for path in cmp_paths:
+                exp_data = load_experiment(str(path))
+                nav_s = ensure_series(exp_data.get("nav"))
+                if nav_s is not None and not nav_s.empty:
+                    s_norm = nav_s / nav_s.dropna().iloc[0]
+                    fig_ts.add_trace(go.Scatter(x=s_norm.index, y=s_norm, mode='lines', name=path.name))
+            fig_ts.update_layout(height=500, title="Normalized NAV Over Time", xaxis_rangeslider_visible=True)
             st.plotly_chart(fig_ts, use_container_width=True)
