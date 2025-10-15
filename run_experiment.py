@@ -327,7 +327,38 @@ def main():
 
             # Save cumulative returns
             cum = (nav / nav.iloc[0])
-            cum.to_frame(name="cum_returns").to_parquet(perf_dir / "cum_returns.parquet")
+            # Save cumulative returns (defensive)
+        try:
+            # compute cumulative returns (nav normalized to first value)
+            cum = (nav / nav.iloc[0])
+
+            # If cum is a DataFrame:
+            #  - if single column: use that column as the series
+            #  - if multiple columns: save per-asset cum returns separately and create a single summary series (mean across assets)
+            if isinstance(cum, pd.DataFrame):
+                if cum.shape[1] == 1:
+                    cum_series = cum.iloc[:, 0]
+                else:
+                    # Save full per-asset cumulative returns for deeper analysis/plotting
+                    try:
+                        cum.to_parquet(perf_dir / "cum_returns_per_asset.parquet")
+                    except Exception as e:
+                        print(f"Warning: failed to write cumulative returns per-asset: {e}")
+
+                    # Provide a single-series summary for backward compatibility (mean across assets)
+                    # If you prefer a different aggregation (median, anchor asset, etc.), change this line.
+                    cum_series = cum.mean(axis=1)
+            else:
+                # already a Series
+                cum_series = cum
+
+            # Ensure a one-column DataFrame is saved (UI expects this shape)
+            cum_df = cum_series.to_frame(name="cum_returns")
+            cum_df.to_parquet(perf_dir / "cum_returns.parquet")
+
+        except Exception as e:
+            print(f"Warning: failed to write cumulative returns artifact: {e}")
+
 
         # --- FIX for artifact saving error ---
         # The backtester now returns trades with the date as the index.

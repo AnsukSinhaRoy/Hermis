@@ -259,23 +259,59 @@ def run_app():
             st.info('To compare, enable Comparison Mode in the sidebar and select multiple experiments.')
         else:
             @st.cache_data
+            @st.cache_data
             def get_comparison_data(paths: List[Path]):
+                """
+                Build a comparison DataFrame for the provided experiment paths.
+
+                This version is defensive:
+                - skips experiments without valid NAV
+                - returns an empty DataFrame if nothing valid was found
+                - only calls set_index('Experiment') if that column is present
+                """
                 rows = []
                 for p in paths:
-                    exp_data = load_experiment(str(p))
+                    try:
+                        exp_data = load_experiment(str(p))
+                    except Exception as e:
+                        # if loading fails for some experiment, skip it but note it
+                        st.warning(f"Could not load experiment {p.name}: {e}")
+                        continue
+
                     nav_s = ensure_series(exp_data.get('nav'))
                     if nav_s is None or nav_s.empty:
+                        # skip experiments without NAV
                         continue
+
+                    # try to load precomputed performance; fallback to ann_stats(nav)
                     perf_data = load_precomputed_perf(p)
                     metrics = perf_data.get('metrics', ann_stats(nav_s))
+
+                    # build a row; ensure keys exist even if metrics are partial
                     rows.append({
                         'Experiment': p.name,
                         'Total Return': metrics.get('total_return'),
                         'CAGR': metrics.get('ann_return'),
                         'Volatility': metrics.get('ann_vol'),
                         'Max Drawdown': metrics.get('max_drawdown'),
+                        'Sharpe': metrics.get('sharpe')
                     })
-                return pd.DataFrame(rows).set_index('Experiment')
+
+                # if nothing valid, return empty DataFrame (caller already handles empty case)
+                if not rows:
+                    return pd.DataFrame()
+
+                df = pd.DataFrame(rows)
+
+                # set index only if the column exists (defensive)
+                if 'Experiment' in df.columns:
+                    df = df.set_index('Experiment')
+                else:
+                    # fallback: keep default integer index but warn
+                    st.warning("Comparison table missing 'Experiment' column; returning default-indexed DataFrame")
+
+                return df
+
 
             metrics_df = get_comparison_data(cmp_paths)
             if metrics_df.empty:

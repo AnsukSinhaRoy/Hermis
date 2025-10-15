@@ -1,5 +1,5 @@
 experiment:
-  name: "sharpe_spread_real_K25_lb252"  # 👈 choose a name for your experiment
+  name: "mv_reg_spread_real_K25_lb252"  # 👈 choose a name for your experiment
   #tag: "mvreg"
   start_date: "2015-02-02"
   end_date: "2024-11-06"
@@ -18,7 +18,7 @@ risk_model:
 csv_path: ""
 
 optimizer:
-  type: "sharpe"         # 👈 choose one: mv_reg | risk_parity | minvar
+  type: "mv_reg"         # 👈 choose one: mv_reg | risk_parity | minvar
   k_cardinality: 25
   # lambdas: [0.001, 0.01, 0.1, 1.0]
   box:
