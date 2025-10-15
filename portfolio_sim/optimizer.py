@@ -162,9 +162,11 @@ def mv_reg_optimize(mu: pd.Series,
 def min_variance_optimize(Sigma: pd.DataFrame,
                           box: Optional[dict] = None,
                           long_only: bool = True,
-                          solver: Optional[str] = None) -> Dict:
+                          solver: Optional[str] = None,
+                          **kwargs) -> Dict:
     """
     Minimum variance under sum(w)=1 and box/long-only constraints.
+    Accepts **kwargs to be tolerant of extra forwarded parameters.
     """
     assets = list(Sigma.index)
     n = len(assets)
@@ -209,12 +211,11 @@ def risk_parity_optimize(Sigma: pd.DataFrame,
                          max_iter: int = 2000,
                          init_w: Optional[pd.Series] = None,
                          long_only: bool = True,
-                         box: Optional[dict] = None) -> Dict:
+                         box: Optional[dict] = None,
+                         **kwargs) -> Dict:
     """
     Numerical Risk Parity / Equal Risk Contribution solver (iterative).
-    Sigma: covariance DataFrame (index/columns assets)
-    Returns equal risk contribution weights (sum to 1).
-    Reference: Maillard et al. 2010 / iterative algorithms.
+    Accepts **kwargs to be tolerant of extra forwarded parameters.
     """
     assets = list(Sigma.index)
     n = len(assets)
@@ -232,9 +233,11 @@ def risk_parity_optimize(Sigma: pd.DataFrame,
             w = w / w.sum()
 
     # iterative algorithm: Newton-like with scaling (see literature)
+        # iterative algorithm: Newton-like with scaling (see literature)
     for it in range(max_iter):
         # compute marginal risk: M = Sigma @ w
-        M = S.dot(w)
+        M = S.dot(w)  # expected to be >= 0, but numerical noise may produce tiny negatives
+
         # risk contributions RC_i = w_i * M_i
         RC = w * M
         RC_sum = RC.sum()
@@ -242,12 +245,26 @@ def risk_parity_optimize(Sigma: pd.DataFrame,
             break
         # target per-asset share
         target = RC_sum / n
-        # gradient-like update: w_i <- w_i * (M_i / target)^{-1/2} (heuristic)
-        # use multiplicative update to enforce positivity
-        factors = np.sqrt(M / (target + 1e-12))
-        # prevent division by zero/infs
+
+        # --- NUMERICAL SAFEGUARDS ---
+        # Avoid division by zero and negative values inside sqrt.
+        eps = 1e-12
+
+        # Ensure M is non-negative and finite before division
+        M_safe = np.where(np.isfinite(M) & (M > 0), M, eps)
+
+        # Ensure target is a positive finite scalar
+        tgt_safe = float(target) if np.isfinite(target) and target > 0 else eps
+
+        # Compute factors robustly
+        factors = np.sqrt(M_safe / (tgt_safe + eps))
+
+        # Prevent any non-finite or non-positive factors
         factors = np.where(np.isfinite(factors) & (factors > 0), factors, 1.0)
+
+        # multiplicative update (keeps positivity)
         w_new = w / factors
+
         # apply box/long_only constraints by clipping and renormalizing
         if long_only:
             w_new = np.maximum(w_new, 0.0)
@@ -261,18 +278,20 @@ def risk_parity_optimize(Sigma: pd.DataFrame,
         if w_new.sum() <= 0:
             w_new = np.ones(n) / n
         w_new = w_new / w_new.sum()
+
         # convergence check: max relative change
         if np.max(np.abs(w_new - w)) < tol:
             w = w_new
             break
         w = w_new
 
-    # final check: compute status and RC parity error
+
     M = S.dot(w)
     RC = w * M
-    rc_mean = RC.mean() if RC.size>0 else 0.0
+    rc_mean = RC.mean() if RC.size > 0 else 0.0
     rc_err = float(np.linalg.norm(RC - rc_mean) / (np.linalg.norm(RC) + 1e-12))
     return {"weights": pd.Series(w, index=assets), "status": "ok", "erc_error": rc_err}
+
 
 # ---------------------------
 # Simple greedy k-cardinality helper
@@ -316,3 +335,47 @@ def greedy_k_cardinality(expected: pd.Series,
     else:
         # default fallback
         return mv_reg_optimize(mu_sub, Sigma_sub, box=box, long_only=long_only, **kwargs)
+
+
+def sharpe_optimize(mu: pd.Series, Sigma: pd.DataFrame, box=None, long_only=True, solver=None) -> Dict:
+    """
+    Maximize Sharpe ratio = (mu^T w) / sqrt(w^T Σ w)
+    """
+    assets = list(mu.index)
+    n = len(assets)
+    if n == 0:
+        return {"weights": None, "status": "no_assets"}
+
+    mu_np = mu.values
+    Sigma_np = Sigma.values
+
+    w = cp.Variable(n)
+    port_return = mu_np @ w
+    port_var = cp.quad_form(w, Sigma_np)
+    port_vol = cp.sqrt(port_var + 1e-8)
+
+    objective = cp.Maximize(port_return / port_vol)
+    constraints = [cp.sum(w) == 1]
+    if long_only:
+        constraints += [w >= 0]
+    if box is not None:
+        low, high = box.get("min", None), box.get("max", None)
+        if low is not None:
+            constraints += [w >= float(low)]
+        if high is not None:
+            constraints += [w <= float(high)]
+
+    prob = cp.Problem(objective, constraints)
+    try:
+        prob.solve(solver=solver, warm_start=True)
+        if w.value is None:
+            raise RuntimeError("Solver returned None")
+        wv = np.array(w.value).flatten()
+        wv = np.clip(wv, 0, None)
+        wv /= wv.sum()
+        port_mean = float(mu_np @ wv)
+        port_vol = np.sqrt(float(wv @ Sigma_np @ wv))
+        sharpe = port_mean / port_vol if port_vol > 0 else 0.0
+        return {"weights": pd.Series(wv, index=assets), "status": "ok", "sharpe": sharpe}
+    except Exception as e:
+        return {"weights": np.ones(n) / n, "status": f"solver_failed:{repr(e)}"}

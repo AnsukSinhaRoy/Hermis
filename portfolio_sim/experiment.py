@@ -7,7 +7,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Callable, Optional
 import pandas as pd
-import pkg_resources
 
 def make_experiment_folder(base_dir: str, name: str, tag: Optional[str]=None) -> Path:
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")

@@ -1,0 +1,30 @@
+experiment:
+  name: "sharpe_real_K25_lb56"  # 👈 choose a name for your experiment
+  tag: "mvreg"
+  start_date: "2015-02-02"
+  end_date: "2024-11-06"
+  rebalance: "monthly"  # 👈 choose one: daily | weekly | monthly
+  seed: 42
+  use_gpu: false
+
+data:
+  mode: "processed"  # 👈 choose one: synthetic | processed
+  processed_path: "data/processed/prices_1D.parquet"
+
+risk_model:
+  type: "sample_cov"
+  lookback: 56
+
+csv_path: ""
+
+optimizer:
+  type: "sharpe"         # 👈 choose one: mv_reg | risk_parity | minvar
+  k_cardinality: 25
+  # lambdas: [0.001, 0.01, 0.1, 1.0]
+  box:
+    min: 0
+    max: 0.2
+  long_only: true
+
+transaction_costs:
+  proportional: 0.0005

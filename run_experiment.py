@@ -69,6 +69,9 @@ def optimizer_wrapper_factory_from_cfg(cfg):
             return mv_reg_optimize(expected, cov, **common_args, lambda_reg=lambda_reg)
         elif opt_type == "risk_parity":
             return risk_parity_optimize(cov, **common_args)
+        elif opt_type == "sharpe":
+            from portfolio_sim.optimizer import sharpe_optimize
+            return sharpe_optimize(expected, cov, **common_args)
         else: # Default to mv_reg
             return mv_reg_optimize(expected, cov, **common_args, lambda_reg=lambda_reg)
             
@@ -146,35 +149,97 @@ def runner_func(cfg: dict):
 
 
 def _ann_stats(nav_s: pd.Series):
-    """Compute a small set of annualized stats for JSON-friendly saving."""
-    if nav_s is None or len(nav_s) < 2:
-        return {"total_return": None, "ann_return": None, "ann_vol": None, "max_drawdown": None}
-    
-    days = (nav_s.index[-1] - nav_s.index[0]).days
-    # Avoid division by zero if backtest is less than a day
-    days = max(days, 1)
+    """Compute a small set of annualized stats for JSON-friendly saving.
 
-    # --- FIX for FutureWarning ---
-    # Ensure scalar values are extracted before converting to float.
-    total_ret = nav_s.iloc[-1] / nav_s.iloc[0] - 1.0
-    ann_ret = (1 + total_ret) ** (365.0 / days) - 1.0
-    
-    dr = nav_s.pct_change().dropna()
-    ann_vol = dr.std() * np.sqrt(252) if not dr.empty else 0.0
-    
-    roll_max = nav_s.cummax()
-    drawdown = (nav_s - roll_max) / roll_max
-    # .min() on a Series returns a scalar, but on a DataFrame returns a Series.
-    # To be safe, ensure we handle both cases.
-    min_drawdown = drawdown.min()
-    max_dd = min_drawdown if isinstance(min_drawdown, (int, float)) else min_drawdown.iloc[0]
+    Defensive: accepts Series or single-column DataFrame, handles very short series,
+    non-finite values, and always returns numeric scalars (or None) so the saving step
+    doesn't fail with UnboundLocalError.
+    """
+    # Normalize input to a Series
+    try:
+        if nav_s is None:
+            return {"total_return": None, "ann_return": None, "ann_vol": None, "max_drawdown": None, "sharpe": None}
+        if isinstance(nav_s, pd.DataFrame):
+            if nav_s.shape[1] == 1:
+                nav = nav_s.iloc[:, 0].astype(float)
+            else:
+                # prefer column named 'value' or first numeric column
+                if 'value' in nav_s.columns:
+                    nav = nav_s['value'].astype(float)
+                else:
+                    # pick first numeric column
+                    nav = nav_s.select_dtypes(include=['number']).iloc[:, 0].astype(float)
+        elif isinstance(nav_s, pd.Series):
+            nav = nav_s.astype(float)
+        else:
+            # attempt to build a Series
+            nav = pd.Series(nav_s).astype(float)
+    except Exception:
+        # If conversion fails, return Nones
+        return {"total_return": None, "ann_return": None, "ann_vol": None, "max_drawdown": None, "sharpe": None}
+
+    if nav is None or len(nav) < 2:
+        return {"total_return": None, "ann_return": None, "ann_vol": None, "max_drawdown": None, "sharpe": None}
+
+    # Ensure index sorted and has datetime-like index for days difference
+    try:
+        nav = nav.sort_index()
+    except Exception:
+        pass
+
+    # days between first and last (guard against zero)
+    try:
+        days = (pd.to_datetime(nav.index[-1]) - pd.to_datetime(nav.index[0])).days
+        days = max(int(days), 1)
+    except Exception:
+        days = max(len(nav) - 1, 1)
+
+    # total return (coerce to scalar)
+    try:
+        total_ret = float(nav.iloc[-1] / nav.iloc[0] - 1.0)
+    except Exception:
+        total_ret = None
+
+    # annualized return (if total_ret computed)
+    try:
+        ann_ret = float((1 + total_ret) ** (365.0 / float(days)) - 1.0) if total_ret is not None else None
+    except Exception:
+        ann_ret = None
+
+    # daily return series
+    try:
+        dr = nav.pct_change().dropna()
+        ann_vol = float(dr.std() * np.sqrt(252)) if not dr.empty else None
+    except Exception:
+        ann_vol = None
+
+    # max drawdown
+    try:
+        roll_max = nav.cummax()
+        drawdown = (nav - roll_max) / roll_max
+        # .min() returns scalar; coerce to float or None
+        min_drawdown = drawdown.min()
+        max_dd = float(min_drawdown) if pd.notna(min_drawdown) else None
+    except Exception:
+        max_dd = None
+
+    # Sharpe: use annualized return divided by ann_vol (if both available and ann_vol>0)
+    try:
+        if ann_ret is None or ann_vol is None or ann_vol == 0:
+            sharpe = None
+        else:
+            sharpe = float(ann_ret / ann_vol)
+    except Exception:
+        sharpe = None
 
     return {
-        "total_return": float(total_ret),
-        "ann_return": float(ann_ret),
-        "ann_vol": float(ann_vol),
-        "max_drawdown": float(max_dd)
+        "total_return": None if total_ret is None else float(total_ret),
+        "ann_return": None if ann_ret is None else float(ann_ret),
+        "ann_vol": None if ann_vol is None else float(ann_vol),
+        "max_drawdown": None if max_dd is None else float(max_dd),
+        "sharpe": None if sharpe is None else float(sharpe)
     }
+
 
 
 def main():
@@ -203,18 +268,62 @@ def main():
                 json.dump(metrics, f, indent=2)
 
             # Save rolling sharpe
-            returns = nav.pct_change().dropna()
-            if len(returns) > 63:
-                win = 63
-                r_mean = returns.rolling(win).mean()
-                r_std = returns.rolling(win).std()
-                rs = (r_mean / (r_std + 1e-8)) * np.sqrt(252)
-                rs.to_frame(name="rolling_sharpe").to_parquet(perf_dir / "rolling_sharpe.parquet")
+            try:
+                returns = nav.pct_change().dropna()
+                if len(returns) > 63:
+                    win = 63
+                    r_mean = returns.rolling(win).mean()
+                    r_std = returns.rolling(win).std()
+                    rs = (r_mean / (r_std + 1e-8)) * np.sqrt(252)
+
+                    # Convert rs to a single-column DataFrame for saving.
+                    # If rs is DataFrame with a single column, take that column.
+                    # If multiple columns, summarize by taking the row-wise mean (gives a single Sharpe series).
+                    if isinstance(rs, pd.DataFrame):
+                        if rs.shape[1] == 1:
+                            rs_series = rs.iloc[:, 0]
+                        else:
+                            # Multiple columns: produce a single time series summary (mean across columns).
+                            # This is better than failing; if you prefer a different aggregation, change this line.
+                            rs_series = rs.mean(axis=1)
+                    else:
+                        # already a Series
+                        rs_series = rs
+
+                    # Ensure Series -> DataFrame with a stable column name, then save
+                    rs_df = rs_series.to_frame(name="rolling_sharpe")
+                    rs_df.to_parquet(perf_dir / "rolling_sharpe.parquet")
+            except Exception as e:
+                print(f"Warning: failed to write rolling sharpe artifact: {e}")
 
             # Save drawdown series
-            roll_max = nav.cummax()
-            drawdown = ((nav - roll_max) / roll_max)
-            drawdown.to_frame(name="drawdown").to_parquet(perf_dir / "drawdown.parquet")
+            try:
+                roll_max = nav.cummax()
+                drawdown = ((nav - roll_max) / roll_max)
+
+                # If drawdown is a DataFrame:
+                #  - if single column, take that column
+                #  - if multiple columns, produce a single summary series:
+                #      use the row-wise minimum (most negative drawdown across columns) as the portfolio drawdown summary.
+                if isinstance(drawdown, pd.DataFrame):
+                    if drawdown.shape[1] == 1:
+                        dd_series = drawdown.iloc[:, 0]
+                    else:
+                        # multiple columns -> summarize to a single series for the UI
+                        # We choose the per-row minimum so the drawdown plot shows the worst drawdown across assets.
+                        dd_series = drawdown.min(axis=1)
+                        # OPTIONAL: if you want to keep per-asset drawdowns as well, uncomment the next line:
+                        # drawdown.to_parquet(perf_dir / "drawdown_per_asset.parquet")
+                else:
+                    # already a Series
+                    dd_series = drawdown
+
+                # Ensure a DataFrame with a stable column name is saved
+                dd_df = dd_series.to_frame(name="drawdown")
+                dd_df.to_parquet(perf_dir / "drawdown.parquet")
+
+            except Exception as e:
+                print(f"Warning: failed to write drawdown artifact: {e}")
 
             # Save cumulative returns
             cum = (nav / nav.iloc[0])

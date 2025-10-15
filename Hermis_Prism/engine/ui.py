@@ -77,11 +77,13 @@ def run_app():
             if nav is not None:
                 metrics = preperf.get('metrics', ann_stats(nav))
                 st.subheader("Key Performance Indicators")
-                m_cols = st.columns(4)
+                m_cols = st.columns(5)
                 m_cols[0].metric("Total Return", f"{metrics.get('total_return',0)*100:.2f}%")
                 m_cols[1].metric("Annualized Return", f"{metrics.get('ann_return',0)*100:.2f}%")
                 m_cols[2].metric("Annualized Volatility", f"{metrics.get('ann_vol',0)*100:.2f}%")
                 m_cols[3].metric("Max Drawdown", f"{metrics.get('max_drawdown',0)*100:.2f}%", delta_color='inverse')
+                m_cols[4].metric("Sharpe Ratio", f"{metrics.get('sharpe', 0):.2f}")
+
                 st.markdown("---")
                 st.plotly_chart(plot_nav(nav), use_container_width=True)
             else:
