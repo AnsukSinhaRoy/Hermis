@@ -1,5 +1,5 @@
 experiment:
-  name: "compare_with_ICICI_risk_parity_k10_free"  # 👈 choose a name for your experiment
+  name: "compare_with_ICICI_risk_parity"  # 👈 choose a name for your experiment
   #tag: "mvreg"
   start_date: "2019-06-06" #yyyy-mm-dd
   end_date: "2024-09-06"
@@ -22,8 +22,8 @@ optimizer:
   k_cardinality: 25
   # lambdas: [0.001, 0.01, 0.1, 1.0]
   box:
-    min: 0.001
-    max: 1.00
+    min: 0.00
+    max: 0.20
   long_only: true
 
 transaction_costs:

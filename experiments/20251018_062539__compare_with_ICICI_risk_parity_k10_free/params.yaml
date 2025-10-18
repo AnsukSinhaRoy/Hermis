@@ -19,10 +19,10 @@ csv_path: ""
 
 optimizer:
   type: "risk_parity"         # 👈 choose one: mv_reg | risk_parity | minvar
-  k_cardinality: 25
+  k_cardinality: 10
   # lambdas: [0.001, 0.01, 0.1, 1.0]
   box:
-    min: 0.001
+    min: 0.00
     max: 1.00
   long_only: true
 
