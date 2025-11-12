@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 from typing import Tuple, Dict, Optional, List
 import cvxpy as cp
+from numpy.linalg import solve, norm
+
 
 # ---------------------------
 # Helpers
@@ -379,3 +381,400 @@ def sharpe_optimize(mu: pd.Series, Sigma: pd.DataFrame, box=None, long_only=True
         return {"weights": pd.Series(wv, index=assets), "status": "ok", "sharpe": sharpe}
     except Exception as e:
         return {"weights": np.ones(n) / n, "status": f"solver_failed:{repr(e)}"}
+    
+"""
+Optimizers for Hermis Prism
+
+This module implements a small collection of portfolio optimizers that are
+pure-Python (numpy/pandas) friendly with an optional scipy fallback for
+constrained (no-short) problems.
+
+Functions included:
+- min_variance_weights(returns, target_return=None, allow_short=True)
+    Closed-form minimum-variance (or target-return) solution. If
+    `allow_short` is False then a bounded quadratic program using
+    `scipy.optimize.minimize` is used (if scipy is available).
+
+- global_minimum_variance(returns, allow_short=True)
+    Convenience wrapper for the GMV portfolio.
+
+Usage example::
+
+    import pandas as pd
+    from portfolio_viz.optimizers import min_variance_weights
+
+    # `rets` can be a DataFrame of periodic returns (rows = dates, cols = assets)
+    w = min_variance_weights(rets, target_return=0.01, allow_short=False)
+
+Notes:
+- This implementation estimates expected returns as the mean of input returns
+  and covariance with the sample covariance (ddof=1).
+- When `allow_short=False` and scipy is not installed, a simple heuristic
+  (clip negative weights to zero and renormalize) is used as a fallback.
+
+"""
+from typing import Optional
+import numpy as np
+import pandas as pd
+
+
+def _to_mu_sigma(returns: pd.DataFrame):
+    """Convert input returns (Series/DataFrame/ndarray) to mu (n,) and Sigma (n,n)."""
+    if isinstance(returns, pd.Series):
+        returns = returns.to_frame()
+    if isinstance(returns, np.ndarray):
+        arr = returns
+        if arr.ndim == 1:
+            arr = arr[:, None]
+        mu = np.nanmean(arr, axis=0)
+        sigma = np.cov(arr, rowvar=False, ddof=1)
+        return mu, sigma
+    if isinstance(returns, pd.DataFrame):
+        df = returns.dropna(how='all')
+        mu = df.mean(axis=0).values
+        sigma = df.cov(ddof=1).values
+        return mu, sigma
+    raise ValueError("Unsupported returns input type")
+
+
+def global_minimum_variance(returns: pd.DataFrame, allow_short: bool = True) -> pd.Series:
+    """Return weights for the global minimum variance portfolio.
+
+    Parameters
+    ----------
+    returns : DataFrame or ndarray
+        Historical returns (rows = dates, columns = assets). If a 1-D series is
+        provided it is treated as a single-asset series (trivial result).
+    allow_short : bool
+        If False then weights are constrained to be >= 0. In that case the
+        function will attempt to use scipy.optimize; if scipy is unavailable a
+        clipped-and-renormalized fallback is used.
+
+    Returns
+    -------
+    pd.Series
+        Asset weights (index preserved if `returns` is DataFrame).
+    """
+    return min_variance_weights(returns, target_return=None, allow_short=allow_short)
+
+
+def min_variance_weights(returns, target_return: Optional[float] = None, allow_short: bool = True):
+    """Compute minimum-variance (or target-return) portfolio weights.
+
+    Closed-form solution when shorting is allowed. Constrained (no-short)
+    solution uses scipy.optimize.minimize with bounds if available.
+
+    Parameters
+    ----------
+    returns : pd.DataFrame or ndarray
+        Historical periodic returns (rows = dates, columns = assets).
+    target_return : float, optional
+        If provided, solve the minimum-variance portfolio subject to the
+        portfolio expected return equaling `target_return`. If None, return
+        the global minimum variance portfolio (GMV).
+    allow_short : bool
+        If True, short positions are allowed and closed-form solution is used.
+        If False, weights are constrained to be >= 0 and sum to 1.
+
+    Returns
+    -------
+    pd.Series
+        Weights indexed by asset names (if input is DataFrame) or integer
+        positions if numpy array input.
+    """
+    mu, sigma = _to_mu_sigma(returns)
+    n = len(mu)
+
+    # Small regularization for numerical stability
+    eps = 1e-8
+    sigma = sigma + np.eye(n) * eps
+
+    inv_sigma = np.linalg.inv(sigma)
+
+    ones = np.ones(n)
+    A = ones @ inv_sigma @ ones
+    B = ones @ inv_sigma @ mu
+    C = mu @ inv_sigma @ mu
+
+    # Global minimum variance (no return constraint)
+    if target_return is None and allow_short:
+        w = (inv_sigma @ ones) / A
+    elif target_return is not None and allow_short:
+        # Solve for coefficients alpha, beta such that w = alpha * inv_sigma * mu + beta * inv_sigma * ones
+        # Constraints: ones'w = 1, mu'w = target_return
+        # Which gives: [B A; C B] [alpha; beta] = [1; target_return]
+        M = np.array([[B, A], [C, B]])
+        rhs = np.array([1.0, float(target_return)])
+        alpha_beta = np.linalg.solve(M, rhs)
+        alpha, beta = alpha_beta
+        w = alpha * (inv_sigma @ mu) + beta * (inv_sigma @ ones)
+    else:
+        # Constrained problem (no shorting) or user forced no-short
+        try:
+            from scipy.optimize import minimize
+
+            def port_var(x):
+                return float(x @ sigma @ x)
+
+            constraints = [{
+                'type': 'eq',
+                'fun': lambda x: float(np.sum(x) - 1.0)
+            }]
+            if target_return is not None:
+                constraints.append({
+                    'type': 'eq',
+                    'fun': lambda x: float(mu @ x - target_return)
+                })
+
+            bounds = [(0.0, 1.0) for _ in range(n)]
+            x0 = np.ones(n) / n
+            res = minimize(port_var, x0, method='SLSQP', bounds=bounds, constraints=constraints)
+            if not res.success:
+                # fallback to clipping heuristic
+                w = np.clip(x0, 0, 1)
+                w = w / w.sum()
+            else:
+                w = res.x
+        except Exception:
+            # SciPy not available -> heuristic
+            # Take the unconstrained opt and clip negatives to zero then renormalize.
+            try:
+                if target_return is None:
+                    w_un = (inv_sigma @ ones) / A
+                else:
+                    M = np.array([[B, A], [C, B]])
+                    rhs = np.array([1.0, float(target_return)])
+                    alpha_beta = np.linalg.solve(M, rhs)
+                    alpha, beta = alpha_beta
+                    w_un = alpha * (inv_sigma @ mu) + beta * (inv_sigma @ ones)
+                w = np.clip(w_un, 0.0, None)
+                s = w.sum()
+                if s <= 0:
+                    # fallback to equal weights
+                    w = np.ones(n) / n
+                else:
+                    w = w / s
+            except Exception:
+                w = np.ones(n) / n
+
+    # Return as pd.Series if input was DataFrame
+    if isinstance(returns, pd.DataFrame):
+        return pd.Series(w, index=returns.columns)
+    else:
+        return pd.Series(w)
+
+
+# Additional helper: simple risk-parity heuristic (equal risk contributions)
+# This is optional but handy for users who want a non-mean-based allocation.
+
+def risk_parity_weights(returns, allow_short: bool = False, maxiter: int = 1000, tol: float = 1e-8):
+    """Estimate equal risk contribution weights (a simple iterative algorithm).
+
+    The algorithm solves for w s.t. w_i * (Sigma w)_i are (approximately) equal.
+    We use a cyclical coordinate descent-like approach described in literature.
+
+    Parameters
+    ----------
+    returns : DataFrame or ndarray
+        Asset returns matrix.
+    allow_short : bool
+        Risk parity usually implies long-only weights; `allow_short` is
+        accepted for API compatibility but currently ignored.
+
+    Returns
+    -------
+    pd.Series
+        Long-only weights summing to 1.
+    """
+    mu, sigma = _to_mu_sigma(returns)
+    n = sigma.shape[0]
+    x = np.ones(n) / n
+
+    for it in range(maxiter):
+        sigma_x = sigma @ x
+        rc = x * sigma_x
+        total_rc = rc.sum()
+        # target risk contribution per asset
+        target = total_rc / n
+        # update rule: scale each weight by target / actual contribution
+        x_new = x * np.sqrt(target / (rc + 1e-12))
+        x_new = np.clip(x_new, 1e-12, None)
+        x_new = x_new / x_new.sum()
+        if np.linalg.norm(x_new - x) < tol:
+            x = x_new
+            break
+        x = x_new
+
+    if isinstance(returns, pd.DataFrame):
+        return pd.Series(x, index=returns.columns)
+    else:
+        return pd.Series(x)
+
+
+# --- Entropy-regularized damped-Newton projected optimizer ---
+# Adapted from user-supplied implementation (damped Newton with entropy
+# regularization and projection onto {w >= 0, sum(w) <= K}).
+
+def _proj_simplex(v: np.ndarray, K: float = 1.0) -> np.ndarray:
+    """Projection of vector v onto {x >= 0, sum(x) <= K}.
+
+    If sum(max(v,0)) <= K returns max(v,0). Otherwise projects onto the
+    simplex of radius K (i.e. nonnegative vector summing to exactly K).
+    """
+    x = np.maximum(v, 0.0)
+    s = x.sum()
+    if s <= K:
+        return x
+    u = np.sort(v)[::-1]
+    cssv = np.cumsum(u)
+    rho_idx = np.nonzero(u * np.arange(1, len(u) + 1) > (cssv - K))[0]
+    if len(rho_idx) == 0:
+        theta = 0.0
+    else:
+        rho = rho_idx[-1]
+        theta = (cssv[rho] - K) / (rho + 1.0)
+    w = np.maximum(v - theta, 0.0)
+    return w
+
+
+def _objective_and_grad_hess(w: np.ndarray, R: np.ndarray, v_sum: np.ndarray, p_avg: float, lam: float, eps: float = 1e-12):
+    """Objective, gradient and Hessian for the entropy-regularized problem.
+
+    f(w) = 0.5 w^T R w - p_avg w^T v_sum + lam * sum_i w_i log w_i
+    """
+    w_safe = np.maximum(w, eps)
+    f = 0.5 * float(w.dot(R.dot(w))) - float(p_avg * w.dot(v_sum)) + float(lam * np.sum(w_safe * np.log(w_safe)))
+    grad = R.dot(w) - p_avg * v_sum + lam * (1.0 + np.log(w_safe))
+    H = R.copy()
+    H = H + np.diag(lam / w_safe)
+    return f, grad, H
+
+
+def _damped_newton_projected(w_init: np.ndarray, R: np.ndarray, v_sum: np.ndarray, p_avg: float, lam: float, K: float = 1.0,
+                              max_iters: int = 50, tol: float = 1e-8, alpha0: float = 1.0, eps: float = 1e-12):
+    """Minimize the entropy-regularized objective using damped Newton + projection.
+
+    Parameters
+    ----------
+    w_init : ndarray
+        Initial guess (length n).
+    R : ndarray
+        Accumulated quadratic term (n x n).
+    v_sum : ndarray
+        Accumulated linear term (length n).
+    p_avg : float
+        Scalar multiplier for the linear term.
+    lam : float
+        Entropy (log) regularization weight (>=0).
+    K : float
+        Simplex radius (sum(w) <= K).
+
+    Returns
+    -------
+    ndarray
+        Projected optimal weights (length n).
+    """
+    w = w_init.copy().astype(float)
+    n = len(w)
+    for it in range(max_iters):
+        f, g, H = _objective_and_grad_hess(w, R, v_sum, p_avg, lam, eps=eps)
+        reg = 1e-8
+        try:
+            d = solve(H + reg * np.eye(n), g)
+        except np.linalg.LinAlgError:
+            d = g
+        alpha = alpha0
+        found = False
+        for _ in range(25):
+            w_trial = w - alpha * d
+            w_trial_proj = _proj_simplex(w_trial, K=K)
+            f_trial, _, _ = _objective_and_grad_hess(w_trial_proj, R, v_sum, p_avg, lam, eps=eps)
+            # Armijo-like condition (sufficient decrease)
+            if f_trial <= f - 1e-4 * alpha * float(np.dot(g, d)):
+                found = True
+                break
+            alpha *= 0.5
+        if not found:
+            step = -0.01 * g
+            w_next = _proj_simplex(w + step, K=K)
+        else:
+            w_next = w_trial_proj
+        if norm(w_next - w) < tol:
+            w = w_next
+            break
+        w = w_next
+    return w
+
+
+def entropy_newton_weights(returns, p_avg: float = 0.0, lam: float = 1e-2, K: float = 1.0,
+                            max_iters: int = 50, tol: float = 1e-8, warm_start: bool = True):
+    """Compute weights by minimizing a quadratic objective with entropy regularization.
+
+    Problem (variables w >= 0, sum(w) <= K):
+        0.5 w^T R w - p_avg * w^T v_sum + lam * sum_i w_i log w_i
+
+    Inputs are accepted as pandas DataFrame / Series / numpy arrays. When
+    `returns` is a DataFrame it is treated as a (T x N) matrix of past returns
+    and we use the accumulators R = sum_t r_t r_t^T, v_sum = sum_t r_t.
+
+    Parameters
+    ----------
+    returns : DataFrame or ndarray
+    p_avg : float
+    lam : float
+    K : float
+    max_iters, tol : numeric
+    warm_start : bool
+        If True and `returns` is a DataFrame, initialize with uniform weights
+        across columns. If a 1-D array is provided, the initial value will be
+        a normalized positive vector.
+
+    Returns
+    -------
+    pd.Series or np.ndarray
+        Weights summing to <= K. If `returns` is a DataFrame, a pd.Series with
+        the same column index is returned.
+    """
+    # Convert inputs
+    if isinstance(returns, pd.DataFrame):
+        # construct accumulators from historical returns: R = sum outer, v_sum = sum
+        arr = returns.dropna(how='all').values
+        if arr.size == 0:
+            raise ValueError("Empty returns provided")
+        R = arr.T.dot(arr)
+        v_sum = arr.sum(axis=0)
+        cols = returns.columns
+    elif isinstance(returns, pd.Series):
+        arr = returns.values.reshape(-1, 1)
+        R = arr.T.dot(arr)
+        v_sum = arr.sum(axis=0)
+        cols = returns.index
+    elif isinstance(returns, np.ndarray):
+        if returns.ndim == 1:
+            arr = returns.reshape(-1, 1)
+        else:
+            arr = returns
+        R = arr.T.dot(arr)
+        v_sum = arr.sum(axis=0)
+        cols = None
+    else:
+        raise ValueError("Unsupported returns type")
+
+    n = R.shape[0]
+    if warm_start:
+        w0 = np.ones(n) * (K / n)
+    else:
+        w0 = np.maximum(np.random.randn(n), 0.0)
+        s = w0.sum()
+        if s <= 0:
+            w0 = np.ones(n) * (K / n)
+        else:
+            w0 = w0 / s * K
+
+    w_opt = _damped_newton_projected(w0, R, v_sum, p_avg, lam, K=K, max_iters=max_iters, tol=tol)
+
+    if cols is not None:
+        return pd.Series(w_opt, index=cols)
+    else:
+        return pd.Series(w_opt)
+

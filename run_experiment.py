@@ -7,7 +7,6 @@ used are saved into the experiment folder, and precompute performance
 artifacts to make the Streamlit app fast to load.
 """
 from pathlib import Path
-import time
 import json
 
 import pandas as pd
@@ -16,10 +15,12 @@ import numpy as np
 # portfolio_sim imports (local package)
 from portfolio_sim.config import Config
 from portfolio_sim.data import generate_synthetic_prices, load_prices_from_csv, compute_returns, cov_matrix
-from portfolio_sim.optimizer import greedy_k_cardinality, mv_reg_optimize, risk_parity_optimize
+from portfolio_sim.optimizer import greedy_k_cardinality, mv_reg_optimize, risk_parity_optimize, _damped_newton_projected
 from portfolio_sim.backtest import run_backtest
 from portfolio_sim.experiment import run_experiment_from_config, load_experiment
 from portfolio_sim import viz
+# new import for entropy optimizer
+
 
 # path to your config
 cfg_path = "configs/newconfig.yaml"
@@ -44,6 +45,10 @@ def optimizer_wrapper_factory_from_cfg(cfg):
     """
     Return optimizer_func(expected: pd.Series, cov: pd.DataFrame) -> dict
     that our backtester expects. Reads optimizer settings from cfg.
+
+    Extended: supports opt_type "entropy_newton" which uses the
+    entropy-regularized damped-Newton projected solver exposed by
+    portfolio_viz.optimizers._damped_newton_projected.
     """
     opt_cfg = cfg.get('optimizer', {})
     opt_type = opt_cfg.get('type', 'mv_reg')
@@ -53,18 +58,60 @@ def optimizer_wrapper_factory_from_cfg(cfg):
     if box_cfg is not None:
         box = {"min": box_cfg.get("min", None), "max": box_cfg.get("max", None)}
     long_only = bool(opt_cfg.get('long_only', True))
-    lambda_reg = opt_cfg.get('lambda_reg', 1.0) # Use lambda_reg
+    lambda_reg = opt_cfg.get('lambda_reg', 1.0)  # existing regularizer
+
+    # New: parameters specific to entropy_newton
+    p_avg = float(opt_cfg.get('p_avg', 0.0))    # linear term multiplier (default 0.0)
+    lam = float(opt_cfg.get('lam', lambda_reg)) # entropy weight (by default reuse lambda_reg)
+    K = float(opt_cfg.get('K', 1.0))            # simplex radius (sum(w) <= K)
 
     def optimizer_func(expected: pd.Series, cov: pd.DataFrame):
         if expected is None or cov is None:
             return {"weights": None, "status": "invalid_inputs"}
-        
+
         # Consolidate common arguments
         common_args = {"box": box, "long_only": long_only}
 
+        # k-cardinality branch unchanged
         if k is not None and int(k) > 0:
             return greedy_k_cardinality(expected, cov, k=int(k), method=opt_type, **common_args, lambda_reg=lambda_reg)
-        
+
+        # New optimizer: entropy_newton
+        if opt_type == "entropy_newton":
+            try:
+                # Convert inputs to numpy arrays
+                if isinstance(cov, pd.DataFrame):
+                    Sigma = cov.values
+                else:
+                    Sigma = np.asarray(cov, dtype=float)
+
+                if isinstance(expected, pd.Series) or isinstance(expected, pd.DataFrame):
+                    mu = np.asarray(expected).ravel().astype(float)
+                else:
+                    mu = np.asarray(expected, dtype=float).ravel()
+
+                # Ensure dimensions align
+                n = Sigma.shape[0]
+                if mu.shape[0] != n:
+                    # if mu length doesn't match, try to broadcast or return invalid
+                    return {"weights": None, "status": "invalid_dims"}
+
+                # initial uniform weights on simplex radius K
+                w0 = np.ones(n) * (K / n)
+
+                # Call the damped-Newton projected solver from portfolio_viz.optimizers
+                # We treat Sigma as the quadratic term and mu as the linear term.
+                w_opt = _damped_newton_projected(w0, Sigma, mu, p_avg, lam, K=K, max_iters=50, tol=1e-8)
+
+                # Return successful response consistent with other optimizers
+                if isinstance(cov, pd.DataFrame):
+                    return {"weights": pd.Series(w_opt, index=cov.columns), "status": "success"}
+                else:
+                    return {"weights": pd.Series(w_opt), "status": "success"}
+            except Exception as e:
+                return {"weights": None, "status": f"error_entropy_opt:{e}"}
+
+        # Existing cases kept as before
         if opt_type == "mv_reg":
             return mv_reg_optimize(expected, cov, **common_args, lambda_reg=lambda_reg)
         elif opt_type == "risk_parity":
@@ -72,10 +119,11 @@ def optimizer_wrapper_factory_from_cfg(cfg):
         elif opt_type == "sharpe":
             from portfolio_sim.optimizer import sharpe_optimize
             return sharpe_optimize(expected, cov, **common_args)
-        else: # Default to mv_reg
+        else:  # Default to mv_reg
             return mv_reg_optimize(expected, cov, **common_args, lambda_reg=lambda_reg)
-            
+
     return optimizer_func
+
 
 
 def runner_func(cfg: dict):

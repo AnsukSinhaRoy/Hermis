@@ -18,7 +18,7 @@ risk_model:
 csv_path: ""
 
 optimizer:
-  type: "risk_parity"         # 👈 choose one: mv_reg | risk_parity | minvar
+  type: "entropy_newton"         # 👈 choose one: mv_reg | risk_parity | minvar
   k_cardinality: 25
   # lambdas: [0.001, 0.01, 0.1, 1.0]
   box:
