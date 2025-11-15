@@ -14,8 +14,8 @@ plt.rcParams['grid.alpha'] = 0.3
 
 # --- Simulation Parameters ---
 K = 15             # K-set constraint
-v_tar = 1.02      # Target price-relative (2% target return)
-lambda_2 = 100.0   # Entropy regularization
+v_tar = 1.05      # Target price-relative (2% target return)
+lambda_2 = 22.0   # Entropy regularization
 gamma = 0.999     # Forgetting factor
 eta = 0.1         # Learning rate for OMD
 
