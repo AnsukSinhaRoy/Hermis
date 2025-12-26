@@ -1,7 +1,7 @@
 experiment:
   name: "compare_with_ICICI_risk_parity_k10_free"  # 👈 choose a name for your experiment
   #tag: "mvreg"
-  start_date: "2023-06-06" #yyyy-mm-dd
+  start_date: "2019-06-06" #yyyy-mm-dd
   end_date: "2024-09-06"
   rebalance: "monthly"  # 👈 choose one: daily | weekly | monthly
   seed: 42

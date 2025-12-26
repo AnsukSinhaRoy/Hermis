@@ -2,8 +2,225 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Tuple
+from pathlib import Path
 from .backend import get_backend, to_numpy
+
+
+def _to_timestamp(x: Optional[str]) -> Optional[pd.Timestamp]:
+    """Parse an optional date/datetime string into pandas Timestamp."""
+    if x is None:
+        return None
+    ts = pd.to_datetime(x, errors="coerce")
+    if pd.isna(ts):
+        raise ValueError(f"Invalid date/datetime: {x!r}")
+    return pd.Timestamp(ts)
+
+
+def apply_date_range(prices: pd.DataFrame,
+                     start_date: Optional[str] = None,
+                     end_date: Optional[str] = None) -> Tuple[pd.DataFrame, Optional[pd.Timestamp], Optional[pd.Timestamp]]:
+    """Return prices filtered to [start_date, end_date] (inclusive).
+
+    - If start/end fall on non-trading days, the nearest available dates inside the interval are used.
+    - Returns (filtered_prices, effective_start, effective_end)
+    """
+    if prices is None or prices.empty:
+        return prices, None, None
+
+    p = prices.copy()
+    # Ensure datetime index
+    if not isinstance(p.index, pd.DatetimeIndex):
+        p.index = pd.to_datetime(p.index, errors="coerce")
+    p = p.sort_index()
+
+    s = _to_timestamp(start_date)
+    e = _to_timestamp(end_date)
+    if s is not None and e is not None and s > e:
+        raise ValueError(f"start_date {start_date!r} is after end_date {end_date!r}")
+
+    if s is not None:
+        p = p.loc[p.index >= s]
+    if e is not None:
+        p = p.loc[p.index <= e]
+
+    if p.empty:
+        return p, None, None
+
+    return p, p.index.min(), p.index.max()
+
+
+def _infer_date_col_from_schema(colnames, preferred: str = "date"):
+    """Pick a likely date column from a parquet schema (or return None)."""
+    if preferred in colnames:
+        return preferred
+    for c in ["Date", "datetime", "timestamp", "ts", "time", "index", "__index_level_0__"]:
+        if c in colnames:
+            return c
+    return None
+
+
+def _pyarrow_read_parquet_filtered(
+    path: Path,
+    *,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    date_col: Optional[str] = None,
+    columns: Optional[list] = None,
+) -> Optional[pd.DataFrame]:
+    """Read parquet using pyarrow.dataset with predicate pushdown on the date column.
+
+    Returns None if:
+      - pyarrow is not installed
+      - no suitable date column exists in parquet schema
+      - filtering/read fails (caller should fall back to pandas)
+    """
+    try:
+        import pyarrow.dataset as ds
+    except Exception:
+        return None
+
+    try:
+        dataset = ds.dataset(str(path), format="parquet")
+        colnames = list(dataset.schema.names)
+
+        dcol = date_col or _infer_date_col_from_schema(colnames, preferred="date")
+        if dcol is None:
+            return None
+
+        s = _to_timestamp(start_date)
+        e = _to_timestamp(end_date)
+
+        filt = None
+        if s is not None:
+            filt = (ds.field(dcol) >= s.to_datetime64())
+        if e is not None:
+            filt = (ds.field(dcol) <= e.to_datetime64()) if filt is None else (filt & (ds.field(dcol) <= e.to_datetime64()))
+
+        cols = None
+        if columns is not None:
+            cols = list(dict.fromkeys(columns + ([dcol] if dcol not in columns else [])))
+
+        table = dataset.to_table(filter=filt, columns=cols)
+        return table.to_pandas()
+    except Exception:
+        return None
+
+
+def load_prices_from_parquet(
+    path: str,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    date_col: str = "date",
+    ticker_col: str = "ticker",
+    price_col: str = "price",
+) -> pd.DataFrame:
+    """Load prices from parquet efficiently (pyarrow predicate pushdown when possible).
+
+    Supported formats:
+      1) *Wide* parquet: index is dates, columns are tickers.
+      2) *Long* parquet: columns include (date, ticker, price) -> pivoted to wide.
+      3) Directory of per-ticker parquet files.
+
+    Efficiency improvement:
+      - If `pyarrow` is installed and the parquet contains a date column
+        (commonly `date` or `__index_level_0__`), we read only the requested
+        `[start_date, end_date]` window using predicate pushdown.
+      - If not possible, we fall back to pandas and slice in-memory.
+    """
+    p = Path(path)
+
+    def _postprocess_wide(df: pd.DataFrame) -> pd.DataFrame:
+        # Ensure datetime index and slice (safety)
+        if isinstance(df.index, pd.DatetimeIndex):
+            wide = df.sort_index()
+            wide, _, _ = apply_date_range(wide, start_date, end_date)
+            return wide
+
+        # If there's a date-like column, set it as index
+        dcol = date_col if date_col in df.columns else _infer_date_col_from_schema(df.columns, preferred=date_col)
+        if dcol and dcol in df.columns:
+            tmp = df.copy()
+            tmp[dcol] = pd.to_datetime(tmp[dcol], errors="coerce")
+            tmp = tmp.dropna(subset=[dcol]).set_index(dcol).sort_index()
+            tmp, _, _ = apply_date_range(tmp, start_date, end_date)
+            return tmp
+
+        # Last resort: assume first column is date
+        if df.shape[1] >= 2:
+            maybe_date = df.columns[0]
+            tmp = df.copy()
+            tmp[maybe_date] = pd.to_datetime(tmp[maybe_date], errors="coerce")
+            tmp = tmp.dropna(subset=[maybe_date]).set_index(maybe_date).sort_index()
+            tmp, _, _ = apply_date_range(tmp, start_date, end_date)
+            return tmp
+
+        raise ValueError("Could not infer date index/column from parquet data.")
+
+    # ---- Directory of parquet files ----
+    if p.is_dir():
+        files = sorted(p.glob("*.parquet"))
+        if not files:
+            raise FileNotFoundError(f"No parquet files found in directory: {path}")
+
+        parts = []
+        for f in files:
+            df = _pyarrow_read_parquet_filtered(f, start_date=start_date, end_date=end_date, date_col=date_col)
+            if df is None:
+                df = pd.read_parquet(f)
+
+            if {date_col, ticker_col, price_col}.issubset(df.columns):
+                df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
+                wide = df.pivot(index=date_col, columns=ticker_col, values=price_col).sort_index()
+                wide, _, _ = apply_date_range(wide, start_date, end_date)
+                parts.append(wide)
+                continue
+
+            if date_col in df.columns and price_col in df.columns and ticker_col not in df.columns:
+                tmp = df[[date_col, price_col]].copy()
+                tmp[date_col] = pd.to_datetime(tmp[date_col], errors="coerce")
+                tmp = tmp.dropna(subset=[date_col]).set_index(date_col).sort_index()
+                tmp = tmp.rename(columns={price_col: f.stem})
+                tmp, _, _ = apply_date_range(tmp, start_date, end_date)
+                parts.append(tmp)
+                continue
+
+            if isinstance(df.index, pd.DatetimeIndex):
+                tmp = df.copy()
+                if tmp.shape[1] == 1:
+                    tmp = tmp.rename(columns={tmp.columns[0]: f.stem})
+                tmp, _, _ = apply_date_range(tmp.sort_index(), start_date, end_date)
+                parts.append(tmp)
+                continue
+
+            tmp = _postprocess_wide(df)
+            if tmp.shape[1] == 1:
+                tmp = tmp.rename(columns={tmp.columns[0]: f.stem})
+            parts.append(tmp)
+
+        wide = pd.concat(parts, axis=1).sort_index()
+        wide, _, _ = apply_date_range(wide, start_date, end_date)
+        return wide
+
+    # ---- Single parquet file ----
+    df = _pyarrow_read_parquet_filtered(p, start_date=start_date, end_date=end_date, date_col=date_col)
+    if df is None:
+        df = pd.read_parquet(path)
+
+    if {date_col, ticker_col, price_col}.issubset(df.columns):
+        df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
+        wide = df.pivot(index=date_col, columns=ticker_col, values=price_col).sort_index()
+        wide, _, _ = apply_date_range(wide, start_date, end_date)
+        return wide
+
+    if isinstance(df.index, pd.DatetimeIndex):
+        wide = df.sort_index()
+        wide, _, _ = apply_date_range(wide, start_date, end_date)
+        return wide
+
+    wide = _postprocess_wide(df)
+    wide, _, _ = apply_date_range(wide, start_date, end_date)
+    return wide
 
 def generate_synthetic_prices(n_assets: int = 100,
                               start: str = "2018-01-01",

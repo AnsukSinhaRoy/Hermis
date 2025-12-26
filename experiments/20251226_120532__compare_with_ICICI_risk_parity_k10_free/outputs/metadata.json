@@ -1,0 +1,48 @@
+{
+  "cfg": {
+    "experiment": {
+      "name": "compare_with_ICICI_risk_parity_k10_free",
+      "start_date": "2023-06-06",
+      "end_date": "2024-09-06",
+      "rebalance": "monthly",
+      "seed": 42,
+      "use_gpu": false
+    },
+    "data": {
+      "mode": "processed",
+      "processed_path": "data/processed/prices_1D.parquet"
+    },
+    "risk_model": {
+      "type": "sample_cov",
+      "lookback": 252
+    },
+    "csv_path": "",
+    "optimizer": {
+      "type": "risk_parity",
+      "k_cardinality": 25,
+      "box": {
+        "min": 0.001,
+        "max": 1.0
+      },
+      "long_only": true
+    },
+    "transaction_costs": {
+      "proportional": 0.0005
+    }
+  },
+  "n_assets": 72,
+  "price_index_start": "2023-06-06 00:00:00",
+  "price_index_end": "2024-09-06 00:00:00",
+  "runtime_seconds": 6.388442039489746,
+  "timestamp_utc": "2025-12-26T12:05:38.748344",
+  "python_version": "3.13.7 | packaged by Anaconda, Inc. | (main, Sep  9 2025, 19:54:37) [MSC v.1929 64 bit (AMD64)]",
+  "packages": {
+    "numpy": "2.3.3",
+    "pandas": "2.3.3",
+    "cvxpy": "1.7.3",
+    "matplotlib": "3.10.7",
+    "pyyaml": "6.0.3",
+    "pyarrow": "21.0.0"
+  },
+  "git_commit": "490aecce96322a846d5d060efbd30adb17ece28f"
+}

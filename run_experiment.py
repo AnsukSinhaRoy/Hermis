@@ -14,7 +14,14 @@ import numpy as np
 
 # portfolio_sim imports (local package)
 from portfolio_sim.config import Config
-from portfolio_sim.data import generate_synthetic_prices, load_prices_from_csv, compute_returns, cov_matrix
+from portfolio_sim.data import (
+    generate_synthetic_prices,
+    load_prices_from_csv,
+    load_prices_from_parquet,
+    apply_date_range,
+    compute_returns,
+    cov_matrix,
+)
 from portfolio_sim.optimizer import greedy_k_cardinality, mv_reg_optimize, risk_parity_optimize, _damped_newton_projected
 from portfolio_sim.backtest import run_backtest
 from portfolio_sim.experiment import run_experiment_from_config, load_experiment
@@ -150,14 +157,27 @@ def runner_func(cfg: dict):
         processed_path = dcfg.get('processed_path')
         if not processed_path:
             raise ValueError("data.mode == 'processed' but data.processed_path is not set")
-        prices = pd.read_parquet(processed_path)
+        prices = load_prices_from_parquet(
+            processed_path,
+            start_date=exp_cfg.get('start_date'),
+            end_date=exp_cfg.get('end_date'),
+        )
     elif mode == 'csv':
         csv_path = dcfg.get('csv_path')
         if not csv_path:
             raise ValueError("data.mode == 'csv' but data.csv_path is not set")
         prices = load_prices_from_csv(csv_path)
+        # Apply the experiment's date range to CSV too
+        prices, _, _ = apply_date_range(prices, exp_cfg.get('start_date'), exp_cfg.get('end_date'))
     else:
         raise ValueError(f"Unknown data.mode: {mode!r}")
+
+    # Ensure we actually have data in the requested window
+    if prices is None or prices.empty:
+        raise ValueError(
+            "No price data available after applying the requested date range. "
+            f"start_date={exp_cfg.get('start_date')!r} end_date={exp_cfg.get('end_date')!r}"
+        )
 
     # 2) estimators
     expected_return_estimator_callable = expected_return_estimator
