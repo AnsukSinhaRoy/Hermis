@@ -1,0 +1,13 @@
+{
+  "run_dir": "experiments\\20251226_165803__entropy_newton_weekly_lam_0.10",
+  "pid": 18048,
+  "python": "3.13.7 | packaged by Anaconda, Inc. | (main, Sep  9 2025, 19:54:37) [MSC v.1929 64 bit (AMD64)]",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "start_time_unix": 1766768285.805793,
+  "config_path": "experiments\\20251226_165803__entropy_newton_weekly_lam_0.10\\params.yaml",
+  "experiments_dir": "experiments",
+  "experiment_folder": "experiments\\20251226_165803__entropy_newton_weekly_lam_0.10",
+  "name_override": null,
+  "tag": null,
+  "cwd": "E:\\Python\\GIT-Hermis\\Hermis"
+}

@@ -1,8 +1,10 @@
-# portfolio_viz/utils.py
+
+# Hermis_Prism/engine/utils.py
 from typing import Any, Optional, Dict
 import numpy as np
 import pandas as pd
 
+TRADING_DAYS = 252
 
 def ensure_series(data: Any) -> Optional[pd.Series]:
     if data is None:
@@ -11,28 +13,47 @@ def ensure_series(data: Any) -> Optional[pd.Series]:
         return data
     if isinstance(data, pd.DataFrame):
         return data.iloc[:, 0]
-    return pd.Series(data)
+    try:
+        return pd.Series(data)
+    except Exception:
+        return None
 
 
-def ann_stats(nav_s: pd.Series) -> Dict[str, float]:
-    if nav_s is None or nav_s.empty:
-        return {"total_return": 0, "ann_return": 0, "ann_vol": 0, "max_drawdown": 0}
-    days = (nav_s.index[-1] - nav_s.index[0]).days or 1
-    total_ret = nav_s.iloc[-1] / nav_s.iloc[0] - 1.0
-    ann_ret = (1 + total_ret) ** (365.0 / days) - 1
-    dr = nav_s.pct_change().dropna()
-    ann_vol = dr.std() * np.sqrt(252) if not dr.empty else 0.0
-    roll_max = nav_s.cummax()
-    drawdown = (nav_s - roll_max) / roll_max
-    max_dd = drawdown.min()
+def ann_stats(nav_s: pd.Series, rf_annual: float = 0.0) -> Dict[str, float]:
+    """Basic annualized stats for UI fallback (when precomputed metrics aren't present)."""
+    nav = ensure_series(nav_s)
+    if nav is None or nav.empty or len(nav) < 2:
+        return {"total_return": 0.0, "ann_return": 0.0, "ann_vol": 0.0, "max_drawdown": 0.0, "sharpe": 0.0}
+
+    nav = nav.dropna().astype(float).sort_index()
+    days = (nav.index[-1] - nav.index[0]).days or 1
+    total_ret = float(nav.iloc[-1] / nav.iloc[0] - 1.0)
+    ann_ret = float((1 + total_ret) ** (365.0 / days) - 1.0)
+
+    dr = nav.pct_change().dropna()
+    ann_vol = float(dr.std(ddof=0) * np.sqrt(TRADING_DAYS)) if not dr.empty else 0.0
+
+    roll_max = nav.cummax()
+    drawdown = (nav - roll_max) / roll_max
+    max_dd = float(drawdown.min()) if not drawdown.empty else 0.0
+
+    # Sharpe: annualized return / annualized vol (rough)
+    sharpe = float(ann_ret / ann_vol) if ann_vol > 1e-12 else 0.0
+
     return {
-        "total_return": total_ret, "ann_return": ann_ret,
-        "ann_vol": ann_vol, "max_drawdown": max_dd,
+        "total_return": total_ret,
+        "ann_return": ann_ret,
+        "ann_vol": ann_vol,
+        "max_drawdown": max_dd,
+        "sharpe": sharpe,
     }
 
 
 def create_calendar_heatmap(nav_s: pd.Series) -> pd.DataFrame:
-    returns = nav_s.pct_change().dropna()
+    nav = ensure_series(nav_s)
+    if nav is None or nav.empty:
+        return pd.DataFrame()
+    returns = nav.pct_change().dropna()
     returns.name = 'returns'
     res = returns.reset_index()
     res['year'] = res['index'].dt.year

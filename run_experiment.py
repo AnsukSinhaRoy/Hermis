@@ -1,19 +1,46 @@
 #!/usr/bin/env python3
 """
-examples/run_experiment.py
+run_experiment.py
 
 Run an experiment using portfolio_sim runner_func, ensure the exact prices
 used are saved into the experiment folder, and precompute performance
 artifacts to make the Streamlit app fast to load.
-"""
-from pathlib import Path
-import json
 
-import pandas as pd
+NEW (observability + usability):
+- Writes logs into the experiment folder's built-in `logs/` directory (e.g. `<timestamp>__<name>/logs/`) with:
+    - run.log (detailed structured logging)
+    - stdout_stderr.log (only used for --detach runs)
+    - failure.traceback.txt (written on failure)
+    - run_metadata.json
+    - params.yaml config snapshot (copied into the experiment folder)
+- Logs progress every 1% of backtest steps.
+- Supports `--detach` to free your terminal immediately.
+- Accepts both `--config` and `--configs`.
+
+Examples:
+  python run_experiment.py --config configs/newconfig.yaml
+  python run_experiment.py --config configs/newconfig.yaml --detach
+
+NOTE:
+  Convenience: `python run_experiment.py --configs/newconfig.yaml` is accepted and
+  treated as `--config configs/newconfig.yaml` (missing space).
+  Recommended: `python run_experiment.py --config configs/newconfig.yaml`
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import traceback
+from pathlib import Path
+
 import numpy as np
+import pandas as pd
 
 # portfolio_sim imports (local package)
-from portfolio_sim.config import Config
 from portfolio_sim.data import (
     generate_synthetic_prices,
     load_prices_from_csv,
@@ -22,15 +49,33 @@ from portfolio_sim.data import (
     compute_returns,
     cov_matrix,
 )
-from portfolio_sim.optimizer import greedy_k_cardinality, mv_reg_optimize, risk_parity_optimize, _damped_newton_projected
+from portfolio_sim.optimizer import (
+    greedy_k_cardinality,
+    mv_reg_optimize,
+    min_variance_optimize,
+    risk_parity_optimize,
+    sharpe_optimize,
+    omd_step,
+    ftrl_step,
+    _damped_newton_projected,
+)
 from portfolio_sim.backtest import run_backtest
-from portfolio_sim.experiment import run_experiment_from_config, load_experiment
+from portfolio_sim.experiment import (
+    run_experiment_from_config,
+    load_experiment,
+    make_experiment_folder,
+    save_params_yaml,
+    resolve_experiment_name,
+)
 from portfolio_sim import viz
-# new import for entropy optimizer
 
-
-# path to your config
-cfg_path = "configs/newconfig.yaml"
+from utils.run_logging import (
+    RunPaths,
+    setup_logging,
+    write_metadata,
+    PercentProgressLogger,
+    log_failure,
+)
 
 
 def expected_return_estimator(prices_window: pd.DataFrame):
@@ -43,115 +88,295 @@ def expected_return_estimator(prices_window: pd.DataFrame):
 
 def cov_estimator_factory(use_gpu: bool = False):
     """Return a callable that computes covariance for a rolling window."""
+
     def cov_estimator(prices_window: pd.DataFrame):
         return cov_matrix(prices_window, method='log', use_gpu=use_gpu)
+
     return cov_estimator
 
 
-def optimizer_wrapper_factory_from_cfg(cfg):
-    """
-    Return optimizer_func(expected: pd.Series, cov: pd.DataFrame) -> dict
-    that our backtester expects. Reads optimizer settings from cfg.
+def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
+    """Build an optimizer function from the YAML config.
 
-    Extended: supports opt_type "entropy_newton" which uses the
-    entropy-regularized damped-Newton projected solver exposed by
-    portfolio_viz.optimizers._damped_newton_projected.
+    Key promise:
+      - Changing `optimizer.type` in the config is sufficient to switch optimizers.
+
+    The returned callable is tolerant of extra context kwargs (e.g. `prices_window`)
+    so the backtester can pass useful information without breaking old optimizers.
     """
-    opt_cfg = cfg.get('optimizer', {})
-    opt_type = opt_cfg.get('type', 'mv_reg')
+
+    opt_cfg = cfg.get('optimizer', {}) or {}
+
+    raw_type = str(opt_cfg.get('type', 'mv_reg')).strip().lower()
+    aliases = {
+        # mean-variance
+        'mv': 'mv_reg',
+        'mean_variance': 'mv_reg',
+        'mean-variance': 'mv_reg',
+        'greedy': 'mv_reg',  # historical configs used "greedy" to mean "mv_reg + k_cardinality"
+
+        # min-variance
+        'minvar': 'minvar',
+        'min_variance': 'minvar',
+        'minimum_variance': 'minvar',
+        'gmv': 'minvar',
+
+        # others
+        'erc': 'risk_parity',
+        'riskparity': 'risk_parity',
+        'max_sharpe': 'sharpe',
+        'entropy': 'entropy_newton',
+        'damped_newton': 'entropy_newton',
+        'exp_grad': 'omd',
+        'exponentiated_gradient': 'omd',
+        'eg': 'omd',
+    }
+    opt_type = aliases.get(raw_type, raw_type)
+
+    # common knobs
     k = opt_cfg.get('k_cardinality', None)
+    try:
+        k = int(k) if k is not None else None
+    except Exception:
+        k = None
+
     box_cfg = opt_cfg.get('box', None)
     box = None
-    if box_cfg is not None:
+    if isinstance(box_cfg, dict):
         box = {"min": box_cfg.get("min", None), "max": box_cfg.get("max", None)}
+
     long_only = bool(opt_cfg.get('long_only', True))
-    lambda_reg = opt_cfg.get('lambda_reg', 1.0)  # existing regularizer
 
-    # New: parameters specific to entropy_newton
-    p_avg = float(opt_cfg.get('p_avg', 0.0))    # linear term multiplier (default 0.0)
-    lam = float(opt_cfg.get('lam', lambda_reg)) # entropy weight (by default reuse lambda_reg)
-    K = float(opt_cfg.get('K', 1.0))            # simplex radius (sum(w) <= K)
+    # mean-variance reg knobs
+    lambda_reg = opt_cfg.get('lambda_reg', opt_cfg.get('lambda', 1.0))
+    lambdas = opt_cfg.get('lambdas', None)
+    solver = opt_cfg.get('solver', None)
 
-    def optimizer_func(expected: pd.Series, cov: pd.DataFrame):
+    # risk parity knobs
+    rp_cfg = opt_cfg.get('risk_parity', {}) if isinstance(opt_cfg.get('risk_parity', {}), dict) else {}
+    rp_tol = float(rp_cfg.get('tol', opt_cfg.get('tol', 1e-6)))
+    rp_max_iter = int(rp_cfg.get('max_iter', opt_cfg.get('max_iter', 2000)))
+
+    # entropy-newton knobs (existing)
+    p_avg = float(opt_cfg.get('p_avg', 0.0))
+    lam = float(opt_cfg.get('lam', lambda_reg))
+    K = float(opt_cfg.get('K', 1.0))
+
+    # online optimizer knobs
+    v_target = float(opt_cfg.get('v_target', opt_cfg.get('v_tar', 1.01)))
+
+    ftrl_cfg = opt_cfg.get('ftrl', {}) if isinstance(opt_cfg.get('ftrl', {}), dict) else {}
+    lambda_2 = float(ftrl_cfg.get('lambda_2', opt_cfg.get('lambda_2', 22.0)))
+    gamma = float(ftrl_cfg.get('gamma', opt_cfg.get('gamma', 0.999)))
+    ftrl_max_iter = int(ftrl_cfg.get('max_iter', opt_cfg.get('max_iter', 200)))
+    ftrl_tol = float(ftrl_cfg.get('tol', opt_cfg.get('tol', 1e-9)))
+
+    omd_cfg = opt_cfg.get('omd', {}) if isinstance(opt_cfg.get('omd', {}), dict) else {}
+    eta = float(omd_cfg.get('eta', opt_cfg.get('eta', 0.1)))
+
+    if logger:
+        try:
+            logger.info(
+                "Optimizer configured | raw_type=%s resolved=%s | k=%s | long_only=%s | box=%s",
+                raw_type, opt_type, k, long_only, box,
+            )
+        except Exception:
+            pass
+
+    # state for online optimizers (persist across rebalance calls)
+    online_state = {
+        'assets': None,  # tuple[str]
+        'w': None,       # np.ndarray
+        'B': None,       # np.ndarray
+        'v': None,       # np.ndarray
+    }
+
+    def _select_topk_assets(mu: pd.Series, cov: pd.DataFrame, k_: int):
+        assets = mu.dropna().index.tolist()
+        if not assets:
+            return []
+        sigma_diag = pd.Series(np.sqrt(np.diag(cov.reindex(index=assets, columns=assets).fillna(0.0).values)), index=assets)
+        score = mu.reindex(assets) / (sigma_diag + 1e-8)
+        return list(score.sort_values(ascending=False).head(k_).index)
+
+    def _prices_to_relatives(prices_window: pd.DataFrame, assets: list[str]):
+        if prices_window is None or not isinstance(prices_window, pd.DataFrame) or len(prices_window) < 2:
+            return None
+        p_t = prices_window.iloc[-1].astype(float).reindex(assets)
+        p_prev = prices_window.iloc[-2].astype(float).reindex(assets)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            r = p_t / p_prev
+        r = r.replace([np.inf, -np.inf], 1.0).fillna(1.0).clip(lower=1e-12)
+        return r.values.astype(float)
+
+    def optimizer_func(expected: pd.Series, cov: pd.DataFrame, **ctx):
+        """Optimizer hook called by the backtester.
+
+        expected: pd.Series indexed by tickers
+        cov: pd.DataFrame indexed/columns by tickers
+        ctx: optional context (prices_window/date/etc.)
+        """
         if expected is None or cov is None:
             return {"weights": None, "status": "invalid_inputs"}
 
-        # Consolidate common arguments
+        assets = list(expected.index)
+        if not assets:
+            return {"weights": None, "status": "no_assets"}
+
         common_args = {"box": box, "long_only": long_only}
 
-        # k-cardinality branch unchanged
-        if k is not None and int(k) > 0:
-            return greedy_k_cardinality(expected, cov, k=int(k), method=opt_type, **common_args, lambda_reg=lambda_reg)
+        # ------------------
+        # Online optimizers
+        # ------------------
+        if opt_type in {"ftrl", "omd"}:
+            prices_window = ctx.get('prices_window', None)
+            r_t = _prices_to_relatives(prices_window, assets)
+            if r_t is None:
+                # cannot update without at least 2 price rows
+                w_ew = pd.Series(1.0 / len(assets), index=assets)
+                return {"weights": w_ew, "status": "fallback_equal_insufficient_prices"}
 
-        # New optimizer: entropy_newton
+            # init / reset state if universe changes
+            if online_state['assets'] != tuple(assets) or online_state['w'] is None:
+                n = len(assets)
+                online_state['assets'] = tuple(assets)
+                online_state['w'] = (np.ones(n) / n)
+                online_state['B'] = np.zeros((n, n), dtype=float)
+                online_state['v'] = np.zeros(n, dtype=float)
+
+            if opt_type == "omd":
+                w_new, info = omd_step(
+                    online_state['w'],
+                    r_t,
+                    eta=eta,
+                    v_target=v_target,
+                    k_cardinality=k,
+                    **common_args,
+                )
+                online_state['w'] = w_new
+                return {"weights": pd.Series(w_new, index=assets), "status": "ok", **info}
+
+            # ftrl
+            w_new, B_t, v_t, info, st = ftrl_step(
+                online_state['w'],
+                r_t,
+                online_state['B'],
+                online_state['v'],
+                lambda_2=lambda_2,
+                gamma=gamma,
+                v_target=v_target,
+                k_cardinality=k,
+                **common_args,
+                max_iter=ftrl_max_iter,
+                tol=ftrl_tol,
+            )
+            online_state['w'] = w_new
+            online_state['B'] = B_t
+            online_state['v'] = v_t
+            return {"weights": pd.Series(w_new, index=assets), "status": st, **info}
+
+        # ------------------
+        # k-cardinality wrapper (subset selection)
+        # ------------------
+        if k is not None and int(k) > 0:
+            if opt_type == "entropy_newton":
+                # manual subset selection then entropy solve
+                topk = _select_topk_assets(expected, cov, int(k))
+                mu_sub = expected.reindex(topk).dropna()
+                cov_sub = cov.reindex(index=topk, columns=topk).fillna(0.0)
+                # fall through by calling entropy solver below on the subset
+                expected_use, cov_use = mu_sub, cov_sub
+            else:
+                return greedy_k_cardinality(
+                    expected,
+                    cov,
+                    k=int(k),
+                    method=opt_type,
+                    **common_args,
+                    lambda_reg=lambda_reg,
+                    lambdas=lambdas,
+                    solver=solver,
+                )
+        else:
+            expected_use, cov_use = expected, cov
+
+        # ------------------
+        # Classical optimizers
+        # ------------------
+        if opt_type == "mv_reg":
+            return mv_reg_optimize(expected_use, cov_use, **common_args, lambda_reg=lambda_reg, lambdas=lambdas, solver=solver)
+
+        if opt_type == "minvar":
+            return min_variance_optimize(cov_use, **common_args, solver=solver)
+
+        if opt_type == "risk_parity":
+            return risk_parity_optimize(cov_use, **common_args, tol=rp_tol, max_iter=rp_max_iter)
+
+        if opt_type == "sharpe":
+            return sharpe_optimize(expected_use, cov_use, **common_args, solver=solver)
+
         if opt_type == "entropy_newton":
             try:
-                # Convert inputs to numpy arrays
-                if isinstance(cov, pd.DataFrame):
-                    Sigma = cov.values
-                else:
-                    Sigma = np.asarray(cov, dtype=float)
-
-                if isinstance(expected, pd.Series) or isinstance(expected, pd.DataFrame):
-                    mu = np.asarray(expected).ravel().astype(float)
-                else:
-                    mu = np.asarray(expected, dtype=float).ravel()
-
-                # Ensure dimensions align
+                Sigma = cov_use.values if isinstance(cov_use, pd.DataFrame) else np.asarray(cov_use, dtype=float)
+                mu = np.asarray(expected_use).ravel().astype(float)
                 n = Sigma.shape[0]
                 if mu.shape[0] != n:
-                    # if mu length doesn't match, try to broadcast or return invalid
                     return {"weights": None, "status": "invalid_dims"}
 
-                # initial uniform weights on simplex radius K
                 w0 = np.ones(n) * (K / n)
+                w_opt = _damped_newton_projected(
+                    w0,
+                    Sigma,
+                    mu,
+                    p_avg,
+                    lam,
+                    K=K,
+                    max_iters=50,
+                    tol=1e-8,
+                )
 
-                # Call the damped-Newton projected solver from portfolio_viz.optimizers
-                # We treat Sigma as the quadratic term and mu as the linear term.
-                w_opt = _damped_newton_projected(w0, Sigma, mu, p_avg, lam, K=K, max_iters=50, tol=1e-8)
-
-                # Return successful response consistent with other optimizers
-                if isinstance(cov, pd.DataFrame):
-                    return {"weights": pd.Series(w_opt, index=cov.columns), "status": "success"}
-                else:
-                    return {"weights": pd.Series(w_opt), "status": "success"}
+                idx = cov_use.columns if isinstance(cov_use, pd.DataFrame) else None
+                return {"weights": pd.Series(w_opt, index=idx), "status": "success"}
             except Exception as e:
                 return {"weights": None, "status": f"error_entropy_opt:{e}"}
 
-        # Existing cases kept as before
-        if opt_type == "mv_reg":
-            return mv_reg_optimize(expected, cov, **common_args, lambda_reg=lambda_reg)
-        elif opt_type == "risk_parity":
-            return risk_parity_optimize(cov, **common_args)
-        elif opt_type == "sharpe":
-            from portfolio_sim.optimizer import sharpe_optimize
-            return sharpe_optimize(expected, cov, **common_args)
-        else:  # Default to mv_reg
-            return mv_reg_optimize(expected, cov, **common_args, lambda_reg=lambda_reg)
+        # unknown → safe fallback
+        return mv_reg_optimize(expected_use, cov_use, **common_args, lambda_reg=lambda_reg, lambdas=lambdas, solver=solver)
 
     return optimizer_func
 
 
-
-def runner_func(cfg: dict):
+def runner_func(cfg: dict, logger=None):
     """
     Runner used by run_experiment_from_config.
+
     Loads prices, builds estimators & optimizer, runs backtest,
     and RETURNS a dict containing results for the experiment saving routine.
+
+    NEW:
+      - If `logger` is provided, logs detailed diagnostics and progress.
     """
     dcfg = cfg.get('data', {})
     exp_cfg = cfg.get('experiment', {})
     use_gpu = bool(exp_cfg.get('use_gpu', False))
 
+    if logger:
+        logger.info("Runner starting | data.mode=%s | use_gpu=%s", dcfg.get('mode', 'synthetic'), use_gpu)
+        try:
+            logger.debug("Full config:\n%s", json.dumps(cfg, indent=2, default=str))
+        except Exception:
+            pass
+
     # 1) load prices
     mode = dcfg.get('mode', 'synthetic')
     prices = None
+
     if mode == 'synthetic':
         prices = generate_synthetic_prices(
             n_assets=dcfg.get('n_assets', 100),
             start=exp_cfg.get('start_date'),
             end=exp_cfg.get('end_date'),
-            seed=exp_cfg.get('seed', None)
+            seed=exp_cfg.get('seed', None),
         )
     elif mode == 'processed':
         processed_path = dcfg.get('processed_path')
@@ -167,39 +392,73 @@ def runner_func(cfg: dict):
         if not csv_path:
             raise ValueError("data.mode == 'csv' but data.csv_path is not set")
         prices = load_prices_from_csv(csv_path)
-        # Apply the experiment's date range to CSV too
         prices, _, _ = apply_date_range(prices, exp_cfg.get('start_date'), exp_cfg.get('end_date'))
     else:
         raise ValueError(f"Unknown data.mode: {mode!r}")
 
-    # Ensure we actually have data in the requested window
     if prices is None or prices.empty:
         raise ValueError(
             "No price data available after applying the requested date range. "
             f"start_date={exp_cfg.get('start_date')!r} end_date={exp_cfg.get('end_date')!r}"
         )
 
+    if logger:
+        try:
+            logger.info(
+                "Loaded prices | rows=%s cols=%s | start=%s end=%s",
+                prices.shape[0], prices.shape[1], str(prices.index.min()), str(prices.index.max())
+            )
+        except Exception:
+            pass
+
     # 2) estimators
     expected_return_estimator_callable = expected_return_estimator
     cov_estimator_callable = cov_estimator_factory(use_gpu=use_gpu)
 
     # 3) optimizer wrapper from cfg
-    optimizer_func = optimizer_wrapper_factory_from_cfg(cfg)
+    optimizer_func = optimizer_wrapper_factory_from_cfg(cfg, logger=logger)
 
     # 4) backtest config
     backtest_cfg = {
         "rebalance": exp_cfg.get("rebalance", "monthly"),
         "transaction_costs": cfg.get("transaction_costs", {}),
+        "lookback": (cfg.get('risk_model', {}) or {}).get('lookback', None),
+        # optional debug setting:
+        "record_non_rebalance": bool(exp_cfg.get("record_non_rebalance", False)),
     }
 
-    # 5) run backtest
-    bt_result = run_backtest(prices,
-                             expected_return_estimator_callable,
-                             cov_estimator_callable,
-                             optimizer_func,
-                             backtest_cfg)
+    # 5) progress (log every 1%)
+    progress = None
+    step_cb = None
+    if logger:
+        total_steps = int(len(prices.index))
+        progress = PercentProgressLogger(logger, total_steps=total_steps, percent_step=1)
 
-    # 6) produce output dict (include prices snapshot and meta)
+        def step_cb(step_idx_1_based: int, total: int, info: dict):
+            # Keep log line readable (avoid huge floats)
+            try:
+                progress.update(
+                    step_idx_1_based,
+                    date=str(info.get("date")),
+                    nav=round(float(info.get("nav", 0.0)), 8),
+                    opt_status=str(info.get("opt_status")),
+                )
+            except Exception:
+                # never allow logging to break the run
+                logger.debug("Progress logger failed (ignored)", exc_info=True)
+
+    # 6) run backtest
+    bt_result = run_backtest(
+        prices,
+        expected_return_estimator_callable,
+        cov_estimator_callable,
+        optimizer_func,
+        backtest_cfg,
+        logger=logger,
+        step_callback=step_cb,
+    )
+
+    # 7) produce output dict (include prices snapshot and meta)
     out = {
         "nav": bt_result.nav,
         "weights": bt_result.weights,
@@ -211,7 +470,7 @@ def runner_func(cfg: dict):
             "n_assets": prices.shape[1],
             "price_index_start": str(prices.index.min()),
             "price_index_end": str(prices.index.max()),
-        }
+        },
     }
     return out
 
@@ -231,67 +490,55 @@ def _ann_stats(nav_s: pd.Series):
             if nav_s.shape[1] == 1:
                 nav = nav_s.iloc[:, 0].astype(float)
             else:
-                # prefer column named 'value' or first numeric column
                 if 'value' in nav_s.columns:
                     nav = nav_s['value'].astype(float)
                 else:
-                    # pick first numeric column
                     nav = nav_s.select_dtypes(include=['number']).iloc[:, 0].astype(float)
         elif isinstance(nav_s, pd.Series):
             nav = nav_s.astype(float)
         else:
-            # attempt to build a Series
             nav = pd.Series(nav_s).astype(float)
     except Exception:
-        # If conversion fails, return Nones
         return {"total_return": None, "ann_return": None, "ann_vol": None, "max_drawdown": None, "sharpe": None}
 
     if nav is None or len(nav) < 2:
         return {"total_return": None, "ann_return": None, "ann_vol": None, "max_drawdown": None, "sharpe": None}
 
-    # Ensure index sorted and has datetime-like index for days difference
     try:
         nav = nav.sort_index()
     except Exception:
         pass
 
-    # days between first and last (guard against zero)
     try:
         days = (pd.to_datetime(nav.index[-1]) - pd.to_datetime(nav.index[0])).days
         days = max(int(days), 1)
     except Exception:
         days = max(len(nav) - 1, 1)
 
-    # total return (coerce to scalar)
     try:
         total_ret = float(nav.iloc[-1] / nav.iloc[0] - 1.0)
     except Exception:
         total_ret = None
 
-    # annualized return (if total_ret computed)
     try:
         ann_ret = float((1 + total_ret) ** (365.0 / float(days)) - 1.0) if total_ret is not None else None
     except Exception:
         ann_ret = None
 
-    # daily return series
     try:
         dr = nav.pct_change().dropna()
         ann_vol = float(dr.std() * np.sqrt(252)) if not dr.empty else None
     except Exception:
         ann_vol = None
 
-    # max drawdown
     try:
         roll_max = nav.cummax()
         drawdown = (nav - roll_max) / roll_max
-        # .min() returns scalar; coerce to float or None
         min_drawdown = drawdown.min()
         max_dd = float(min_drawdown) if pd.notna(min_drawdown) else None
     except Exception:
         max_dd = None
 
-    # Sharpe: use annualized return divided by ann_vol (if both available and ann_vol>0)
     try:
         if ann_ret is None or ann_vol is None or ann_vol == 0:
             sharpe = None
@@ -305,165 +552,349 @@ def _ann_stats(nav_s: pd.Series):
         "ann_return": None if ann_ret is None else float(ann_ret),
         "ann_vol": None if ann_vol is None else float(ann_vol),
         "max_drawdown": None if max_dd is None else float(max_dd),
-        "sharpe": None if sharpe is None else float(sharpe)
+        "sharpe": None if sharpe is None else float(sharpe),
     }
 
 
+def _parse_args(argv: list[str]) -> argparse.Namespace:
+    # Convenience: allow accidental `--configs/<file>.yaml` (missing space)
+    # by interpreting it as `--config configs/<file>.yaml`.
+    fixed: list[str] = []
+    for a in argv:
+        if a.startswith("--configs/"):
+            fixed.extend(["--config", "configs/" + a[len("--configs/") :]])
+        elif a.startswith("--config/"):
+            fixed.extend(["--config", a[len("--config/") :]])
+        else:
+            fixed.append(a)
+    argv = fixed
 
-def main():
-    experiments_base = "experiments"
-    Path(experiments_base).mkdir(exist_ok=True)
+    p = argparse.ArgumentParser(description="Run a portfolio_sim experiment with detailed logging.")
 
-    print("Running experiment from config:", cfg_path)
-    exp_folder = run_experiment_from_config(cfg_path, experiments_base, runner_func)
-    print("Experiment saved to:", exp_folder)
+    p.add_argument(
+        "--config",
+        "--configs",
+        dest="config",
+        default="configs/newconfig.yaml",
+        help="Path to YAML config file.",
+    )
 
-    # load outputs saved by run_experiment_from_config
-    out = load_experiment(str(exp_folder))
-    nav = out.get("nav")
-    weights = out.get("weights")
-    trades = out.get("trades")
-    
-    # Precompute and save performance artifacts
-    perf_dir = Path(exp_folder) / "outputs" / "performance"
-    perf_dir.mkdir(parents=True, exist_ok=True)
-    
+    p.add_argument(
+        "--experiments-dir",
+        default="experiments",
+        help="Where experiment folders are written (used by Hermis_Prism).",
+    )
+
+    p.add_argument(
+        "--runs-dir",
+        default="runs",
+        help="Where per-run logs/config snapshots are written.",
+    )
+
+    p.add_argument(
+        "--detach",
+        action="store_true",
+        help="Start the simulation in the background and free the terminal immediately.",
+    )
+
+    # internal: used by the detached child process
+    p.add_argument(
+        "--experiment-folder",
+        "--run-dir",
+        dest="experiment_folder",
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+
+    p.add_argument(
+        "--name",
+        default=None,
+        help="Override experiment name (optional).",
+    )
+
+    p.add_argument(
+        "--tag",
+        default=None,
+        help="Tag appended to experiment folder name (optional).",
+    )
+
+    return p.parse_args(argv)
+
+
+def _runpaths_from_experiment_folder(exp_folder: Path, config_path: Path) -> RunPaths:
+    """Create RunPaths pointing into the experiment folder's built-in logs/ directory."""
+    exp_folder = Path(exp_folder)
+    logs_dir = exp_folder / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+
+    return RunPaths(
+        run_dir=exp_folder,
+        config_copy=config_path,
+        log_file=logs_dir / "run.log",
+        stdio_log_file=logs_dir / "stdout_stderr.log",
+        failure_file=logs_dir / "failure.traceback.txt",
+        metadata_file=logs_dir / "run_metadata.json",
+    )
+
+
+def _update_run_metadata(paths: RunPaths, updates: dict) -> None:
     try:
-        if nav is not None and not nav.empty:
-            # Save metrics
-            metrics = _ann_stats(nav)
-            with open(perf_dir / "metrics.json", "w") as f:
-                json.dump(metrics, f, indent=2)
+        if paths.metadata_file.exists():
+            meta = json.loads(paths.metadata_file.read_text(encoding="utf-8"))
+        else:
+            meta = {}
+        meta.update(updates)
+        paths.metadata_file.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    except Exception:
+        # best-effort
+        pass
 
-            # Save rolling sharpe
-            try:
-                returns = nav.pct_change().dropna()
-                if len(returns) > 63:
-                    win = 63
-                    r_mean = returns.rolling(win).mean()
-                    r_std = returns.rolling(win).std()
-                    rs = (r_mean / (r_std + 1e-8)) * np.sqrt(252)
 
-                    # Convert rs to a single-column DataFrame for saving.
-                    # If rs is DataFrame with a single column, take that column.
-                    # If multiple columns, summarize by taking the row-wise mean (gives a single Sharpe series).
-                    if isinstance(rs, pd.DataFrame):
-                        if rs.shape[1] == 1:
-                            rs_series = rs.iloc[:, 0]
-                        else:
-                            # Multiple columns: produce a single time series summary (mean across columns).
-                            # This is better than failing; if you prefer a different aggregation, change this line.
-                            rs_series = rs.mean(axis=1)
-                    else:
-                        # already a Series
-                        rs_series = rs
+def main(argv: list[str] | None = None) -> int:
+    args = _parse_args(argv or sys.argv[1:])
 
-                    # Ensure Series -> DataFrame with a stable column name, then save
-                    rs_df = rs_series.to_frame(name="rolling_sharpe")
-                    rs_df.to_parquet(perf_dir / "rolling_sharpe.parquet")
-            except Exception as e:
-                print(f"Warning: failed to write rolling sharpe artifact: {e}")
+    config_path = Path(args.config)
+    if not config_path.exists():
+        print(f"ERROR: config file not found: {config_path}")
+        return 2
 
-            # Save drawdown series
-            try:
-                roll_max = nav.cummax()
-                drawdown = ((nav - roll_max) / roll_max)
+    # Create or reuse the experiment folder (this also creates `<date_id>__<name>/logs/`).
+    # We want ALL logs to live inside that built-in logs/ folder.
+    import yaml
 
-                # If drawdown is a DataFrame:
-                #  - if single column, take that column
-                #  - if multiple columns, produce a single summary series:
-                #      use the row-wise minimum (most negative drawdown across columns) as the portfolio drawdown summary.
-                if isinstance(drawdown, pd.DataFrame):
-                    if drawdown.shape[1] == 1:
-                        dd_series = drawdown.iloc[:, 0]
-                    else:
-                        # multiple columns -> summarize to a single series for the UI
-                        # We choose the per-row minimum so the drawdown plot shows the worst drawdown across assets.
-                        dd_series = drawdown.min(axis=1)
-                        # OPTIONAL: if you want to keep per-asset drawdowns as well, uncomment the next line:
-                        # drawdown.to_parquet(perf_dir / "drawdown_per_asset.parquet")
-                else:
-                    # already a Series
-                    dd_series = drawdown
+    with open(config_path, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f) or {}
+    exp_name = resolve_experiment_name(cfg, args.name)
 
-                # Ensure a DataFrame with a stable column name is saved
-                dd_df = dd_series.to_frame(name="drawdown")
-                dd_df.to_parquet(perf_dir / "drawdown.parquet")
+    # If a folder is provided (internal use by detached child), reuse it.
+    if args.experiment_folder:
+        exp_folder = Path(args.experiment_folder)
+        exp_folder.mkdir(parents=True, exist_ok=True)
+        (exp_folder / "logs").mkdir(parents=True, exist_ok=True)
+        # Prefer the snapshot config inside the folder if present.
+        if (exp_folder / "params.yaml").exists():
+            config_path = exp_folder / "params.yaml"
+        else:
+            save_params_yaml(str(config_path), exp_folder)
+            config_path = exp_folder / "params.yaml"
+    else:
+        exp_folder = make_experiment_folder(str(args.experiments_dir), exp_name, args.tag)
+        save_params_yaml(str(config_path), exp_folder)
+        config_path = exp_folder / "params.yaml"
 
-            except Exception as e:
-                print(f"Warning: failed to write drawdown artifact: {e}")
+    paths = _runpaths_from_experiment_folder(exp_folder, config_path)
 
-            # Save cumulative returns
-            cum = (nav / nav.iloc[0])
-            # Save cumulative returns (defensive)
+    # --detach mode: create experiment folder + config snapshot NOW, then spawn child and exit.
+    if args.detach:
+        script_path = Path(__file__).resolve()
+
+        # Child uses the COPIED config so the run is reproducible even if the original changes.
+        cmd = [
+            sys.executable,
+            str(script_path),
+            "--config",
+            str(config_path),
+            "--experiments-dir",
+            str(args.experiments_dir),
+            "--experiment-folder",
+            str(exp_folder),
+        ]
+
+        # Capture ALL stdout/stderr to a file (helps debug even if logging fails early)
+        out_f = open(paths.stdio_log_file, "a", encoding="utf-8")
+
+        p = subprocess.Popen(
+            cmd,
+            stdout=out_f,
+            stderr=out_f,
+            stdin=subprocess.DEVNULL,
+            start_new_session=True,
+            close_fds=True,
+        )
+
+        # Write a small launcher breadcrumb into the run log.
+        launch_logger = setup_logging(paths.log_file, verbose=False)
+        write_metadata(
+            paths,
+            extra={
+                "config_path": str(config_path),
+                "experiments_dir": str(args.experiments_dir),
+                "experiment_folder": str(exp_folder),
+                "launcher_pid": os.getpid(),
+                "detached_pid": p.pid,
+                "cwd": os.getcwd(),
+            },
+        )
+        launch_logger.info("Launched detached simulation. PID=%s", p.pid)
+
+        print(f"[DETACHED] PID={p.pid}")
+        print(f"[DETACHED] Experiment folder: {exp_folder}")
+        print(f"[DETACHED] Config snapshot: {config_path}")
+        print(f"[DETACHED] Logs: {paths.log_file} (and {paths.stdio_log_file})")
+        return 0
+
+# Foreground run (also used by detached child)
+    logger = setup_logging(paths.log_file, verbose=True)
+
+    write_metadata(
+        paths,
+        extra={
+            "config_path": str(config_path),
+            "experiments_dir": str(args.experiments_dir),
+            "experiment_folder": str(exp_folder),
+            "name_override": args.name,
+            "tag": args.tag,
+            "cwd": os.getcwd(),
+        },
+    )
+
+    logger.info("Run initialized")
+    logger.info("Run folder: %s", str(paths.run_dir))
+    logger.info("Config used: %s", str(config_path))
+    logger.info("Experiments dir: %s", str(args.experiments_dir))
+
+    try:
+        logger.info("Running experiment from config")
+
+        exp_folder_out = run_experiment_from_config(
+            str(config_path),
+            str(args.experiments_dir),
+            runner_func=lambda cfg: runner_func(cfg, logger=logger),
+            name_override=args.name,
+            tag=args.tag,
+            exp_folder=str(exp_folder),
+        )
+
+        logger.info("Experiment saved to: %s", str(exp_folder_out))
+        _update_run_metadata(paths, {"experiment_folder": str(exp_folder_out)})
+
+        # load outputs saved by run_experiment_from_config
+        out = load_experiment(str(exp_folder))
+        nav = out.get("nav")
+        weights = out.get("weights")
+        trades = out.get("trades")
+
+        # Precompute and save performance artifacts
+        perf_dir = Path(exp_folder) / "outputs" / "performance"
+        perf_dir.mkdir(parents=True, exist_ok=True)
+
         try:
-            # compute cumulative returns (nav normalized to first value)
-            cum = (nav / nav.iloc[0])
+            if nav is not None and not nav.empty:
+                metrics = _ann_stats(nav)
+                with open(perf_dir / "metrics.json", "w") as f:
+                    json.dump(metrics, f, indent=2)
 
-            # If cum is a DataFrame:
-            #  - if single column: use that column as the series
-            #  - if multiple columns: save per-asset cum returns separately and create a single summary series (mean across assets)
-            if isinstance(cum, pd.DataFrame):
-                if cum.shape[1] == 1:
-                    cum_series = cum.iloc[:, 0]
-                else:
-                    # Save full per-asset cumulative returns for deeper analysis/plotting
-                    try:
-                        cum.to_parquet(perf_dir / "cum_returns_per_asset.parquet")
-                    except Exception as e:
-                        print(f"Warning: failed to write cumulative returns per-asset: {e}")
+                # rolling sharpe
+                try:
+                    returns = nav.pct_change().dropna()
+                    if len(returns) > 63:
+                        win = 63
+                        r_mean = returns.rolling(win).mean()
+                        r_std = returns.rolling(win).std()
+                        rs = (r_mean / (r_std + 1e-8)) * np.sqrt(252)
 
-                    # Provide a single-series summary for backward compatibility (mean across assets)
-                    # If you prefer a different aggregation (median, anchor asset, etc.), change this line.
-                    cum_series = cum.mean(axis=1)
-            else:
-                # already a Series
-                cum_series = cum
+                        if isinstance(rs, pd.DataFrame):
+                            if rs.shape[1] == 1:
+                                rs_series = rs.iloc[:, 0]
+                            else:
+                                rs_series = rs.mean(axis=1)
+                        else:
+                            rs_series = rs
 
-            # Ensure a one-column DataFrame is saved (UI expects this shape)
-            cum_df = cum_series.to_frame(name="cum_returns")
-            cum_df.to_parquet(perf_dir / "cum_returns.parquet")
+                        rs_df = rs_series.to_frame(name="rolling_sharpe")
+                        rs_df.to_parquet(perf_dir / "rolling_sharpe.parquet")
+                except Exception as e:
+                    logger.warning("Failed to write rolling sharpe artifact: %s", e)
+
+                # drawdown
+                try:
+                    roll_max = nav.cummax()
+                    drawdown = ((nav - roll_max) / roll_max)
+
+                    if isinstance(drawdown, pd.DataFrame):
+                        if drawdown.shape[1] == 1:
+                            dd_series = drawdown.iloc[:, 0]
+                        else:
+                            dd_series = drawdown.min(axis=1)
+                    else:
+                        dd_series = drawdown
+
+                    dd_df = dd_series.to_frame(name="drawdown")
+                    dd_df.to_parquet(perf_dir / "drawdown.parquet")
+                except Exception as e:
+                    logger.warning("Failed to write drawdown artifact: %s", e)
+
+                # cumulative returns
+                try:
+                    cum = (nav / nav.iloc[0])
+
+                    if isinstance(cum, pd.DataFrame):
+                        if cum.shape[1] == 1:
+                            cum_series = cum.iloc[:, 0]
+                        else:
+                            try:
+                                cum.to_parquet(perf_dir / "cum_returns_per_asset.parquet")
+                            except Exception as e:
+                                logger.warning("Failed to write cum_returns_per_asset: %s", e)
+                            cum_series = cum.mean(axis=1)
+                    else:
+                        cum_series = cum
+
+                    cum_df = cum_series.to_frame(name="cum_returns")
+                    cum_df.to_parquet(perf_dir / "cum_returns.parquet")
+                except Exception as e:
+                    logger.warning("Failed to write cumulative returns artifact: %s", e)
+
+            # selected assets artifact
+            if trades is not None and hasattr(trades, 'columns') and (not trades.empty) and ('selected' in trades.columns):
+                try:
+                    trades[['selected']].to_parquet(perf_dir / "selected.parquet")
+                except Exception as e:
+                    logger.warning("Failed to write selected.parquet: %s", e)
+
+            logger.info("Saved performance artifacts to %s", str(perf_dir))
 
         except Exception as e:
-            print(f"Warning: failed to write cumulative returns artifact: {e}")
+            logger.warning("Failed to write some performance artifacts: %s", e)
+            logger.debug("Artifact error details", exc_info=True)
 
+        # Load prices for plotting
+        prices_path = Path(exp_folder) / "data" / "prices.parquet"
+        if prices_path.exists():
+            prices = pd.read_parquet(prices_path)
+        else:
+            logger.warning("Could not find prices snapshot for plotting: %s", str(prices_path))
+            prices = None
 
-        # --- FIX for artifact saving error ---
-        # The backtester now returns trades with the date as the index.
-        # We can simplify this logic to directly select the column as a DataFrame.
-        if trades is not None and 'selected' in trades.columns and not trades.empty:
-            # Select as a DataFrame and save
-            trades[['selected']].to_parquet(perf_dir / "selected.parquet")
+        # Save figures
+        if prices is not None:
+            figures_dir = Path(exp_folder) / "artifacts" / "figures"
+            figures_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                if nav is not None:
+                    viz.plot_nav(nav, save_path=str(figures_dir / "nav.png"))
+                    viz.plot_prices_and_nav(prices, nav, save_path=str(figures_dir / "prices_and_nav.png"))
+                if weights is not None:
+                    viz.plot_allocation_heatmap(weights, save_path=str(figures_dir / "alloc.png"))
+                logger.info("Saved figures to: %s", str(figures_dir))
+            except Exception as e:
+                logger.warning("Failed to save figures: %s", e)
+                logger.debug("Plot error details", exc_info=True)
 
-        print(f"Saved performance artifacts to {perf_dir}")
+        logger.info("Run complete")
+        return 0
 
     except Exception as e:
-        print(f"Warning: failed to write some performance artifacts: {e}")
-        import traceback
-        traceback.print_exc()
-
-    # Load prices for plotting
-    prices_path = Path(exp_folder) / "data" / "prices.parquet"
-    if prices_path.exists():
-        prices = pd.read_parquet(prices_path)
-    else:
-        print("Warning: Could not find prices snapshot for plotting.")
-        prices = None
-
-    # Save figures
-    if prices is not None:
-        figures_dir = Path(exp_folder) / "artifacts" / "figures"
-        figures_dir.mkdir(parents=True, exist_ok=True)
-        try:
-            if nav is not None:
-                viz.plot_nav(nav, save_path=str(figures_dir / "nav.png"))
-                viz.plot_prices_and_nav(prices, nav, save_path=str(figures_dir / "prices_and_nav.png"))
-            if weights is not None:
-                viz.plot_allocation_heatmap(weights, save_path=str(figures_dir / "alloc.png"))
-            print("Saved figures to:", str(figures_dir))
-        except Exception as e:
-            print(f"Warning: failed to save figures: {e}")
+        # Ensure we always leave a clear failure trail
+        log_failure(logger, paths.failure_file, e)
+        _update_run_metadata(paths, {"status": "failed", "error": repr(e)})
+        logger.error("Run failed: %s", repr(e))
+        # also print to console for immediate feedback
+        print("ERROR: simulation failed. See logs:")
+        print(f"  {paths.log_file}")
+        print(f"  {paths.failure_file}")
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

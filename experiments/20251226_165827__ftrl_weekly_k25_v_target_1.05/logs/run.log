@@ -1,0 +1,1093 @@
+2025-12-26 22:28:27.401 | INFO | simulation | Launched detached simulation. PID=16600
+2025-12-26 22:28:29.753 | INFO | simulation | Run initialized
+2025-12-26 22:28:29.753 | INFO | simulation | Run folder: experiments\20251226_165827__ftrl_weekly_k25_v_target_1.05
+2025-12-26 22:28:29.753 | INFO | simulation | Config used: experiments\20251226_165827__ftrl_weekly_k25_v_target_1.05\params.yaml
+2025-12-26 22:28:29.753 | INFO | simulation | Experiments dir: experiments
+2025-12-26 22:28:29.754 | INFO | simulation | Running experiment from config
+2025-12-26 22:28:29.758 | INFO | simulation | Runner starting | data.mode=processed | use_gpu=False
+2025-12-26 22:28:29.758 | DEBUG | simulation | Full config:
+{
+  "experiment": {
+    "name": "ftrl_weekly_k25_v_target_1.05",
+    "start_date": "2015-11-06",
+    "end_date": "2024-10-12",
+    "rebalance": "weekly",
+    "seed": 42,
+    "use_gpu": false
+  },
+  "data": {
+    "mode": "processed",
+    "processed_path": "data/processed/prices_1D.parquet"
+  },
+  "risk_model": {
+    "type": "sample_cov",
+    "lookback": 252
+  },
+  "csv_path": "",
+  "optimizer": {
+    "type": "ftrl",
+    "k_cardinality": 25,
+    "long_only": true,
+    "box": {
+      "min": 0.0,
+      "max": 0.2
+    },
+    "v_target": 1.05,
+    "ftrl": {
+      "lambda_2": 10.0,
+      "gamma": 0.995,
+      "max_iter": 250,
+      "tol": "1e-9"
+    }
+  },
+  "transaction_costs": {
+    "proportional": 0.0005
+  }
+}
+2025-12-26 22:28:29.808 | INFO | simulation | Loaded prices | rows=2203 cols=72 | start=2015-11-06 00:00:00 end=2024-10-11 00:00:00
+2025-12-26 22:28:29.808 | INFO | simulation | Optimizer configured | raw_type=ftrl resolved=ftrl | k=25 | long_only=True | box={'min': 0.0, 'max': 0.2}
+2025-12-26 22:28:29.809 | INFO | simulation | Planned total steps: 2203
+2025-12-26 22:28:29.809 | INFO | simulation | Progress logging every 1%
+2025-12-26 22:28:29.812 | INFO | simulation | Backtest starting | steps=2203 | rebalance=weekly | tc(proportional)=0.0005 | record_non_rebalance=False
+2025-12-26 22:28:29.812 | INFO | simulation | Date range: 2015-11-06 00:00:00 -> 2024-10-11 00:00:00 | assets=72
+2025-12-26 22:28:29.812 | INFO | simulation | Rebalance dates computed: 467 (first=2015-11-06 00:00:00 last=2024-10-07 00:00:00)
+2025-12-26 22:28:29.818 | DEBUG | simulation | Rebalance day 2015-11-06 00:00:00 (i=1/2203)
+2025-12-26 22:28:29.823 | WARNING | simulation | No common tickers between expected_returns (0) and covariance (72) on 2015-11-06 00:00:00
+2025-12-26 22:28:29.824 | WARNING | simulation | Using fallback equal-weight on 2015-11-06 00:00:00 | opt_status=skipped_no_common_tickers | n_valid_assets=72
+2025-12-26 22:28:29.824 | DEBUG | simulation | Rebalance applied | date=2015-11-06 00:00:00 | opt_status=skipped_no_common_tickers | turnover=1.000000 | cost=0.000000 | selected=72
+2025-12-26 22:28:29.825 | DEBUG | simulation | Rebalance day 2015-11-09 00:00:00 (i=2/2203)
+2025-12-26 22:28:29.843 | DEBUG | simulation | Rebalance applied | date=2015-11-09 00:00:00 | opt_status=ok | turnover=1.286683 | cost=0.000643 | selected=25
+2025-12-26 22:28:29.847 | DEBUG | simulation | Rebalance day 2015-11-16 00:00:00 (i=5/2203)
+2025-12-26 22:28:30.704 | DEBUG | simulation | Rebalance applied | date=2015-11-16 00:00:00 | opt_status=ok | turnover=0.494731 | cost=0.000247 | selected=25
+2025-12-26 22:28:30.709 | DEBUG | simulation | Rebalance day 2015-11-23 00:00:00 (i=10/2203)
+2025-12-26 22:28:31.014 | DEBUG | simulation | Rebalance applied | date=2015-11-23 00:00:00 | opt_status=ok | turnover=0.274994 | cost=0.000137 | selected=25
+2025-12-26 22:28:31.018 | DEBUG | simulation | Rebalance day 2015-11-30 00:00:00 (i=14/2203)
+2025-12-26 22:28:31.636 | DEBUG | simulation | Rebalance applied | date=2015-11-30 00:00:00 | opt_status=ok | turnover=0.343236 | cost=0.000172 | selected=25
+2025-12-26 22:28:31.640 | DEBUG | simulation | Rebalance day 2015-12-07 00:00:00 (i=19/2203)
+2025-12-26 22:28:31.945 | DEBUG | simulation | Rebalance applied | date=2015-12-07 00:00:00 | opt_status=ok | turnover=0.416996 | cost=0.000208 | selected=25
+2025-12-26 22:28:31.949 | INFO | simulation | Progress: 1% (23/2203) | date=2015-12-11 00:00:00 nav=0.97001707 opt_status=no_rebalance
+2025-12-26 22:28:31.950 | DEBUG | simulation | Rebalance day 2015-12-14 00:00:00 (i=24/2203)
+2025-12-26 22:28:32.232 | DEBUG | simulation | Rebalance applied | date=2015-12-14 00:00:00 | opt_status=ok | turnover=0.342782 | cost=0.000171 | selected=25
+2025-12-26 22:28:32.236 | DEBUG | simulation | Rebalance day 2015-12-21 00:00:00 (i=29/2203)
+2025-12-26 22:28:32.523 | DEBUG | simulation | Rebalance applied | date=2015-12-21 00:00:00 | opt_status=ok | turnover=0.500278 | cost=0.000250 | selected=25
+2025-12-26 22:28:32.529 | DEBUG | simulation | Rebalance day 2015-12-28 00:00:00 (i=33/2203)
+2025-12-26 22:28:32.833 | DEBUG | simulation | Rebalance applied | date=2015-12-28 00:00:00 | opt_status=ok | turnover=0.493380 | cost=0.000247 | selected=25
+2025-12-26 22:28:32.838 | DEBUG | simulation | Rebalance day 2016-01-04 00:00:00 (i=38/2203)
+2025-12-26 22:28:33.124 | DEBUG | simulation | Rebalance applied | date=2016-01-04 00:00:00 | opt_status=ok | turnover=0.493412 | cost=0.000247 | selected=25
+2025-12-26 22:28:33.129 | DEBUG | simulation | Rebalance day 2016-01-11 00:00:00 (i=43/2203)
+2025-12-26 22:28:33.953 | DEBUG | simulation | Rebalance applied | date=2016-01-11 00:00:00 | opt_status=ok | turnover=0.568735 | cost=0.000284 | selected=25
+2025-12-26 22:28:33.956 | INFO | simulation | Progress: 2% (45/2203) | date=2016-01-13 00:00:00 nav=0.96929227 opt_status=no_rebalance
+2025-12-26 22:28:33.958 | DEBUG | simulation | Rebalance day 2016-01-18 00:00:00 (i=48/2203)
+2025-12-26 22:28:34.257 | DEBUG | simulation | Rebalance applied | date=2016-01-18 00:00:00 | opt_status=ok | turnover=0.736785 | cost=0.000368 | selected=25
+2025-12-26 22:28:34.262 | DEBUG | simulation | Rebalance day 2016-01-25 00:00:00 (i=53/2203)
+2025-12-26 22:28:34.565 | DEBUG | simulation | Rebalance applied | date=2016-01-25 00:00:00 | opt_status=ok | turnover=0.273565 | cost=0.000137 | selected=25
+2025-12-26 22:28:34.568 | DEBUG | simulation | Rebalance day 2016-02-01 00:00:00 (i=57/2203)
+2025-12-26 22:28:35.333 | DEBUG | simulation | Rebalance applied | date=2016-02-01 00:00:00 | opt_status=ok | turnover=0.266917 | cost=0.000133 | selected=25
+2025-12-26 22:28:35.337 | DEBUG | simulation | Rebalance day 2016-02-08 00:00:00 (i=62/2203)
+2025-12-26 22:28:36.195 | DEBUG | simulation | Rebalance applied | date=2016-02-08 00:00:00 | opt_status=ok | turnover=0.344397 | cost=0.000172 | selected=25
+2025-12-26 22:28:36.200 | DEBUG | simulation | Rebalance day 2016-02-15 00:00:00 (i=67/2203)
+2025-12-26 22:28:36.494 | DEBUG | simulation | Rebalance applied | date=2016-02-15 00:00:00 | opt_status=ok | turnover=0.273305 | cost=0.000137 | selected=25
+2025-12-26 22:28:36.495 | INFO | simulation | Progress: 3% (67/2203) | date=2016-02-15 00:00:00 nav=0.90173642 opt_status=ok
+2025-12-26 22:28:36.499 | DEBUG | simulation | Rebalance day 2016-02-22 00:00:00 (i=72/2203)
+2025-12-26 22:28:36.769 | DEBUG | simulation | Rebalance applied | date=2016-02-22 00:00:00 | opt_status=ok | turnover=0.029254 | cost=0.000015 | selected=25
+2025-12-26 22:28:36.775 | DEBUG | simulation | Rebalance day 2016-02-29 00:00:00 (i=77/2203)
+2025-12-26 22:28:37.094 | DEBUG | simulation | Rebalance applied | date=2016-02-29 00:00:00 | opt_status=ok | turnover=0.420840 | cost=0.000210 | selected=25
+2025-12-26 22:28:37.098 | DEBUG | simulation | Rebalance day 2016-03-08 00:00:00 (i=82/2203)
+2025-12-26 22:28:37.372 | DEBUG | simulation | Rebalance applied | date=2016-03-08 00:00:00 | opt_status=ok | turnover=0.283212 | cost=0.000142 | selected=25
+2025-12-26 22:28:37.375 | DEBUG | simulation | Rebalance day 2016-03-14 00:00:00 (i=86/2203)
+2025-12-26 22:28:37.644 | DEBUG | simulation | Rebalance applied | date=2016-03-14 00:00:00 | opt_status=ok | turnover=0.253921 | cost=0.000127 | selected=25
+2025-12-26 22:28:37.647 | INFO | simulation | Progress: 4% (89/2203) | date=2016-03-17 00:00:00 nav=0.92396382 opt_status=no_rebalance
+2025-12-26 22:28:37.648 | DEBUG | simulation | Rebalance day 2016-03-21 00:00:00 (i=91/2203)
+2025-12-26 22:28:37.925 | DEBUG | simulation | Rebalance applied | date=2016-03-21 00:00:00 | opt_status=ok | turnover=0.194516 | cost=0.000097 | selected=25
+2025-12-26 22:28:37.928 | DEBUG | simulation | Rebalance day 2016-03-28 00:00:00 (i=94/2203)
+2025-12-26 22:28:38.219 | DEBUG | simulation | Rebalance applied | date=2016-03-28 00:00:00 | opt_status=ok | turnover=0.574079 | cost=0.000287 | selected=25
+2025-12-26 22:28:38.223 | DEBUG | simulation | Rebalance day 2016-04-04 00:00:00 (i=99/2203)
+2025-12-26 22:28:38.503 | DEBUG | simulation | Rebalance applied | date=2016-04-04 00:00:00 | opt_status=ok | turnover=0.189170 | cost=0.000095 | selected=25
+2025-12-26 22:28:38.508 | DEBUG | simulation | Rebalance day 2016-04-11 00:00:00 (i=104/2203)
+2025-12-26 22:28:38.775 | DEBUG | simulation | Rebalance applied | date=2016-04-11 00:00:00 | opt_status=ok | turnover=0.111669 | cost=0.000056 | selected=25
+2025-12-26 22:28:38.778 | DEBUG | simulation | Rebalance day 2016-04-18 00:00:00 (i=107/2203)
+2025-12-26 22:28:39.092 | DEBUG | simulation | Rebalance applied | date=2016-04-18 00:00:00 | opt_status=ok | turnover=0.175555 | cost=0.000088 | selected=25
+2025-12-26 22:28:39.096 | DEBUG | simulation | Rebalance day 2016-04-25 00:00:00 (i=111/2203)
+2025-12-26 22:28:39.383 | DEBUG | simulation | Rebalance applied | date=2016-04-25 00:00:00 | opt_status=ok | turnover=0.093951 | cost=0.000047 | selected=25
+2025-12-26 22:28:39.383 | INFO | simulation | Progress: 5% (111/2203) | date=2016-04-25 00:00:00 nav=0.98843233 opt_status=ok
+2025-12-26 22:28:39.388 | DEBUG | simulation | Rebalance day 2016-05-02 00:00:00 (i=116/2203)
+2025-12-26 22:28:39.700 | DEBUG | simulation | Rebalance applied | date=2016-05-02 00:00:00 | opt_status=ok | turnover=0.028394 | cost=0.000014 | selected=25
+2025-12-26 22:28:39.704 | DEBUG | simulation | Rebalance day 2016-05-09 00:00:00 (i=121/2203)
+2025-12-26 22:28:39.975 | DEBUG | simulation | Rebalance applied | date=2016-05-09 00:00:00 | opt_status=ok | turnover=0.032207 | cost=0.000016 | selected=25
+2025-12-26 22:28:39.980 | DEBUG | simulation | Rebalance day 2016-05-16 00:00:00 (i=126/2203)
+2025-12-26 22:28:40.256 | DEBUG | simulation | Rebalance applied | date=2016-05-16 00:00:00 | opt_status=ok | turnover=0.029487 | cost=0.000015 | selected=25
+2025-12-26 22:28:40.260 | DEBUG | simulation | Rebalance day 2016-05-23 00:00:00 (i=131/2203)
+2025-12-26 22:28:40.531 | DEBUG | simulation | Rebalance applied | date=2016-05-23 00:00:00 | opt_status=ok | turnover=0.099611 | cost=0.000050 | selected=25
+2025-12-26 22:28:40.534 | INFO | simulation | Progress: 6% (133/2203) | date=2016-05-25 00:00:00 nav=0.98530083 opt_status=no_rebalance
+2025-12-26 22:28:40.537 | DEBUG | simulation | Rebalance day 2016-05-30 00:00:00 (i=136/2203)
+2025-12-26 22:28:40.805 | DEBUG | simulation | Rebalance applied | date=2016-05-30 00:00:00 | opt_status=ok | turnover=0.184427 | cost=0.000092 | selected=25
+2025-12-26 22:28:40.809 | DEBUG | simulation | Rebalance day 2016-06-06 00:00:00 (i=141/2203)
+2025-12-26 22:28:41.442 | DEBUG | simulation | Rebalance applied | date=2016-06-06 00:00:00 | opt_status=ok | turnover=0.182434 | cost=0.000091 | selected=25
+2025-12-26 22:28:41.446 | DEBUG | simulation | Rebalance day 2016-06-13 00:00:00 (i=146/2203)
+2025-12-26 22:28:41.710 | DEBUG | simulation | Rebalance applied | date=2016-06-13 00:00:00 | opt_status=ok | turnover=0.103481 | cost=0.000052 | selected=25
+2025-12-26 22:28:41.714 | DEBUG | simulation | Rebalance day 2016-06-20 00:00:00 (i=151/2203)
+2025-12-26 22:28:41.950 | DEBUG | simulation | Rebalance applied | date=2016-06-20 00:00:00 | opt_status=ok | turnover=0.020606 | cost=0.000010 | selected=25
+2025-12-26 22:28:41.954 | INFO | simulation | Progress: 7% (155/2203) | date=2016-06-24 00:00:00 nav=1.03383746 opt_status=no_rebalance
+2025-12-26 22:28:41.955 | DEBUG | simulation | Rebalance day 2016-06-27 00:00:00 (i=156/2203)
+2025-12-26 22:28:42.225 | DEBUG | simulation | Rebalance applied | date=2016-06-27 00:00:00 | opt_status=ok | turnover=0.104788 | cost=0.000052 | selected=25
+2025-12-26 22:28:42.230 | DEBUG | simulation | Rebalance day 2016-07-04 00:00:00 (i=161/2203)
+2025-12-26 22:28:42.731 | DEBUG | simulation | Rebalance applied | date=2016-07-04 00:00:00 | opt_status=ok | turnover=0.187035 | cost=0.000094 | selected=25
+2025-12-26 22:28:42.735 | DEBUG | simulation | Rebalance day 2016-07-11 00:00:00 (i=165/2203)
+2025-12-26 22:28:42.992 | DEBUG | simulation | Rebalance applied | date=2016-07-11 00:00:00 | opt_status=ok | turnover=0.183672 | cost=0.000092 | selected=25
+2025-12-26 22:28:42.996 | DEBUG | simulation | Rebalance day 2016-07-18 00:00:00 (i=170/2203)
+2025-12-26 22:28:43.613 | DEBUG | simulation | Rebalance applied | date=2016-07-18 00:00:00 | opt_status=ok | turnover=0.186167 | cost=0.000093 | selected=25
+2025-12-26 22:28:43.617 | DEBUG | simulation | Rebalance day 2016-07-25 00:00:00 (i=175/2203)
+2025-12-26 22:28:43.877 | DEBUG | simulation | Rebalance applied | date=2016-07-25 00:00:00 | opt_status=ok | turnover=0.180509 | cost=0.000090 | selected=25
+2025-12-26 22:28:43.879 | INFO | simulation | Progress: 8% (177/2203) | date=2016-07-27 00:00:00 nav=1.11111924 opt_status=no_rebalance
+2025-12-26 22:28:43.882 | DEBUG | simulation | Rebalance day 2016-08-01 00:00:00 (i=180/2203)
+2025-12-26 22:28:44.193 | DEBUG | simulation | Rebalance applied | date=2016-08-01 00:00:00 | opt_status=ok | turnover=0.180786 | cost=0.000090 | selected=25
+2025-12-26 22:28:44.198 | DEBUG | simulation | Rebalance day 2016-08-08 00:00:00 (i=185/2203)
+2025-12-26 22:28:44.483 | DEBUG | simulation | Rebalance applied | date=2016-08-08 00:00:00 | opt_status=ok | turnover=0.185022 | cost=0.000093 | selected=25
+2025-12-26 22:28:44.488 | DEBUG | simulation | Rebalance day 2016-08-16 00:00:00 (i=190/2203)
+2025-12-26 22:28:44.761 | DEBUG | simulation | Rebalance applied | date=2016-08-16 00:00:00 | opt_status=ok | turnover=0.197641 | cost=0.000099 | selected=25
+2025-12-26 22:28:44.764 | DEBUG | simulation | Rebalance day 2016-08-22 00:00:00 (i=194/2203)
+2025-12-26 22:28:45.065 | DEBUG | simulation | Rebalance applied | date=2016-08-22 00:00:00 | opt_status=ok | turnover=0.091307 | cost=0.000046 | selected=25
+2025-12-26 22:28:45.069 | DEBUG | simulation | Rebalance day 2016-08-29 00:00:00 (i=199/2203)
+2025-12-26 22:28:45.354 | DEBUG | simulation | Rebalance applied | date=2016-08-29 00:00:00 | opt_status=ok | turnover=0.180708 | cost=0.000090 | selected=25
+2025-12-26 22:28:45.354 | INFO | simulation | Progress: 9% (199/2203) | date=2016-08-29 00:00:00 nav=1.1352003 opt_status=ok
+2025-12-26 22:28:45.358 | DEBUG | simulation | Rebalance day 2016-09-06 00:00:00 (i=204/2203)
+2025-12-26 22:28:45.700 | DEBUG | simulation | Rebalance applied | date=2016-09-06 00:00:00 | opt_status=ok | turnover=0.263236 | cost=0.000132 | selected=25
+2025-12-26 22:28:45.703 | DEBUG | simulation | Rebalance day 2016-09-12 00:00:00 (i=208/2203)
+2025-12-26 22:28:45.991 | DEBUG | simulation | Rebalance applied | date=2016-09-12 00:00:00 | opt_status=ok | turnover=0.267425 | cost=0.000134 | selected=25
+2025-12-26 22:28:45.995 | DEBUG | simulation | Rebalance day 2016-09-19 00:00:00 (i=212/2203)
+2025-12-26 22:28:46.601 | DEBUG | simulation | Rebalance applied | date=2016-09-19 00:00:00 | opt_status=ok | turnover=0.096101 | cost=0.000048 | selected=25
+2025-12-26 22:28:46.605 | DEBUG | simulation | Rebalance day 2016-09-26 00:00:00 (i=217/2203)
+2025-12-26 22:28:47.015 | DEBUG | simulation | Rebalance applied | date=2016-09-26 00:00:00 | opt_status=ok | turnover=0.183591 | cost=0.000092 | selected=25
+2025-12-26 22:28:47.019 | INFO | simulation | Progress: 10% (221/2203) | date=2016-09-30 00:00:00 nav=1.13971971 opt_status=no_rebalance
+2025-12-26 22:28:47.020 | DEBUG | simulation | Rebalance day 2016-10-03 00:00:00 (i=222/2203)
+2025-12-26 22:28:47.404 | DEBUG | simulation | Rebalance applied | date=2016-10-03 00:00:00 | opt_status=ok | turnover=0.177778 | cost=0.000089 | selected=25
+2025-12-26 22:28:47.408 | DEBUG | simulation | Rebalance day 2016-10-10 00:00:00 (i=227/2203)
+2025-12-26 22:28:47.814 | DEBUG | simulation | Rebalance applied | date=2016-10-10 00:00:00 | opt_status=ok | turnover=0.028546 | cost=0.000014 | selected=25
+2025-12-26 22:28:47.817 | DEBUG | simulation | Rebalance day 2016-10-17 00:00:00 (i=230/2203)
+2025-12-26 22:28:48.134 | DEBUG | simulation | Rebalance applied | date=2016-10-17 00:00:00 | opt_status=ok | turnover=0.185588 | cost=0.000093 | selected=25
+2025-12-26 22:28:48.139 | DEBUG | simulation | Rebalance day 2016-10-24 00:00:00 (i=235/2203)
+2025-12-26 22:28:48.373 | DEBUG | simulation | Rebalance applied | date=2016-10-24 00:00:00 | opt_status=ok | turnover=0.190425 | cost=0.000095 | selected=25
+2025-12-26 22:28:48.378 | DEBUG | simulation | Rebalance day 2016-11-01 00:00:00 (i=240/2203)
+2025-12-26 22:28:48.635 | DEBUG | simulation | Rebalance applied | date=2016-11-01 00:00:00 | opt_status=ok | turnover=0.040992 | cost=0.000020 | selected=25
+2025-12-26 22:28:48.638 | INFO | simulation | Progress: 11% (243/2203) | date=2016-11-04 00:00:00 nav=1.14325997 opt_status=no_rebalance
+2025-12-26 22:28:48.639 | DEBUG | simulation | Rebalance day 2016-11-07 00:00:00 (i=244/2203)
+2025-12-26 22:28:48.899 | DEBUG | simulation | Rebalance applied | date=2016-11-07 00:00:00 | opt_status=ok | turnover=0.108140 | cost=0.000054 | selected=25
+2025-12-26 22:28:48.904 | DEBUG | simulation | Rebalance day 2016-11-15 00:00:00 (i=249/2203)
+2025-12-26 22:28:49.166 | DEBUG | simulation | Rebalance applied | date=2016-11-15 00:00:00 | opt_status=ok | turnover=0.588080 | cost=0.000294 | selected=25
+2025-12-26 22:28:49.169 | DEBUG | simulation | Rebalance day 2016-11-21 00:00:00 (i=253/2203)
+2025-12-26 22:28:49.469 | DEBUG | simulation | Rebalance applied | date=2016-11-21 00:00:00 | opt_status=ok | turnover=0.114389 | cost=0.000057 | selected=25
+2025-12-26 22:28:49.474 | DEBUG | simulation | Rebalance day 2016-11-28 00:00:00 (i=258/2203)
+2025-12-26 22:28:49.773 | DEBUG | simulation | Rebalance applied | date=2016-11-28 00:00:00 | opt_status=ok | turnover=0.121406 | cost=0.000061 | selected=25
+2025-12-26 22:28:49.777 | DEBUG | simulation | Rebalance day 2016-12-05 00:00:00 (i=263/2203)
+2025-12-26 22:28:50.125 | DEBUG | simulation | Rebalance applied | date=2016-12-05 00:00:00 | opt_status=ok | turnover=0.106365 | cost=0.000053 | selected=25
+2025-12-26 22:28:50.127 | INFO | simulation | Progress: 12% (265/2203) | date=2016-12-07 00:00:00 nav=1.10441586 opt_status=no_rebalance
+2025-12-26 22:28:50.129 | DEBUG | simulation | Rebalance day 2016-12-12 00:00:00 (i=268/2203)
+2025-12-26 22:28:50.414 | DEBUG | simulation | Rebalance applied | date=2016-12-12 00:00:00 | opt_status=ok | turnover=0.099688 | cost=0.000050 | selected=25
+2025-12-26 22:28:50.418 | DEBUG | simulation | Rebalance day 2016-12-19 00:00:00 (i=273/2203)
+2025-12-26 22:28:50.709 | DEBUG | simulation | Rebalance applied | date=2016-12-19 00:00:00 | opt_status=ok | turnover=0.103223 | cost=0.000052 | selected=25
+2025-12-26 22:28:50.713 | DEBUG | simulation | Rebalance day 2016-12-26 00:00:00 (i=278/2203)
+2025-12-26 22:28:50.981 | DEBUG | simulation | Rebalance applied | date=2016-12-26 00:00:00 | opt_status=ok | turnover=0.114263 | cost=0.000057 | selected=25
+2025-12-26 22:28:50.985 | DEBUG | simulation | Rebalance day 2017-01-02 00:00:00 (i=283/2203)
+2025-12-26 22:28:51.227 | DEBUG | simulation | Rebalance applied | date=2017-01-02 00:00:00 | opt_status=ok | turnover=0.109034 | cost=0.000055 | selected=25
+2025-12-26 22:28:51.230 | INFO | simulation | Progress: 13% (287/2203) | date=2017-01-06 00:00:00 nav=1.12437917 opt_status=no_rebalance
+2025-12-26 22:28:51.231 | DEBUG | simulation | Rebalance day 2017-01-09 00:00:00 (i=288/2203)
+2025-12-26 22:28:51.871 | DEBUG | simulation | Rebalance applied | date=2017-01-09 00:00:00 | opt_status=ok | turnover=0.023264 | cost=0.000012 | selected=25
+2025-12-26 22:28:51.875 | DEBUG | simulation | Rebalance day 2017-01-16 00:00:00 (i=293/2203)
+2025-12-26 22:28:52.191 | DEBUG | simulation | Rebalance applied | date=2017-01-16 00:00:00 | opt_status=ok | turnover=0.108439 | cost=0.000054 | selected=25
+2025-12-26 22:28:52.195 | DEBUG | simulation | Rebalance day 2017-01-23 00:00:00 (i=298/2203)
+2025-12-26 22:28:52.513 | DEBUG | simulation | Rebalance applied | date=2017-01-23 00:00:00 | opt_status=ok | turnover=0.110216 | cost=0.000055 | selected=25
+2025-12-26 22:28:52.516 | DEBUG | simulation | Rebalance day 2017-01-30 00:00:00 (i=302/2203)
+2025-12-26 22:28:52.837 | DEBUG | simulation | Rebalance applied | date=2017-01-30 00:00:00 | opt_status=ok | turnover=0.101721 | cost=0.000051 | selected=25
+2025-12-26 22:28:52.841 | DEBUG | simulation | Rebalance day 2017-02-06 00:00:00 (i=307/2203)
+2025-12-26 22:28:53.149 | DEBUG | simulation | Rebalance applied | date=2017-02-06 00:00:00 | opt_status=ok | turnover=0.192115 | cost=0.000096 | selected=25
+2025-12-26 22:28:53.151 | INFO | simulation | Progress: 14% (309/2203) | date=2017-02-08 00:00:00 nav=1.19724612 opt_status=no_rebalance
+2025-12-26 22:28:53.153 | DEBUG | simulation | Rebalance day 2017-02-13 00:00:00 (i=312/2203)
+2025-12-26 22:28:53.527 | DEBUG | simulation | Rebalance applied | date=2017-02-13 00:00:00 | opt_status=ok | turnover=0.182611 | cost=0.000091 | selected=25
+2025-12-26 22:28:53.531 | DEBUG | simulation | Rebalance day 2017-02-20 00:00:00 (i=317/2203)
+2025-12-26 22:28:53.896 | DEBUG | simulation | Rebalance applied | date=2017-02-20 00:00:00 | opt_status=ok | turnover=0.023073 | cost=0.000012 | selected=25
+2025-12-26 22:28:53.900 | DEBUG | simulation | Rebalance day 2017-02-27 00:00:00 (i=321/2203)
+2025-12-26 22:28:54.203 | DEBUG | simulation | Rebalance applied | date=2017-02-27 00:00:00 | opt_status=ok | turnover=0.254377 | cost=0.000127 | selected=25
+2025-12-26 22:28:54.208 | DEBUG | simulation | Rebalance day 2017-03-06 00:00:00 (i=326/2203)
+2025-12-26 22:28:54.539 | DEBUG | simulation | Rebalance applied | date=2017-03-06 00:00:00 | opt_status=ok | turnover=0.339374 | cost=0.000170 | selected=25
+2025-12-26 22:28:54.543 | DEBUG | simulation | Rebalance day 2017-03-14 00:00:00 (i=331/2203)
+2025-12-26 22:28:54.903 | DEBUG | simulation | Rebalance applied | date=2017-03-14 00:00:00 | opt_status=ok | turnover=0.180204 | cost=0.000090 | selected=25
+2025-12-26 22:28:54.904 | INFO | simulation | Progress: 15% (331/2203) | date=2017-03-14 00:00:00 nav=1.20831401 opt_status=ok
+2025-12-26 22:28:54.907 | DEBUG | simulation | Rebalance day 2017-03-20 00:00:00 (i=335/2203)
+2025-12-26 22:28:55.202 | DEBUG | simulation | Rebalance applied | date=2017-03-20 00:00:00 | opt_status=ok | turnover=0.104273 | cost=0.000052 | selected=25
+2025-12-26 22:28:55.207 | DEBUG | simulation | Rebalance day 2017-03-27 00:00:00 (i=340/2203)
+2025-12-26 22:28:55.530 | DEBUG | simulation | Rebalance applied | date=2017-03-27 00:00:00 | opt_status=ok | turnover=0.100915 | cost=0.000050 | selected=25
+2025-12-26 22:28:55.534 | DEBUG | simulation | Rebalance day 2017-04-03 00:00:00 (i=345/2203)
+2025-12-26 22:28:55.889 | DEBUG | simulation | Rebalance applied | date=2017-04-03 00:00:00 | opt_status=ok | turnover=0.031360 | cost=0.000016 | selected=25
+2025-12-26 22:28:55.893 | DEBUG | simulation | Rebalance day 2017-04-10 00:00:00 (i=349/2203)
+2025-12-26 22:28:56.221 | DEBUG | simulation | Rebalance applied | date=2017-04-10 00:00:00 | opt_status=ok | turnover=0.129959 | cost=0.000065 | selected=25
+2025-12-26 22:28:56.224 | DEBUG | simulation | Rebalance day 2017-04-17 00:00:00 (i=353/2203)
+2025-12-26 22:28:56.624 | DEBUG | simulation | Rebalance applied | date=2017-04-17 00:00:00 | opt_status=ok | turnover=0.201292 | cost=0.000101 | selected=25
+2025-12-26 22:28:56.624 | INFO | simulation | Progress: 16% (353/2203) | date=2017-04-17 00:00:00 nav=1.26573187 opt_status=ok
+2025-12-26 22:28:56.628 | DEBUG | simulation | Rebalance day 2017-04-24 00:00:00 (i=358/2203)
+2025-12-26 22:28:56.934 | DEBUG | simulation | Rebalance applied | date=2017-04-24 00:00:00 | opt_status=ok | turnover=0.109569 | cost=0.000055 | selected=25
+2025-12-26 22:28:56.938 | DEBUG | simulation | Rebalance day 2017-05-02 00:00:00 (i=363/2203)
+2025-12-26 22:28:57.265 | DEBUG | simulation | Rebalance applied | date=2017-05-02 00:00:00 | opt_status=ok | turnover=0.117135 | cost=0.000059 | selected=25
+2025-12-26 22:28:57.268 | DEBUG | simulation | Rebalance day 2017-05-08 00:00:00 (i=367/2203)
+2025-12-26 22:28:57.640 | DEBUG | simulation | Rebalance applied | date=2017-05-08 00:00:00 | opt_status=ok | turnover=0.184720 | cost=0.000092 | selected=25
+2025-12-26 22:28:57.645 | DEBUG | simulation | Rebalance day 2017-05-15 00:00:00 (i=372/2203)
+2025-12-26 22:28:58.178 | DEBUG | simulation | Rebalance applied | date=2017-05-15 00:00:00 | opt_status=ok | turnover=0.118977 | cost=0.000059 | selected=25
+2025-12-26 22:28:58.181 | INFO | simulation | Progress: 17% (375/2203) | date=2017-05-18 00:00:00 nav=1.3056637 opt_status=no_rebalance
+2025-12-26 22:28:58.183 | DEBUG | simulation | Rebalance day 2017-05-22 00:00:00 (i=377/2203)
+2025-12-26 22:28:59.090 | DEBUG | simulation | Rebalance applied | date=2017-05-22 00:00:00 | opt_status=ok | turnover=0.339998 | cost=0.000170 | selected=25
+2025-12-26 22:28:59.095 | DEBUG | simulation | Rebalance day 2017-05-29 00:00:00 (i=382/2203)
+2025-12-26 22:28:59.614 | DEBUG | simulation | Rebalance applied | date=2017-05-29 00:00:00 | opt_status=ok | turnover=0.257937 | cost=0.000129 | selected=25
+2025-12-26 22:28:59.620 | DEBUG | simulation | Rebalance day 2017-06-05 00:00:00 (i=387/2203)
+2025-12-26 22:29:00.173 | DEBUG | simulation | Rebalance applied | date=2017-06-05 00:00:00 | opt_status=ok | turnover=0.197139 | cost=0.000099 | selected=25
+2025-12-26 22:29:00.177 | DEBUG | simulation | Rebalance day 2017-06-12 00:00:00 (i=392/2203)
+2025-12-26 22:29:00.531 | DEBUG | simulation | Rebalance applied | date=2017-06-12 00:00:00 | opt_status=ok | turnover=0.188820 | cost=0.000094 | selected=25
+2025-12-26 22:29:00.536 | DEBUG | simulation | Rebalance day 2017-06-19 00:00:00 (i=397/2203)
+2025-12-26 22:29:00.940 | DEBUG | simulation | Rebalance applied | date=2017-06-19 00:00:00 | opt_status=ok | turnover=0.103480 | cost=0.000052 | selected=25
+2025-12-26 22:29:00.941 | INFO | simulation | Progress: 18% (397/2203) | date=2017-06-19 00:00:00 nav=1.32645457 opt_status=ok
+2025-12-26 22:29:00.945 | DEBUG | simulation | Rebalance day 2017-06-27 00:00:00 (i=402/2203)
+2025-12-26 22:29:01.338 | DEBUG | simulation | Rebalance applied | date=2017-06-27 00:00:00 | opt_status=ok | turnover=0.110917 | cost=0.000055 | selected=25
+2025-12-26 22:29:01.341 | DEBUG | simulation | Rebalance day 2017-07-03 00:00:00 (i=406/2203)
+2025-12-26 22:29:02.345 | DEBUG | simulation | Rebalance applied | date=2017-07-03 00:00:00 | opt_status=ok | turnover=0.104891 | cost=0.000052 | selected=25
+2025-12-26 22:29:02.350 | DEBUG | simulation | Rebalance day 2017-07-10 00:00:00 (i=411/2203)
+2025-12-26 22:29:02.738 | DEBUG | simulation | Rebalance applied | date=2017-07-10 00:00:00 | opt_status=ok | turnover=0.022584 | cost=0.000011 | selected=25
+2025-12-26 22:29:02.743 | DEBUG | simulation | Rebalance day 2017-07-17 00:00:00 (i=416/2203)
+2025-12-26 22:29:03.235 | DEBUG | simulation | Rebalance applied | date=2017-07-17 00:00:00 | opt_status=ok | turnover=0.104113 | cost=0.000052 | selected=25
+2025-12-26 22:29:03.238 | INFO | simulation | Progress: 19% (419/2203) | date=2017-07-20 00:00:00 nav=1.37232572 opt_status=no_rebalance
+2025-12-26 22:29:03.239 | DEBUG | simulation | Rebalance day 2017-07-24 00:00:00 (i=421/2203)
+2025-12-26 22:29:03.616 | DEBUG | simulation | Rebalance applied | date=2017-07-24 00:00:00 | opt_status=ok | turnover=0.037816 | cost=0.000019 | selected=25
+2025-12-26 22:29:03.620 | DEBUG | simulation | Rebalance day 2017-07-31 00:00:00 (i=426/2203)
+2025-12-26 22:29:04.315 | DEBUG | simulation | Rebalance applied | date=2017-07-31 00:00:00 | opt_status=ok | turnover=0.102198 | cost=0.000051 | selected=25
+2025-12-26 22:29:04.320 | DEBUG | simulation | Rebalance day 2017-08-07 00:00:00 (i=431/2203)
+2025-12-26 22:29:04.716 | DEBUG | simulation | Rebalance applied | date=2017-08-07 00:00:00 | opt_status=ok | turnover=0.105966 | cost=0.000053 | selected=25
+2025-12-26 22:29:04.720 | DEBUG | simulation | Rebalance day 2017-08-14 00:00:00 (i=436/2203)
+2025-12-26 22:29:05.160 | DEBUG | simulation | Rebalance applied | date=2017-08-14 00:00:00 | opt_status=ok | turnover=0.124362 | cost=0.000062 | selected=25
+2025-12-26 22:29:05.164 | DEBUG | simulation | Rebalance day 2017-08-21 00:00:00 (i=440/2203)
+2025-12-26 22:29:05.563 | DEBUG | simulation | Rebalance applied | date=2017-08-21 00:00:00 | opt_status=ok | turnover=0.256980 | cost=0.000128 | selected=25
+2025-12-26 22:29:05.565 | INFO | simulation | Progress: 20% (441/2203) | date=2017-08-22 00:00:00 nav=1.34832355 opt_status=no_rebalance
+2025-12-26 22:29:05.567 | DEBUG | simulation | Rebalance day 2017-08-28 00:00:00 (i=444/2203)
+2025-12-26 22:29:05.926 | DEBUG | simulation | Rebalance applied | date=2017-08-28 00:00:00 | opt_status=ok | turnover=0.110836 | cost=0.000055 | selected=25
+2025-12-26 22:29:05.930 | DEBUG | simulation | Rebalance day 2017-09-04 00:00:00 (i=449/2203)
+2025-12-26 22:29:06.430 | DEBUG | simulation | Rebalance applied | date=2017-09-04 00:00:00 | opt_status=ok | turnover=0.020750 | cost=0.000010 | selected=25
+2025-12-26 22:29:06.434 | DEBUG | simulation | Rebalance day 2017-09-11 00:00:00 (i=454/2203)
+2025-12-26 22:29:06.823 | DEBUG | simulation | Rebalance applied | date=2017-09-11 00:00:00 | opt_status=ok | turnover=0.101560 | cost=0.000051 | selected=25
+2025-12-26 22:29:06.827 | DEBUG | simulation | Rebalance day 2017-09-18 00:00:00 (i=459/2203)
+2025-12-26 22:29:07.215 | DEBUG | simulation | Rebalance applied | date=2017-09-18 00:00:00 | opt_status=ok | turnover=0.113240 | cost=0.000057 | selected=25
+2025-12-26 22:29:07.218 | INFO | simulation | Progress: 21% (463/2203) | date=2017-09-22 00:00:00 nav=1.4156568 opt_status=no_rebalance
+2025-12-26 22:29:07.219 | DEBUG | simulation | Rebalance day 2017-09-25 00:00:00 (i=464/2203)
+2025-12-26 22:29:07.588 | DEBUG | simulation | Rebalance applied | date=2017-09-25 00:00:00 | opt_status=ok | turnover=0.115304 | cost=0.000058 | selected=25
+2025-12-26 22:29:07.593 | DEBUG | simulation | Rebalance day 2017-10-03 00:00:00 (i=469/2203)
+2025-12-26 22:29:08.000 | DEBUG | simulation | Rebalance applied | date=2017-10-03 00:00:00 | opt_status=ok | turnover=0.120662 | cost=0.000060 | selected=25
+2025-12-26 22:29:08.004 | DEBUG | simulation | Rebalance day 2017-10-09 00:00:00 (i=473/2203)
+2025-12-26 22:29:08.375 | DEBUG | simulation | Rebalance applied | date=2017-10-09 00:00:00 | opt_status=ok | turnover=0.025879 | cost=0.000013 | selected=25
+2025-12-26 22:29:08.379 | DEBUG | simulation | Rebalance day 2017-10-16 00:00:00 (i=478/2203)
+2025-12-26 22:29:08.759 | DEBUG | simulation | Rebalance applied | date=2017-10-16 00:00:00 | opt_status=ok | turnover=0.106392 | cost=0.000053 | selected=25
+2025-12-26 22:29:08.762 | DEBUG | simulation | Rebalance day 2017-10-23 00:00:00 (i=481/2203)
+2025-12-26 22:29:09.153 | DEBUG | simulation | Rebalance applied | date=2017-10-23 00:00:00 | opt_status=ok | turnover=0.186759 | cost=0.000093 | selected=25
+2025-12-26 22:29:09.157 | INFO | simulation | Progress: 22% (485/2203) | date=2017-10-27 00:00:00 nav=1.53383807 opt_status=no_rebalance
+2025-12-26 22:29:09.158 | DEBUG | simulation | Rebalance day 2017-10-30 00:00:00 (i=486/2203)
+2025-12-26 22:29:09.533 | DEBUG | simulation | Rebalance applied | date=2017-10-30 00:00:00 | opt_status=ok | turnover=0.109405 | cost=0.000055 | selected=25
+2025-12-26 22:29:09.538 | DEBUG | simulation | Rebalance day 2017-11-06 00:00:00 (i=491/2203)
+2025-12-26 22:29:09.917 | DEBUG | simulation | Rebalance applied | date=2017-11-06 00:00:00 | opt_status=ok | turnover=0.121775 | cost=0.000061 | selected=25
+2025-12-26 22:29:09.921 | DEBUG | simulation | Rebalance day 2017-11-13 00:00:00 (i=496/2203)
+2025-12-26 22:29:10.466 | DEBUG | simulation | Rebalance applied | date=2017-11-13 00:00:00 | opt_status=ok | turnover=0.186801 | cost=0.000093 | selected=25
+2025-12-26 22:29:10.470 | DEBUG | simulation | Rebalance day 2017-11-20 00:00:00 (i=501/2203)
+2025-12-26 22:29:10.951 | DEBUG | simulation | Rebalance applied | date=2017-11-20 00:00:00 | opt_status=ok | turnover=0.183322 | cost=0.000092 | selected=25
+2025-12-26 22:29:10.955 | DEBUG | simulation | Rebalance day 2017-11-27 00:00:00 (i=506/2203)
+2025-12-26 22:29:11.382 | DEBUG | simulation | Rebalance applied | date=2017-11-27 00:00:00 | opt_status=ok | turnover=0.101138 | cost=0.000051 | selected=25
+2025-12-26 22:29:11.383 | INFO | simulation | Progress: 23% (507/2203) | date=2017-11-28 00:00:00 nav=1.57458802 opt_status=no_rebalance
+2025-12-26 22:29:11.387 | DEBUG | simulation | Rebalance day 2017-12-04 00:00:00 (i=511/2203)
+2025-12-26 22:29:11.780 | DEBUG | simulation | Rebalance applied | date=2017-12-04 00:00:00 | opt_status=ok | turnover=0.108370 | cost=0.000054 | selected=25
+2025-12-26 22:29:11.784 | DEBUG | simulation | Rebalance day 2017-12-11 00:00:00 (i=516/2203)
+2025-12-26 22:29:12.191 | DEBUG | simulation | Rebalance applied | date=2017-12-11 00:00:00 | opt_status=ok | turnover=0.026081 | cost=0.000013 | selected=25
+2025-12-26 22:29:12.196 | DEBUG | simulation | Rebalance day 2017-12-18 00:00:00 (i=521/2203)
+2025-12-26 22:29:12.576 | DEBUG | simulation | Rebalance applied | date=2017-12-18 00:00:00 | opt_status=ok | turnover=0.023127 | cost=0.000012 | selected=25
+2025-12-26 22:29:12.580 | DEBUG | simulation | Rebalance day 2017-12-26 00:00:00 (i=526/2203)
+2025-12-26 22:29:12.999 | DEBUG | simulation | Rebalance applied | date=2017-12-26 00:00:00 | opt_status=ok | turnover=0.027254 | cost=0.000014 | selected=25
+2025-12-26 22:29:13.001 | INFO | simulation | Progress: 24% (529/2203) | date=2017-12-29 00:00:00 nav=1.65678519 opt_status=no_rebalance
+2025-12-26 22:29:13.002 | DEBUG | simulation | Rebalance day 2018-01-01 00:00:00 (i=530/2203)
+2025-12-26 22:29:13.522 | DEBUG | simulation | Rebalance applied | date=2018-01-01 00:00:00 | opt_status=ok | turnover=0.024077 | cost=0.000012 | selected=25
+2025-12-26 22:29:13.527 | DEBUG | simulation | Rebalance day 2018-01-08 00:00:00 (i=535/2203)
+2025-12-26 22:29:13.932 | DEBUG | simulation | Rebalance applied | date=2018-01-08 00:00:00 | opt_status=ok | turnover=0.038381 | cost=0.000019 | selected=25
+2025-12-26 22:29:13.936 | DEBUG | simulation | Rebalance day 2018-01-15 00:00:00 (i=540/2203)
+2025-12-26 22:29:14.238 | DEBUG | simulation | Rebalance applied | date=2018-01-15 00:00:00 | opt_status=ok | turnover=0.098912 | cost=0.000049 | selected=25
+2025-12-26 22:29:14.243 | DEBUG | simulation | Rebalance day 2018-01-22 00:00:00 (i=545/2203)
+2025-12-26 22:29:14.652 | DEBUG | simulation | Rebalance applied | date=2018-01-22 00:00:00 | opt_status=ok | turnover=0.116475 | cost=0.000058 | selected=25
+2025-12-26 22:29:14.657 | DEBUG | simulation | Rebalance day 2018-01-29 00:00:00 (i=549/2203)
+2025-12-26 22:29:15.197 | DEBUG | simulation | Rebalance applied | date=2018-01-29 00:00:00 | opt_status=ok | turnover=0.184821 | cost=0.000092 | selected=25
+2025-12-26 22:29:15.199 | INFO | simulation | Progress: 25% (551/2203) | date=2018-01-31 00:00:00 nav=1.66047374 opt_status=no_rebalance
+2025-12-26 22:29:15.202 | DEBUG | simulation | Rebalance day 2018-02-05 00:00:00 (i=554/2203)
+2025-12-26 22:29:15.624 | DEBUG | simulation | Rebalance applied | date=2018-02-05 00:00:00 | opt_status=ok | turnover=0.268745 | cost=0.000134 | selected=25
+2025-12-26 22:29:15.628 | DEBUG | simulation | Rebalance day 2018-02-12 00:00:00 (i=559/2203)
+2025-12-26 22:29:15.944 | DEBUG | simulation | Rebalance applied | date=2018-02-12 00:00:00 | opt_status=ok | turnover=0.032021 | cost=0.000016 | selected=25
+2025-12-26 22:29:15.947 | DEBUG | simulation | Rebalance day 2018-02-19 00:00:00 (i=563/2203)
+2025-12-26 22:29:16.354 | DEBUG | simulation | Rebalance applied | date=2018-02-19 00:00:00 | opt_status=ok | turnover=0.106086 | cost=0.000053 | selected=25
+2025-12-26 22:29:16.359 | DEBUG | simulation | Rebalance day 2018-02-26 00:00:00 (i=568/2203)
+2025-12-26 22:29:16.735 | DEBUG | simulation | Rebalance applied | date=2018-02-26 00:00:00 | opt_status=ok | turnover=0.028356 | cost=0.000014 | selected=25
+2025-12-26 22:29:16.739 | DEBUG | simulation | Rebalance day 2018-03-05 00:00:00 (i=572/2203)
+2025-12-26 22:29:17.131 | DEBUG | simulation | Rebalance applied | date=2018-03-05 00:00:00 | opt_status=ok | turnover=0.108689 | cost=0.000054 | selected=25
+2025-12-26 22:29:17.132 | INFO | simulation | Progress: 26% (573/2203) | date=2018-03-06 00:00:00 nav=1.55816966 opt_status=no_rebalance
+2025-12-26 22:29:17.135 | DEBUG | simulation | Rebalance day 2018-03-12 00:00:00 (i=577/2203)
+2025-12-26 22:29:17.518 | DEBUG | simulation | Rebalance applied | date=2018-03-12 00:00:00 | opt_status=ok | turnover=0.112607 | cost=0.000056 | selected=25
+2025-12-26 22:29:17.522 | DEBUG | simulation | Rebalance day 2018-03-19 00:00:00 (i=582/2203)
+2025-12-26 22:29:17.925 | DEBUG | simulation | Rebalance applied | date=2018-03-19 00:00:00 | opt_status=ok | turnover=0.182082 | cost=0.000091 | selected=25
+2025-12-26 22:29:17.930 | DEBUG | simulation | Rebalance day 2018-03-26 00:00:00 (i=587/2203)
+2025-12-26 22:29:18.648 | DEBUG | simulation | Rebalance applied | date=2018-03-26 00:00:00 | opt_status=ok | turnover=0.092543 | cost=0.000046 | selected=25
+2025-12-26 22:29:18.651 | DEBUG | simulation | Rebalance day 2018-04-02 00:00:00 (i=590/2203)
+2025-12-26 22:29:19.049 | DEBUG | simulation | Rebalance applied | date=2018-04-02 00:00:00 | opt_status=ok | turnover=0.094916 | cost=0.000047 | selected=25
+2025-12-26 22:29:19.054 | DEBUG | simulation | Rebalance day 2018-04-09 00:00:00 (i=595/2203)
+2025-12-26 22:29:19.438 | DEBUG | simulation | Rebalance applied | date=2018-04-09 00:00:00 | opt_status=ok | turnover=0.029338 | cost=0.000015 | selected=25
+2025-12-26 22:29:19.439 | INFO | simulation | Progress: 27% (595/2203) | date=2018-04-09 00:00:00 nav=1.56653275 opt_status=ok
+2025-12-26 22:29:19.442 | DEBUG | simulation | Rebalance day 2018-04-16 00:00:00 (i=600/2203)
+2025-12-26 22:29:19.807 | DEBUG | simulation | Rebalance applied | date=2018-04-16 00:00:00 | opt_status=ok | turnover=0.024503 | cost=0.000012 | selected=25
+2025-12-26 22:29:19.811 | DEBUG | simulation | Rebalance day 2018-04-23 00:00:00 (i=605/2203)
+2025-12-26 22:29:20.216 | DEBUG | simulation | Rebalance applied | date=2018-04-23 00:00:00 | opt_status=ok | turnover=0.109943 | cost=0.000055 | selected=25
+2025-12-26 22:29:20.221 | DEBUG | simulation | Rebalance day 2018-04-30 00:00:00 (i=610/2203)
+2025-12-26 22:29:20.559 | DEBUG | simulation | Rebalance applied | date=2018-04-30 00:00:00 | opt_status=ok | turnover=0.099213 | cost=0.000050 | selected=25
+2025-12-26 22:29:20.563 | DEBUG | simulation | Rebalance day 2018-05-07 00:00:00 (i=614/2203)
+2025-12-26 22:29:20.841 | DEBUG | simulation | Rebalance applied | date=2018-05-07 00:00:00 | opt_status=ok | turnover=0.101872 | cost=0.000051 | selected=25
+2025-12-26 22:29:20.844 | INFO | simulation | Progress: 28% (617/2203) | date=2018-05-10 00:00:00 nav=1.58279637 opt_status=no_rebalance
+2025-12-26 22:29:20.846 | DEBUG | simulation | Rebalance day 2018-05-14 00:00:00 (i=619/2203)
+2025-12-26 22:29:21.193 | DEBUG | simulation | Rebalance applied | date=2018-05-14 00:00:00 | opt_status=ok | turnover=0.098456 | cost=0.000049 | selected=25
+2025-12-26 22:29:21.197 | DEBUG | simulation | Rebalance day 2018-05-21 00:00:00 (i=624/2203)
+2025-12-26 22:29:21.480 | DEBUG | simulation | Rebalance applied | date=2018-05-21 00:00:00 | opt_status=ok | turnover=0.036488 | cost=0.000018 | selected=25
+2025-12-26 22:29:21.484 | DEBUG | simulation | Rebalance day 2018-05-28 00:00:00 (i=629/2203)
+2025-12-26 22:29:21.763 | DEBUG | simulation | Rebalance applied | date=2018-05-28 00:00:00 | opt_status=ok | turnover=0.031038 | cost=0.000016 | selected=25
+2025-12-26 22:29:21.767 | DEBUG | simulation | Rebalance day 2018-06-04 00:00:00 (i=634/2203)
+2025-12-26 22:29:22.062 | DEBUG | simulation | Rebalance applied | date=2018-06-04 00:00:00 | opt_status=ok | turnover=0.027045 | cost=0.000014 | selected=25
+2025-12-26 22:29:22.066 | DEBUG | simulation | Rebalance day 2018-06-11 00:00:00 (i=639/2203)
+2025-12-26 22:29:22.339 | DEBUG | simulation | Rebalance applied | date=2018-06-11 00:00:00 | opt_status=ok | turnover=0.100174 | cost=0.000050 | selected=25
+2025-12-26 22:29:22.339 | INFO | simulation | Progress: 29% (639/2203) | date=2018-06-11 00:00:00 nav=1.55916919 opt_status=ok
+2025-12-26 22:29:22.343 | DEBUG | simulation | Rebalance day 2018-06-18 00:00:00 (i=644/2203)
+2025-12-26 22:29:22.637 | DEBUG | simulation | Rebalance applied | date=2018-06-18 00:00:00 | opt_status=ok | turnover=0.105648 | cost=0.000053 | selected=25
+2025-12-26 22:29:22.642 | DEBUG | simulation | Rebalance day 2018-06-25 00:00:00 (i=649/2203)
+2025-12-26 22:29:22.969 | DEBUG | simulation | Rebalance applied | date=2018-06-25 00:00:00 | opt_status=ok | turnover=0.099778 | cost=0.000050 | selected=25
+2025-12-26 22:29:22.974 | DEBUG | simulation | Rebalance day 2018-07-02 00:00:00 (i=654/2203)
+2025-12-26 22:29:23.307 | DEBUG | simulation | Rebalance applied | date=2018-07-02 00:00:00 | opt_status=ok | turnover=0.119116 | cost=0.000060 | selected=25
+2025-12-26 22:29:23.311 | DEBUG | simulation | Rebalance day 2018-07-09 00:00:00 (i=659/2203)
+2025-12-26 22:29:23.669 | DEBUG | simulation | Rebalance applied | date=2018-07-09 00:00:00 | opt_status=ok | turnover=0.108319 | cost=0.000054 | selected=25
+2025-12-26 22:29:23.671 | INFO | simulation | Progress: 30% (661/2203) | date=2018-07-11 00:00:00 nav=1.54393003 opt_status=no_rebalance
+2025-12-26 22:29:23.674 | DEBUG | simulation | Rebalance day 2018-07-16 00:00:00 (i=664/2203)
+2025-12-26 22:29:24.061 | DEBUG | simulation | Rebalance applied | date=2018-07-16 00:00:00 | opt_status=ok | turnover=0.047586 | cost=0.000024 | selected=25
+2025-12-26 22:29:24.066 | DEBUG | simulation | Rebalance day 2018-07-23 00:00:00 (i=669/2203)
+2025-12-26 22:29:24.561 | DEBUG | simulation | Rebalance applied | date=2018-07-23 00:00:00 | opt_status=ok | turnover=0.189532 | cost=0.000095 | selected=25
+2025-12-26 22:29:24.565 | DEBUG | simulation | Rebalance day 2018-07-30 00:00:00 (i=674/2203)
+2025-12-26 22:29:24.898 | DEBUG | simulation | Rebalance applied | date=2018-07-30 00:00:00 | opt_status=ok | turnover=0.048562 | cost=0.000024 | selected=25
+2025-12-26 22:29:24.902 | DEBUG | simulation | Rebalance day 2018-08-06 00:00:00 (i=679/2203)
+2025-12-26 22:29:25.197 | DEBUG | simulation | Rebalance applied | date=2018-08-06 00:00:00 | opt_status=ok | turnover=0.182797 | cost=0.000091 | selected=25
+2025-12-26 22:29:25.201 | INFO | simulation | Progress: 31% (683/2203) | date=2018-08-10 00:00:00 nav=1.61432059 opt_status=no_rebalance
+2025-12-26 22:29:25.202 | DEBUG | simulation | Rebalance day 2018-08-13 00:00:00 (i=684/2203)
+2025-12-26 22:29:25.589 | DEBUG | simulation | Rebalance applied | date=2018-08-13 00:00:00 | opt_status=ok | turnover=0.182156 | cost=0.000091 | selected=25
+2025-12-26 22:29:25.593 | DEBUG | simulation | Rebalance day 2018-08-20 00:00:00 (i=688/2203)
+2025-12-26 22:29:25.941 | DEBUG | simulation | Rebalance applied | date=2018-08-20 00:00:00 | opt_status=ok | turnover=0.021080 | cost=0.000011 | selected=25
+2025-12-26 22:29:25.945 | DEBUG | simulation | Rebalance day 2018-08-27 00:00:00 (i=692/2203)
+2025-12-26 22:29:26.288 | DEBUG | simulation | Rebalance applied | date=2018-08-27 00:00:00 | opt_status=ok | turnover=0.109888 | cost=0.000055 | selected=25
+2025-12-26 22:29:26.292 | DEBUG | simulation | Rebalance day 2018-09-03 00:00:00 (i=697/2203)
+2025-12-26 22:29:26.647 | DEBUG | simulation | Rebalance applied | date=2018-09-03 00:00:00 | opt_status=ok | turnover=0.264967 | cost=0.000132 | selected=25
+2025-12-26 22:29:26.651 | DEBUG | simulation | Rebalance day 2018-09-10 00:00:00 (i=702/2203)
+2025-12-26 22:29:26.967 | DEBUG | simulation | Rebalance applied | date=2018-09-10 00:00:00 | opt_status=ok | turnover=0.363727 | cost=0.000182 | selected=25
+2025-12-26 22:29:26.970 | INFO | simulation | Progress: 32% (705/2203) | date=2018-09-14 00:00:00 nav=1.61326096 opt_status=no_rebalance
+2025-12-26 22:29:26.970 | DEBUG | simulation | Rebalance day 2018-09-17 00:00:00 (i=706/2203)
+2025-12-26 22:29:27.295 | DEBUG | simulation | Rebalance applied | date=2018-09-17 00:00:00 | opt_status=ok | turnover=0.178728 | cost=0.000089 | selected=25
+2025-12-26 22:29:27.298 | DEBUG | simulation | Rebalance day 2018-09-24 00:00:00 (i=710/2203)
+2025-12-26 22:29:27.786 | DEBUG | simulation | Rebalance applied | date=2018-09-24 00:00:00 | opt_status=ok | turnover=0.280847 | cost=0.000140 | selected=25
+2025-12-26 22:29:27.791 | DEBUG | simulation | Rebalance day 2018-10-01 00:00:00 (i=715/2203)
+2025-12-26 22:29:28.118 | DEBUG | simulation | Rebalance applied | date=2018-10-01 00:00:00 | opt_status=ok | turnover=0.187934 | cost=0.000094 | selected=25
+2025-12-26 22:29:28.121 | DEBUG | simulation | Rebalance day 2018-10-08 00:00:00 (i=719/2203)
+2025-12-26 22:29:28.662 | DEBUG | simulation | Rebalance applied | date=2018-10-08 00:00:00 | opt_status=ok | turnover=0.351270 | cost=0.000176 | selected=25
+2025-12-26 22:29:28.666 | DEBUG | simulation | Rebalance day 2018-10-15 00:00:00 (i=724/2203)
+2025-12-26 22:29:29.056 | DEBUG | simulation | Rebalance applied | date=2018-10-15 00:00:00 | opt_status=ok | turnover=0.120465 | cost=0.000060 | selected=25
+2025-12-26 22:29:29.062 | INFO | simulation | Progress: 33% (727/2203) | date=2018-10-19 00:00:00 nav=1.46653614 opt_status=no_rebalance
+2025-12-26 22:29:29.062 | DEBUG | simulation | Rebalance day 2018-10-22 00:00:00 (i=728/2203)
+2025-12-26 22:29:29.458 | DEBUG | simulation | Rebalance applied | date=2018-10-22 00:00:00 | opt_status=ok | turnover=0.193735 | cost=0.000097 | selected=25
+2025-12-26 22:29:29.462 | DEBUG | simulation | Rebalance day 2018-10-29 00:00:00 (i=733/2203)
+2025-12-26 22:29:29.827 | DEBUG | simulation | Rebalance applied | date=2018-10-29 00:00:00 | opt_status=ok | turnover=0.192341 | cost=0.000096 | selected=25
+2025-12-26 22:29:29.831 | DEBUG | simulation | Rebalance day 2018-11-05 00:00:00 (i=738/2203)
+2025-12-26 22:29:30.193 | DEBUG | simulation | Rebalance applied | date=2018-11-05 00:00:00 | opt_status=ok | turnover=0.190290 | cost=0.000095 | selected=25
+2025-12-26 22:29:30.196 | DEBUG | simulation | Rebalance day 2018-11-12 00:00:00 (i=741/2203)
+2025-12-26 22:29:30.712 | DEBUG | simulation | Rebalance applied | date=2018-11-12 00:00:00 | opt_status=ok | turnover=0.255293 | cost=0.000128 | selected=25
+2025-12-26 22:29:30.716 | DEBUG | simulation | Rebalance day 2018-11-19 00:00:00 (i=746/2203)
+2025-12-26 22:29:31.100 | DEBUG | simulation | Rebalance applied | date=2018-11-19 00:00:00 | opt_status=ok | turnover=0.040357 | cost=0.000020 | selected=25
+2025-12-26 22:29:31.103 | DEBUG | simulation | Rebalance day 2018-11-26 00:00:00 (i=750/2203)
+2025-12-26 22:29:31.503 | DEBUG | simulation | Rebalance applied | date=2018-11-26 00:00:00 | opt_status=ok | turnover=0.266355 | cost=0.000133 | selected=25
+2025-12-26 22:29:31.503 | INFO | simulation | Progress: 34% (750/2203) | date=2018-11-26 00:00:00 nav=1.50913727 opt_status=ok
+2025-12-26 22:29:31.507 | DEBUG | simulation | Rebalance day 2018-12-03 00:00:00 (i=755/2203)
+2025-12-26 22:29:32.330 | DEBUG | simulation | Rebalance applied | date=2018-12-03 00:00:00 | opt_status=ok | turnover=0.187744 | cost=0.000094 | selected=25
+2025-12-26 22:29:32.334 | DEBUG | simulation | Rebalance day 2018-12-10 00:00:00 (i=760/2203)
+2025-12-26 22:29:32.889 | DEBUG | simulation | Rebalance applied | date=2018-12-10 00:00:00 | opt_status=ok | turnover=0.110168 | cost=0.000055 | selected=25
+2025-12-26 22:29:32.894 | DEBUG | simulation | Rebalance day 2018-12-17 00:00:00 (i=765/2203)
+2025-12-26 22:29:33.263 | DEBUG | simulation | Rebalance applied | date=2018-12-17 00:00:00 | opt_status=ok | turnover=0.120733 | cost=0.000060 | selected=25
+2025-12-26 22:29:33.267 | DEBUG | simulation | Rebalance day 2018-12-24 00:00:00 (i=770/2203)
+2025-12-26 22:29:33.638 | DEBUG | simulation | Rebalance applied | date=2018-12-24 00:00:00 | opt_status=ok | turnover=0.256072 | cost=0.000128 | selected=25
+2025-12-26 22:29:33.640 | INFO | simulation | Progress: 35% (772/2203) | date=2018-12-27 00:00:00 nav=1.51275919 opt_status=no_rebalance
+2025-12-26 22:29:33.641 | DEBUG | simulation | Rebalance day 2018-12-31 00:00:00 (i=774/2203)
+2025-12-26 22:29:34.169 | DEBUG | simulation | Rebalance applied | date=2018-12-31 00:00:00 | opt_status=ok | turnover=0.171069 | cost=0.000086 | selected=25
+2025-12-26 22:29:34.174 | DEBUG | simulation | Rebalance day 2019-01-07 00:00:00 (i=779/2203)
+2025-12-26 22:29:34.566 | DEBUG | simulation | Rebalance applied | date=2019-01-07 00:00:00 | opt_status=ok | turnover=0.179609 | cost=0.000090 | selected=25
+2025-12-26 22:29:34.571 | DEBUG | simulation | Rebalance day 2019-01-14 00:00:00 (i=784/2203)
+2025-12-26 22:29:35.495 | DEBUG | simulation | Rebalance applied | date=2019-01-14 00:00:00 | opt_status=ok | turnover=0.104999 | cost=0.000052 | selected=25
+2025-12-26 22:29:35.499 | DEBUG | simulation | Rebalance day 2019-01-21 00:00:00 (i=789/2203)
+2025-12-26 22:29:36.079 | DEBUG | simulation | Rebalance applied | date=2019-01-21 00:00:00 | opt_status=ok | turnover=0.026575 | cost=0.000013 | selected=25
+2025-12-26 22:29:36.083 | DEBUG | simulation | Rebalance day 2019-01-28 00:00:00 (i=794/2203)
+2025-12-26 22:29:36.474 | DEBUG | simulation | Rebalance applied | date=2019-01-28 00:00:00 | opt_status=ok | turnover=0.269974 | cost=0.000135 | selected=25
+2025-12-26 22:29:36.474 | INFO | simulation | Progress: 36% (794/2203) | date=2019-01-28 00:00:00 nav=1.45625912 opt_status=ok
+2025-12-26 22:29:36.478 | DEBUG | simulation | Rebalance day 2019-02-04 00:00:00 (i=799/2203)
+2025-12-26 22:29:36.996 | DEBUG | simulation | Rebalance applied | date=2019-02-04 00:00:00 | opt_status=ok | turnover=0.193115 | cost=0.000097 | selected=25
+2025-12-26 22:29:37.000 | DEBUG | simulation | Rebalance day 2019-02-11 00:00:00 (i=804/2203)
+2025-12-26 22:29:37.588 | DEBUG | simulation | Rebalance applied | date=2019-02-11 00:00:00 | opt_status=ok | turnover=0.257226 | cost=0.000129 | selected=25
+2025-12-26 22:29:37.593 | DEBUG | simulation | Rebalance day 2019-02-18 00:00:00 (i=809/2203)
+2025-12-26 22:29:37.970 | DEBUG | simulation | Rebalance applied | date=2019-02-18 00:00:00 | opt_status=ok | turnover=0.033718 | cost=0.000017 | selected=25
+2025-12-26 22:29:37.975 | DEBUG | simulation | Rebalance day 2019-02-25 00:00:00 (i=814/2203)
+2025-12-26 22:29:38.353 | DEBUG | simulation | Rebalance applied | date=2019-02-25 00:00:00 | opt_status=ok | turnover=0.114736 | cost=0.000057 | selected=25
+2025-12-26 22:29:38.355 | INFO | simulation | Progress: 37% (816/2203) | date=2019-02-27 00:00:00 nav=1.45736151 opt_status=no_rebalance
+2025-12-26 22:29:38.358 | DEBUG | simulation | Rebalance day 2019-03-05 00:00:00 (i=819/2203)
+2025-12-26 22:29:38.983 | DEBUG | simulation | Rebalance applied | date=2019-03-05 00:00:00 | opt_status=ok | turnover=0.102643 | cost=0.000051 | selected=25
+2025-12-26 22:29:38.987 | DEBUG | simulation | Rebalance day 2019-03-11 00:00:00 (i=823/2203)
+2025-12-26 22:29:39.704 | DEBUG | simulation | Rebalance applied | date=2019-03-11 00:00:00 | opt_status=ok | turnover=0.099539 | cost=0.000050 | selected=25
+2025-12-26 22:29:39.709 | DEBUG | simulation | Rebalance day 2019-03-18 00:00:00 (i=828/2203)
+2025-12-26 22:29:40.104 | DEBUG | simulation | Rebalance applied | date=2019-03-18 00:00:00 | opt_status=ok | turnover=0.187012 | cost=0.000094 | selected=25
+2025-12-26 22:29:40.108 | DEBUG | simulation | Rebalance day 2019-03-25 00:00:00 (i=832/2203)
+2025-12-26 22:29:40.924 | DEBUG | simulation | Rebalance applied | date=2019-03-25 00:00:00 | opt_status=ok | turnover=0.181442 | cost=0.000091 | selected=25
+2025-12-26 22:29:40.928 | DEBUG | simulation | Rebalance day 2019-04-01 00:00:00 (i=837/2203)
+2025-12-26 22:29:41.668 | DEBUG | simulation | Rebalance applied | date=2019-04-01 00:00:00 | opt_status=ok | turnover=0.109468 | cost=0.000055 | selected=25
+2025-12-26 22:29:41.669 | INFO | simulation | Progress: 38% (838/2203) | date=2019-04-02 00:00:00 nav=1.5552273 opt_status=no_rebalance
+2025-12-26 22:29:41.673 | DEBUG | simulation | Rebalance day 2019-04-08 00:00:00 (i=842/2203)
+2025-12-26 22:29:42.203 | DEBUG | simulation | Rebalance applied | date=2019-04-08 00:00:00 | opt_status=ok | turnover=0.099721 | cost=0.000050 | selected=25
+2025-12-26 22:29:42.209 | DEBUG | simulation | Rebalance day 2019-04-15 00:00:00 (i=847/2203)
+2025-12-26 22:29:42.729 | DEBUG | simulation | Rebalance applied | date=2019-04-15 00:00:00 | opt_status=ok | turnover=0.015107 | cost=0.000008 | selected=25
+2025-12-26 22:29:42.733 | DEBUG | simulation | Rebalance day 2019-04-22 00:00:00 (i=850/2203)
+2025-12-26 22:29:43.360 | DEBUG | simulation | Rebalance applied | date=2019-04-22 00:00:00 | opt_status=ok | turnover=0.178076 | cost=0.000089 | selected=25
+2025-12-26 22:29:43.364 | DEBUG | simulation | Rebalance day 2019-04-30 00:00:00 (i=855/2203)
+2025-12-26 22:29:43.931 | DEBUG | simulation | Rebalance applied | date=2019-04-30 00:00:00 | opt_status=ok | turnover=0.110035 | cost=0.000055 | selected=25
+2025-12-26 22:29:43.933 | DEBUG | simulation | Rebalance day 2019-05-06 00:00:00 (i=858/2203)
+2025-12-26 22:29:44.442 | DEBUG | simulation | Rebalance applied | date=2019-05-06 00:00:00 | opt_status=ok | turnover=0.191642 | cost=0.000096 | selected=25
+2025-12-26 22:29:44.444 | INFO | simulation | Progress: 39% (860/2203) | date=2019-05-08 00:00:00 nav=1.49572065 opt_status=no_rebalance
+2025-12-26 22:29:44.447 | DEBUG | simulation | Rebalance day 2019-05-13 00:00:00 (i=863/2203)
+2025-12-26 22:29:44.860 | DEBUG | simulation | Rebalance applied | date=2019-05-13 00:00:00 | opt_status=ok | turnover=0.106404 | cost=0.000053 | selected=25
+2025-12-26 22:29:44.865 | DEBUG | simulation | Rebalance day 2019-05-20 00:00:00 (i=868/2203)
+2025-12-26 22:29:45.408 | DEBUG | simulation | Rebalance applied | date=2019-05-20 00:00:00 | opt_status=ok | turnover=0.034657 | cost=0.000017 | selected=25
+2025-12-26 22:29:45.413 | DEBUG | simulation | Rebalance day 2019-05-27 00:00:00 (i=873/2203)
+2025-12-26 22:29:45.938 | DEBUG | simulation | Rebalance applied | date=2019-05-27 00:00:00 | opt_status=ok | turnover=0.196517 | cost=0.000098 | selected=25
+2025-12-26 22:29:45.942 | DEBUG | simulation | Rebalance day 2019-06-03 00:00:00 (i=878/2203)
+2025-12-26 22:29:46.529 | DEBUG | simulation | Rebalance applied | date=2019-06-03 00:00:00 | opt_status=ok | turnover=0.187724 | cost=0.000094 | selected=25
+2025-12-26 22:29:46.532 | DEBUG | simulation | Rebalance day 2019-06-10 00:00:00 (i=882/2203)
+2025-12-26 22:29:46.908 | DEBUG | simulation | Rebalance applied | date=2019-06-10 00:00:00 | opt_status=ok | turnover=0.174639 | cost=0.000087 | selected=25
+2025-12-26 22:29:46.908 | INFO | simulation | Progress: 40% (882/2203) | date=2019-06-10 00:00:00 nav=1.52081844 opt_status=ok
+2025-12-26 22:29:46.912 | DEBUG | simulation | Rebalance day 2019-06-17 00:00:00 (i=887/2203)
+2025-12-26 22:29:47.308 | DEBUG | simulation | Rebalance applied | date=2019-06-17 00:00:00 | opt_status=ok | turnover=0.093026 | cost=0.000047 | selected=25
+2025-12-26 22:29:47.312 | DEBUG | simulation | Rebalance day 2019-06-24 00:00:00 (i=892/2203)
+2025-12-26 22:29:47.684 | DEBUG | simulation | Rebalance applied | date=2019-06-24 00:00:00 | opt_status=ok | turnover=0.102835 | cost=0.000051 | selected=25
+2025-12-26 22:29:47.688 | DEBUG | simulation | Rebalance day 2019-07-01 00:00:00 (i=897/2203)
+2025-12-26 22:29:48.354 | DEBUG | simulation | Rebalance applied | date=2019-07-01 00:00:00 | opt_status=ok | turnover=0.178155 | cost=0.000089 | selected=25
+2025-12-26 22:29:48.358 | DEBUG | simulation | Rebalance day 2019-07-08 00:00:00 (i=902/2203)
+2025-12-26 22:29:48.731 | DEBUG | simulation | Rebalance applied | date=2019-07-08 00:00:00 | opt_status=ok | turnover=0.174754 | cost=0.000087 | selected=25
+2025-12-26 22:29:48.733 | INFO | simulation | Progress: 41% (904/2203) | date=2019-07-10 00:00:00 nav=1.44570069 opt_status=no_rebalance
+2025-12-26 22:29:48.736 | DEBUG | simulation | Rebalance day 2019-07-15 00:00:00 (i=907/2203)
+2025-12-26 22:29:49.397 | DEBUG | simulation | Rebalance applied | date=2019-07-15 00:00:00 | opt_status=ok | turnover=0.026584 | cost=0.000013 | selected=25
+2025-12-26 22:29:49.401 | DEBUG | simulation | Rebalance day 2019-07-22 00:00:00 (i=912/2203)
+2025-12-26 22:29:49.922 | DEBUG | simulation | Rebalance applied | date=2019-07-22 00:00:00 | opt_status=ok | turnover=0.175777 | cost=0.000088 | selected=25
+2025-12-26 22:29:49.926 | DEBUG | simulation | Rebalance day 2019-07-29 00:00:00 (i=917/2203)
+2025-12-26 22:29:50.333 | DEBUG | simulation | Rebalance applied | date=2019-07-29 00:00:00 | opt_status=ok | turnover=0.180004 | cost=0.000090 | selected=25
+2025-12-26 22:29:50.337 | DEBUG | simulation | Rebalance day 2019-08-05 00:00:00 (i=922/2203)
+2025-12-26 22:29:50.705 | DEBUG | simulation | Rebalance applied | date=2019-08-05 00:00:00 | opt_status=ok | turnover=0.123956 | cost=0.000062 | selected=25
+2025-12-26 22:29:50.708 | INFO | simulation | Progress: 42% (926/2203) | date=2019-08-09 00:00:00 nav=1.41613571 opt_status=no_rebalance
+2025-12-26 22:29:50.709 | DEBUG | simulation | Rebalance day 2019-08-13 00:00:00 (i=927/2203)
+2025-12-26 22:29:51.573 | DEBUG | simulation | Rebalance applied | date=2019-08-13 00:00:00 | opt_status=ok | turnover=0.195913 | cost=0.000098 | selected=25
+2025-12-26 22:29:51.576 | DEBUG | simulation | Rebalance day 2019-08-19 00:00:00 (i=930/2203)
+2025-12-26 22:29:51.951 | DEBUG | simulation | Rebalance applied | date=2019-08-19 00:00:00 | opt_status=ok | turnover=0.102110 | cost=0.000051 | selected=25
+2025-12-26 22:29:51.955 | DEBUG | simulation | Rebalance day 2019-08-26 00:00:00 (i=935/2203)
+2025-12-26 22:29:52.620 | DEBUG | simulation | Rebalance applied | date=2019-08-26 00:00:00 | opt_status=ok | turnover=0.024662 | cost=0.000012 | selected=25
+2025-12-26 22:29:52.625 | DEBUG | simulation | Rebalance day 2019-09-03 00:00:00 (i=940/2203)
+2025-12-26 22:29:53.115 | DEBUG | simulation | Rebalance applied | date=2019-09-03 00:00:00 | opt_status=ok | turnover=0.258377 | cost=0.000129 | selected=25
+2025-12-26 22:29:53.119 | DEBUG | simulation | Rebalance day 2019-09-09 00:00:00 (i=944/2203)
+2025-12-26 22:29:53.621 | DEBUG | simulation | Rebalance applied | date=2019-09-09 00:00:00 | opt_status=ok | turnover=0.104883 | cost=0.000052 | selected=25
+2025-12-26 22:29:53.624 | DEBUG | simulation | Rebalance day 2019-09-16 00:00:00 (i=948/2203)
+2025-12-26 22:29:54.154 | DEBUG | simulation | Rebalance applied | date=2019-09-16 00:00:00 | opt_status=ok | turnover=0.098077 | cost=0.000049 | selected=25
+2025-12-26 22:29:54.155 | INFO | simulation | Progress: 43% (948/2203) | date=2019-09-16 00:00:00 nav=1.40893245 opt_status=ok
+2025-12-26 22:29:54.159 | DEBUG | simulation | Rebalance day 2019-09-23 00:00:00 (i=953/2203)
+2025-12-26 22:29:54.753 | DEBUG | simulation | Rebalance applied | date=2019-09-23 00:00:00 | opt_status=ok | turnover=0.214476 | cost=0.000107 | selected=25
+2025-12-26 22:29:54.757 | DEBUG | simulation | Rebalance day 2019-09-30 00:00:00 (i=958/2203)
+2025-12-26 22:29:55.356 | DEBUG | simulation | Rebalance applied | date=2019-09-30 00:00:00 | opt_status=ok | turnover=0.188236 | cost=0.000094 | selected=25
+2025-12-26 22:29:55.360 | DEBUG | simulation | Rebalance day 2019-10-07 00:00:00 (i=962/2203)
+2025-12-26 22:29:55.762 | DEBUG | simulation | Rebalance applied | date=2019-10-07 00:00:00 | opt_status=ok | turnover=0.100565 | cost=0.000050 | selected=25
+2025-12-26 22:29:55.765 | DEBUG | simulation | Rebalance day 2019-10-14 00:00:00 (i=966/2203)
+2025-12-26 22:29:56.488 | DEBUG | simulation | Rebalance applied | date=2019-10-14 00:00:00 | opt_status=ok | turnover=0.024042 | cost=0.000012 | selected=25
+2025-12-26 22:29:56.492 | INFO | simulation | Progress: 44% (970/2203) | date=2019-10-18 00:00:00 nav=1.48401768 opt_status=no_rebalance
+2025-12-26 22:29:56.492 | DEBUG | simulation | Rebalance day 2019-10-22 00:00:00 (i=971/2203)
+2025-12-26 22:29:57.125 | DEBUG | simulation | Rebalance applied | date=2019-10-22 00:00:00 | opt_status=ok | turnover=0.187711 | cost=0.000094 | selected=25
+2025-12-26 22:29:57.128 | DEBUG | simulation | Rebalance day 2019-10-29 00:00:00 (i=975/2203)
+2025-12-26 22:29:57.664 | DEBUG | simulation | Rebalance applied | date=2019-10-29 00:00:00 | opt_status=ok | turnover=0.032807 | cost=0.000016 | selected=25
+2025-12-26 22:29:57.668 | DEBUG | simulation | Rebalance day 2019-11-04 00:00:00 (i=979/2203)
+2025-12-26 22:29:58.247 | DEBUG | simulation | Rebalance applied | date=2019-11-04 00:00:00 | opt_status=ok | turnover=0.108358 | cost=0.000054 | selected=25
+2025-12-26 22:29:58.255 | DEBUG | simulation | Rebalance day 2019-11-11 00:00:00 (i=984/2203)
+2025-12-26 22:29:58.687 | DEBUG | simulation | Rebalance applied | date=2019-11-11 00:00:00 | opt_status=ok | turnover=0.262947 | cost=0.000131 | selected=25
+2025-12-26 22:29:58.691 | DEBUG | simulation | Rebalance day 2019-11-18 00:00:00 (i=988/2203)
+2025-12-26 22:29:59.278 | DEBUG | simulation | Rebalance applied | date=2019-11-18 00:00:00 | opt_status=ok | turnover=0.105522 | cost=0.000053 | selected=25
+2025-12-26 22:29:59.282 | INFO | simulation | Progress: 45% (992/2203) | date=2019-11-22 00:00:00 nav=1.47915324 opt_status=no_rebalance
+2025-12-26 22:29:59.283 | DEBUG | simulation | Rebalance day 2019-11-25 00:00:00 (i=993/2203)
+2025-12-26 22:29:59.711 | DEBUG | simulation | Rebalance applied | date=2019-11-25 00:00:00 | opt_status=ok | turnover=0.182744 | cost=0.000091 | selected=25
+2025-12-26 22:29:59.716 | DEBUG | simulation | Rebalance day 2019-12-02 00:00:00 (i=998/2203)
+2025-12-26 22:30:00.203 | DEBUG | simulation | Rebalance applied | date=2019-12-02 00:00:00 | opt_status=ok | turnover=0.188564 | cost=0.000094 | selected=25
+2025-12-26 22:30:00.207 | DEBUG | simulation | Rebalance day 2019-12-09 00:00:00 (i=1003/2203)
+2025-12-26 22:30:00.786 | DEBUG | simulation | Rebalance applied | date=2019-12-09 00:00:00 | opt_status=ok | turnover=0.105715 | cost=0.000053 | selected=25
+2025-12-26 22:30:00.790 | DEBUG | simulation | Rebalance day 2019-12-16 00:00:00 (i=1008/2203)
+2025-12-26 22:30:01.164 | DEBUG | simulation | Rebalance applied | date=2019-12-16 00:00:00 | opt_status=ok | turnover=0.099254 | cost=0.000050 | selected=25
+2025-12-26 22:30:01.168 | DEBUG | simulation | Rebalance day 2019-12-23 00:00:00 (i=1013/2203)
+2025-12-26 22:30:01.545 | DEBUG | simulation | Rebalance applied | date=2019-12-23 00:00:00 | opt_status=ok | turnover=0.109323 | cost=0.000055 | selected=25
+2025-12-26 22:30:01.546 | INFO | simulation | Progress: 46% (1014/2203) | date=2019-12-24 00:00:00 nav=1.50847779 opt_status=no_rebalance
+2025-12-26 22:30:01.549 | DEBUG | simulation | Rebalance day 2019-12-30 00:00:00 (i=1017/2203)
+2025-12-26 22:30:01.961 | DEBUG | simulation | Rebalance applied | date=2019-12-30 00:00:00 | opt_status=ok | turnover=0.017362 | cost=0.000009 | selected=25
+2025-12-26 22:30:01.965 | DEBUG | simulation | Rebalance day 2020-01-06 00:00:00 (i=1022/2203)
+2025-12-26 22:30:02.480 | DEBUG | simulation | Rebalance applied | date=2020-01-06 00:00:00 | opt_status=ok | turnover=0.192055 | cost=0.000096 | selected=25
+2025-12-26 22:30:02.484 | DEBUG | simulation | Rebalance day 2020-01-13 00:00:00 (i=1027/2203)
+2025-12-26 22:30:02.970 | DEBUG | simulation | Rebalance applied | date=2020-01-13 00:00:00 | opt_status=ok | turnover=0.098436 | cost=0.000049 | selected=25
+2025-12-26 22:30:02.975 | DEBUG | simulation | Rebalance day 2020-01-20 00:00:00 (i=1032/2203)
+2025-12-26 22:30:03.473 | DEBUG | simulation | Rebalance applied | date=2020-01-20 00:00:00 | opt_status=ok | turnover=0.176799 | cost=0.000088 | selected=25
+2025-12-26 22:30:03.479 | INFO | simulation | Progress: 47% (1036/2203) | date=2020-01-24 00:00:00 nav=1.60454532 opt_status=no_rebalance
+2025-12-26 22:30:03.480 | DEBUG | simulation | Rebalance day 2020-01-27 00:00:00 (i=1037/2203)
+2025-12-26 22:30:03.869 | DEBUG | simulation | Rebalance applied | date=2020-01-27 00:00:00 | opt_status=ok | turnover=0.182172 | cost=0.000091 | selected=25
+2025-12-26 22:30:03.874 | DEBUG | simulation | Rebalance day 2020-02-03 00:00:00 (i=1043/2203)
+2025-12-26 22:30:04.534 | DEBUG | simulation | Rebalance applied | date=2020-02-03 00:00:00 | opt_status=ok | turnover=0.349912 | cost=0.000175 | selected=25
+2025-12-26 22:30:04.538 | DEBUG | simulation | Rebalance day 2020-02-10 00:00:00 (i=1048/2203)
+2025-12-26 22:30:05.154 | DEBUG | simulation | Rebalance applied | date=2020-02-10 00:00:00 | opt_status=ok | turnover=0.187460 | cost=0.000094 | selected=25
+2025-12-26 22:30:05.159 | DEBUG | simulation | Rebalance day 2020-02-17 00:00:00 (i=1053/2203)
+2025-12-26 22:30:05.759 | DEBUG | simulation | Rebalance applied | date=2020-02-17 00:00:00 | opt_status=ok | turnover=0.103748 | cost=0.000052 | selected=25
+2025-12-26 22:30:05.762 | DEBUG | simulation | Rebalance day 2020-02-24 00:00:00 (i=1057/2203)
+2025-12-26 22:30:06.120 | DEBUG | simulation | Rebalance applied | date=2020-02-24 00:00:00 | opt_status=ok | turnover=0.104061 | cost=0.000052 | selected=25
+2025-12-26 22:30:06.121 | INFO | simulation | Progress: 48% (1058/2203) | date=2020-02-25 00:00:00 nav=1.53932116 opt_status=no_rebalance
+2025-12-26 22:30:06.124 | DEBUG | simulation | Rebalance day 2020-03-02 00:00:00 (i=1062/2203)
+2025-12-26 22:30:06.764 | DEBUG | simulation | Rebalance applied | date=2020-03-02 00:00:00 | opt_status=ok | turnover=0.201641 | cost=0.000101 | selected=25
+2025-12-26 22:30:06.769 | DEBUG | simulation | Rebalance day 2020-03-09 00:00:00 (i=1067/2203)
+2025-12-26 22:30:07.174 | DEBUG | simulation | Rebalance applied | date=2020-03-09 00:00:00 | opt_status=ok | turnover=0.194546 | cost=0.000097 | selected=25
+2025-12-26 22:30:07.178 | DEBUG | simulation | Rebalance day 2020-03-16 00:00:00 (i=1071/2203)
+2025-12-26 22:30:07.771 | DEBUG | simulation | Rebalance applied | date=2020-03-16 00:00:00 | opt_status=ok | turnover=0.245901 | cost=0.000123 | selected=25
+2025-12-26 22:30:07.775 | DEBUG | simulation | Rebalance day 2020-03-23 00:00:00 (i=1076/2203)
+2025-12-26 22:30:08.378 | DEBUG | simulation | Rebalance applied | date=2020-03-23 00:00:00 | opt_status=ok | turnover=0.222665 | cost=0.000111 | selected=25
+2025-12-26 22:30:08.383 | INFO | simulation | Progress: 49% (1080/2203) | date=2020-03-27 00:00:00 nav=1.33954251 opt_status=no_rebalance
+2025-12-26 22:30:08.384 | DEBUG | simulation | Rebalance day 2020-03-30 00:00:00 (i=1081/2203)
+2025-12-26 22:30:08.782 | DEBUG | simulation | Rebalance applied | date=2020-03-30 00:00:00 | opt_status=ok | turnover=0.224918 | cost=0.000112 | selected=25
+2025-12-26 22:30:08.787 | DEBUG | simulation | Rebalance day 2020-04-07 00:00:00 (i=1085/2203)
+2025-12-26 22:30:09.578 | DEBUG | simulation | Rebalance applied | date=2020-04-07 00:00:00 | opt_status=ok | turnover=0.070177 | cost=0.000035 | selected=25
+2025-12-26 22:30:09.582 | DEBUG | simulation | Rebalance day 2020-04-13 00:00:00 (i=1088/2203)
+2025-12-26 22:30:10.322 | DEBUG | simulation | Rebalance applied | date=2020-04-13 00:00:00 | opt_status=ok | turnover=0.128146 | cost=0.000064 | selected=25
+2025-12-26 22:30:10.326 | DEBUG | simulation | Rebalance day 2020-04-20 00:00:00 (i=1092/2203)
+2025-12-26 22:30:10.762 | DEBUG | simulation | Rebalance applied | date=2020-04-20 00:00:00 | opt_status=ok | turnover=0.106050 | cost=0.000053 | selected=25
+2025-12-26 22:30:10.767 | DEBUG | simulation | Rebalance day 2020-04-27 00:00:00 (i=1097/2203)
+2025-12-26 22:30:11.402 | DEBUG | simulation | Rebalance applied | date=2020-04-27 00:00:00 | opt_status=ok | turnover=0.121464 | cost=0.000061 | selected=25
+2025-12-26 22:30:11.406 | DEBUG | simulation | Rebalance day 2020-05-04 00:00:00 (i=1101/2203)
+2025-12-26 22:30:11.846 | DEBUG | simulation | Rebalance applied | date=2020-05-04 00:00:00 | opt_status=ok | turnover=0.126551 | cost=0.000063 | selected=25
+2025-12-26 22:30:11.847 | INFO | simulation | Progress: 50% (1102/2203) | date=2020-05-05 00:00:00 nav=1.44064124 opt_status=no_rebalance
+2025-12-26 22:30:11.850 | DEBUG | simulation | Rebalance day 2020-05-11 00:00:00 (i=1106/2203)
+2025-12-26 22:30:12.720 | DEBUG | simulation | Rebalance applied | date=2020-05-11 00:00:00 | opt_status=ok | turnover=0.108013 | cost=0.000054 | selected=25
+2025-12-26 22:30:12.725 | DEBUG | simulation | Rebalance day 2020-05-18 00:00:00 (i=1111/2203)
+2025-12-26 22:30:13.332 | DEBUG | simulation | Rebalance applied | date=2020-05-18 00:00:00 | opt_status=ok | turnover=0.107738 | cost=0.000054 | selected=25
+2025-12-26 22:30:13.337 | DEBUG | simulation | Rebalance day 2020-05-26 00:00:00 (i=1116/2203)
+2025-12-26 22:30:14.090 | DEBUG | simulation | Rebalance applied | date=2020-05-26 00:00:00 | opt_status=ok | turnover=0.042939 | cost=0.000021 | selected=25
+2025-12-26 22:30:14.094 | DEBUG | simulation | Rebalance day 2020-06-01 00:00:00 (i=1120/2203)
+2025-12-26 22:30:14.527 | DEBUG | simulation | Rebalance applied | date=2020-06-01 00:00:00 | opt_status=ok | turnover=0.027587 | cost=0.000014 | selected=25
+2025-12-26 22:30:14.531 | INFO | simulation | Progress: 51% (1124/2203) | date=2020-06-05 00:00:00 nav=1.51667236 opt_status=no_rebalance
+2025-12-26 22:30:14.532 | DEBUG | simulation | Rebalance day 2020-06-08 00:00:00 (i=1125/2203)
+2025-12-26 22:30:15.121 | DEBUG | simulation | Rebalance applied | date=2020-06-08 00:00:00 | opt_status=ok | turnover=0.109408 | cost=0.000055 | selected=25
+2025-12-26 22:30:15.126 | DEBUG | simulation | Rebalance day 2020-06-15 00:00:00 (i=1130/2203)
+2025-12-26 22:30:15.699 | DEBUG | simulation | Rebalance applied | date=2020-06-15 00:00:00 | opt_status=ok | turnover=0.110509 | cost=0.000055 | selected=25
+2025-12-26 22:30:15.704 | DEBUG | simulation | Rebalance day 2020-06-22 00:00:00 (i=1135/2203)
+2025-12-26 22:30:16.329 | DEBUG | simulation | Rebalance applied | date=2020-06-22 00:00:00 | opt_status=ok | turnover=0.031750 | cost=0.000016 | selected=25
+2025-12-26 22:30:16.334 | DEBUG | simulation | Rebalance day 2020-06-29 00:00:00 (i=1140/2203)
+2025-12-26 22:30:16.935 | DEBUG | simulation | Rebalance applied | date=2020-06-29 00:00:00 | opt_status=ok | turnover=0.109836 | cost=0.000055 | selected=25
+2025-12-26 22:30:16.939 | DEBUG | simulation | Rebalance day 2020-07-06 00:00:00 (i=1145/2203)
+2025-12-26 22:30:17.526 | DEBUG | simulation | Rebalance applied | date=2020-07-06 00:00:00 | opt_status=ok | turnover=0.109862 | cost=0.000055 | selected=25
+2025-12-26 22:30:17.527 | INFO | simulation | Progress: 52% (1146/2203) | date=2020-07-07 00:00:00 nav=1.56345123 opt_status=no_rebalance
+2025-12-26 22:30:17.531 | DEBUG | simulation | Rebalance day 2020-07-13 00:00:00 (i=1150/2203)
+2025-12-26 22:30:18.291 | DEBUG | simulation | Rebalance applied | date=2020-07-13 00:00:00 | opt_status=ok | turnover=0.025113 | cost=0.000013 | selected=25
+2025-12-26 22:30:18.297 | DEBUG | simulation | Rebalance day 2020-07-20 00:00:00 (i=1155/2203)
+2025-12-26 22:30:18.800 | DEBUG | simulation | Rebalance applied | date=2020-07-20 00:00:00 | opt_status=ok | turnover=0.109446 | cost=0.000055 | selected=25
+2025-12-26 22:30:18.807 | DEBUG | simulation | Rebalance day 2020-07-27 00:00:00 (i=1160/2203)
+2025-12-26 22:30:19.440 | DEBUG | simulation | Rebalance applied | date=2020-07-27 00:00:00 | opt_status=ok | turnover=0.037496 | cost=0.000019 | selected=25
+2025-12-26 22:30:19.447 | DEBUG | simulation | Rebalance day 2020-08-03 00:00:00 (i=1165/2203)
+2025-12-26 22:30:20.018 | DEBUG | simulation | Rebalance applied | date=2020-08-03 00:00:00 | opt_status=ok | turnover=0.038114 | cost=0.000019 | selected=25
+2025-12-26 22:30:20.023 | INFO | simulation | Progress: 53% (1168/2203) | date=2020-08-06 00:00:00 nav=1.65615854 opt_status=no_rebalance
+2025-12-26 22:30:20.024 | DEBUG | simulation | Rebalance day 2020-08-10 00:00:00 (i=1170/2203)
+2025-12-26 22:30:20.952 | DEBUG | simulation | Rebalance applied | date=2020-08-10 00:00:00 | opt_status=ok | turnover=0.045788 | cost=0.000023 | selected=25
+2025-12-26 22:30:20.959 | DEBUG | simulation | Rebalance day 2020-08-17 00:00:00 (i=1175/2203)
+2025-12-26 22:30:21.389 | DEBUG | simulation | Rebalance applied | date=2020-08-17 00:00:00 | opt_status=ok | turnover=0.024750 | cost=0.000012 | selected=25
+2025-12-26 22:30:21.393 | DEBUG | simulation | Rebalance day 2020-08-24 00:00:00 (i=1180/2203)
+2025-12-26 22:30:21.936 | DEBUG | simulation | Rebalance applied | date=2020-08-24 00:00:00 | opt_status=ok | turnover=0.117758 | cost=0.000059 | selected=25
+2025-12-26 22:30:21.941 | DEBUG | simulation | Rebalance day 2020-08-31 00:00:00 (i=1185/2203)
+2025-12-26 22:30:22.381 | DEBUG | simulation | Rebalance applied | date=2020-08-31 00:00:00 | opt_status=ok | turnover=0.027680 | cost=0.000014 | selected=25
+2025-12-26 22:30:22.387 | DEBUG | simulation | Rebalance day 2020-09-07 00:00:00 (i=1190/2203)
+2025-12-26 22:30:22.981 | DEBUG | simulation | Rebalance applied | date=2020-09-07 00:00:00 | opt_status=ok | turnover=0.098813 | cost=0.000049 | selected=25
+2025-12-26 22:30:22.981 | INFO | simulation | Progress: 54% (1190/2203) | date=2020-09-07 00:00:00 nav=1.69319817 opt_status=ok
+2025-12-26 22:30:22.986 | DEBUG | simulation | Rebalance day 2020-09-14 00:00:00 (i=1195/2203)
+2025-12-26 22:30:23.598 | DEBUG | simulation | Rebalance applied | date=2020-09-14 00:00:00 | opt_status=ok | turnover=0.112115 | cost=0.000056 | selected=25
+2025-12-26 22:30:23.603 | DEBUG | simulation | Rebalance day 2020-09-21 00:00:00 (i=1200/2203)
+2025-12-26 22:30:24.234 | DEBUG | simulation | Rebalance applied | date=2020-09-21 00:00:00 | opt_status=ok | turnover=0.188532 | cost=0.000094 | selected=25
+2025-12-26 22:30:24.238 | DEBUG | simulation | Rebalance day 2020-09-28 00:00:00 (i=1205/2203)
+2025-12-26 22:30:24.945 | DEBUG | simulation | Rebalance applied | date=2020-09-28 00:00:00 | opt_status=ok | turnover=0.110395 | cost=0.000055 | selected=25
+2025-12-26 22:30:24.949 | DEBUG | simulation | Rebalance day 2020-10-05 00:00:00 (i=1209/2203)
+2025-12-26 22:30:25.533 | DEBUG | simulation | Rebalance applied | date=2020-10-05 00:00:00 | opt_status=ok | turnover=0.100280 | cost=0.000050 | selected=25
+2025-12-26 22:30:25.536 | INFO | simulation | Progress: 55% (1212/2203) | date=2020-10-08 00:00:00 nav=1.75015625 opt_status=no_rebalance
+2025-12-26 22:30:25.538 | DEBUG | simulation | Rebalance day 2020-10-12 00:00:00 (i=1214/2203)
+2025-12-26 22:30:26.144 | DEBUG | simulation | Rebalance applied | date=2020-10-12 00:00:00 | opt_status=ok | turnover=0.112730 | cost=0.000056 | selected=25
+2025-12-26 22:30:26.151 | DEBUG | simulation | Rebalance day 2020-10-19 00:00:00 (i=1219/2203)
+2025-12-26 22:30:26.808 | DEBUG | simulation | Rebalance applied | date=2020-10-19 00:00:00 | opt_status=ok | turnover=0.103479 | cost=0.000052 | selected=25
+2025-12-26 22:30:26.813 | DEBUG | simulation | Rebalance day 2020-10-26 00:00:00 (i=1224/2203)
+2025-12-26 22:30:27.223 | DEBUG | simulation | Rebalance applied | date=2020-10-26 00:00:00 | opt_status=ok | turnover=0.108028 | cost=0.000054 | selected=25
+2025-12-26 22:30:27.227 | DEBUG | simulation | Rebalance day 2020-11-02 00:00:00 (i=1229/2203)
+2025-12-26 22:30:27.775 | DEBUG | simulation | Rebalance applied | date=2020-11-02 00:00:00 | opt_status=ok | turnover=0.037542 | cost=0.000019 | selected=25
+2025-12-26 22:30:27.780 | DEBUG | simulation | Rebalance day 2020-11-09 00:00:00 (i=1234/2203)
+2025-12-26 22:30:28.710 | DEBUG | simulation | Rebalance applied | date=2020-11-09 00:00:00 | opt_status=ok | turnover=0.107536 | cost=0.000054 | selected=25
+2025-12-26 22:30:28.710 | INFO | simulation | Progress: 56% (1234/2203) | date=2020-11-09 00:00:00 nav=1.79136992 opt_status=ok
+2025-12-26 22:30:28.716 | DEBUG | simulation | Rebalance day 2020-11-17 00:00:00 (i=1239/2203)
+2025-12-26 22:30:29.298 | DEBUG | simulation | Rebalance applied | date=2020-11-17 00:00:00 | opt_status=ok | turnover=0.117828 | cost=0.000059 | selected=25
+2025-12-26 22:30:29.301 | DEBUG | simulation | Rebalance day 2020-11-23 00:00:00 (i=1243/2203)
+2025-12-26 22:30:29.864 | DEBUG | simulation | Rebalance applied | date=2020-11-23 00:00:00 | opt_status=ok | turnover=0.019726 | cost=0.000010 | selected=25
+2025-12-26 22:30:29.868 | DEBUG | simulation | Rebalance day 2020-12-01 00:00:00 (i=1248/2203)
+2025-12-26 22:30:30.494 | DEBUG | simulation | Rebalance applied | date=2020-12-01 00:00:00 | opt_status=ok | turnover=0.019728 | cost=0.000010 | selected=25
+2025-12-26 22:30:30.498 | DEBUG | simulation | Rebalance day 2020-12-07 00:00:00 (i=1252/2203)
+2025-12-26 22:30:31.059 | DEBUG | simulation | Rebalance applied | date=2020-12-07 00:00:00 | opt_status=ok | turnover=0.037753 | cost=0.000019 | selected=25
+2025-12-26 22:30:31.063 | INFO | simulation | Progress: 57% (1256/2203) | date=2020-12-11 00:00:00 nav=1.94523839 opt_status=no_rebalance
+2025-12-26 22:30:31.063 | DEBUG | simulation | Rebalance day 2020-12-14 00:00:00 (i=1257/2203)
+2025-12-26 22:30:31.655 | DEBUG | simulation | Rebalance applied | date=2020-12-14 00:00:00 | opt_status=ok | turnover=0.100906 | cost=0.000050 | selected=25
+2025-12-26 22:30:31.660 | DEBUG | simulation | Rebalance day 2020-12-21 00:00:00 (i=1262/2203)
+2025-12-26 22:30:32.113 | DEBUG | simulation | Rebalance applied | date=2020-12-21 00:00:00 | opt_status=ok | turnover=0.114796 | cost=0.000057 | selected=25
+2025-12-26 22:30:32.119 | DEBUG | simulation | Rebalance day 2020-12-28 00:00:00 (i=1266/2203)
+2025-12-26 22:30:32.936 | DEBUG | simulation | Rebalance applied | date=2020-12-28 00:00:00 | opt_status=ok | turnover=0.022805 | cost=0.000011 | selected=25
+2025-12-26 22:30:32.943 | DEBUG | simulation | Rebalance day 2021-01-04 00:00:00 (i=1271/2203)
+2025-12-26 22:30:33.727 | DEBUG | simulation | Rebalance applied | date=2021-01-04 00:00:00 | opt_status=ok | turnover=0.096990 | cost=0.000048 | selected=25
+2025-12-26 22:30:33.732 | DEBUG | simulation | Rebalance day 2021-01-11 00:00:00 (i=1276/2203)
+2025-12-26 22:30:34.457 | DEBUG | simulation | Rebalance applied | date=2021-01-11 00:00:00 | opt_status=ok | turnover=0.108909 | cost=0.000054 | selected=25
+2025-12-26 22:30:34.459 | INFO | simulation | Progress: 58% (1278/2203) | date=2021-01-13 00:00:00 nav=2.09103308 opt_status=no_rebalance
+2025-12-26 22:30:34.462 | DEBUG | simulation | Rebalance day 2021-01-18 00:00:00 (i=1281/2203)
+2025-12-26 22:30:35.143 | DEBUG | simulation | Rebalance applied | date=2021-01-18 00:00:00 | opt_status=ok | turnover=0.122412 | cost=0.000061 | selected=25
+2025-12-26 22:30:35.148 | DEBUG | simulation | Rebalance day 2021-01-25 00:00:00 (i=1286/2203)
+2025-12-26 22:30:36.077 | DEBUG | simulation | Rebalance applied | date=2021-01-25 00:00:00 | opt_status=ok | turnover=0.107030 | cost=0.000054 | selected=25
+2025-12-26 22:30:36.081 | DEBUG | simulation | Rebalance day 2021-02-01 00:00:00 (i=1290/2203)
+2025-12-26 22:30:36.566 | DEBUG | simulation | Rebalance applied | date=2021-02-01 00:00:00 | opt_status=ok | turnover=0.105671 | cost=0.000053 | selected=25
+2025-12-26 22:30:36.572 | DEBUG | simulation | Rebalance day 2021-02-08 00:00:00 (i=1295/2203)
+2025-12-26 22:30:37.161 | DEBUG | simulation | Rebalance applied | date=2021-02-08 00:00:00 | opt_status=ok | turnover=0.118536 | cost=0.000059 | selected=25
+2025-12-26 22:30:37.170 | DEBUG | simulation | Rebalance day 2021-02-15 00:00:00 (i=1300/2203)
+2025-12-26 22:30:38.054 | DEBUG | simulation | Rebalance applied | date=2021-02-15 00:00:00 | opt_status=ok | turnover=0.029021 | cost=0.000015 | selected=25
+2025-12-26 22:30:38.055 | INFO | simulation | Progress: 59% (1300/2203) | date=2021-02-15 00:00:00 nav=2.11853235 opt_status=ok
+2025-12-26 22:30:38.061 | DEBUG | simulation | Rebalance day 2021-02-22 00:00:00 (i=1305/2203)
+2025-12-26 22:30:38.877 | DEBUG | simulation | Rebalance applied | date=2021-02-22 00:00:00 | opt_status=ok | turnover=0.123062 | cost=0.000062 | selected=25
+2025-12-26 22:30:38.882 | DEBUG | simulation | Rebalance day 2021-03-01 00:00:00 (i=1310/2203)
+2025-12-26 22:30:39.530 | DEBUG | simulation | Rebalance applied | date=2021-03-01 00:00:00 | opt_status=ok | turnover=0.095293 | cost=0.000048 | selected=25
+2025-12-26 22:30:39.535 | DEBUG | simulation | Rebalance day 2021-03-08 00:00:00 (i=1315/2203)
+2025-12-26 22:30:40.272 | DEBUG | simulation | Rebalance applied | date=2021-03-08 00:00:00 | opt_status=ok | turnover=0.101923 | cost=0.000051 | selected=25
+2025-12-26 22:30:40.277 | DEBUG | simulation | Rebalance day 2021-03-15 00:00:00 (i=1319/2203)
+2025-12-26 22:30:41.016 | DEBUG | simulation | Rebalance applied | date=2021-03-15 00:00:00 | opt_status=ok | turnover=0.102359 | cost=0.000051 | selected=25
+2025-12-26 22:30:41.020 | INFO | simulation | Progress: 60% (1322/2203) | date=2021-03-18 00:00:00 nav=2.04780037 opt_status=no_rebalance
+2025-12-26 22:30:41.021 | DEBUG | simulation | Rebalance day 2021-03-22 00:00:00 (i=1324/2203)
+2025-12-26 22:30:41.643 | DEBUG | simulation | Rebalance applied | date=2021-03-22 00:00:00 | opt_status=ok | turnover=0.107027 | cost=0.000054 | selected=25
+2025-12-26 22:30:41.648 | DEBUG | simulation | Rebalance day 2021-03-30 00:00:00 (i=1329/2203)
+2025-12-26 22:30:42.133 | DEBUG | simulation | Rebalance applied | date=2021-03-30 00:00:00 | opt_status=ok | turnover=0.103034 | cost=0.000052 | selected=25
+2025-12-26 22:30:42.136 | DEBUG | simulation | Rebalance day 2021-04-05 00:00:00 (i=1332/2203)
+2025-12-26 22:30:43.136 | DEBUG | simulation | Rebalance applied | date=2021-04-05 00:00:00 | opt_status=ok | turnover=0.033259 | cost=0.000017 | selected=25
+2025-12-26 22:30:43.140 | DEBUG | simulation | Rebalance day 2021-04-12 00:00:00 (i=1337/2203)
+2025-12-26 22:30:43.542 | DEBUG | simulation | Rebalance applied | date=2021-04-12 00:00:00 | opt_status=ok | turnover=0.047401 | cost=0.000024 | selected=25
+2025-12-26 22:30:43.546 | DEBUG | simulation | Rebalance day 2021-04-19 00:00:00 (i=1341/2203)
+2025-12-26 22:30:43.953 | DEBUG | simulation | Rebalance applied | date=2021-04-19 00:00:00 | opt_status=ok | turnover=0.024585 | cost=0.000012 | selected=25
+2025-12-26 22:30:43.956 | INFO | simulation | Progress: 61% (1344/2203) | date=2021-04-23 00:00:00 nav=2.20450176 opt_status=no_rebalance
+2025-12-26 22:30:43.957 | DEBUG | simulation | Rebalance day 2021-04-26 00:00:00 (i=1345/2203)
+2025-12-26 22:30:44.498 | DEBUG | simulation | Rebalance applied | date=2021-04-26 00:00:00 | opt_status=ok | turnover=0.028942 | cost=0.000014 | selected=25
+2025-12-26 22:30:44.503 | DEBUG | simulation | Rebalance day 2021-05-03 00:00:00 (i=1350/2203)
+2025-12-26 22:30:45.056 | DEBUG | simulation | Rebalance applied | date=2021-05-03 00:00:00 | opt_status=ok | turnover=0.024528 | cost=0.000012 | selected=25
+2025-12-26 22:30:45.061 | DEBUG | simulation | Rebalance day 2021-05-10 00:00:00 (i=1355/2203)
+2025-12-26 22:30:45.767 | DEBUG | simulation | Rebalance applied | date=2021-05-10 00:00:00 | opt_status=ok | turnover=0.032341 | cost=0.000016 | selected=25
+2025-12-26 22:30:45.772 | DEBUG | simulation | Rebalance day 2021-05-17 00:00:00 (i=1359/2203)
+2025-12-26 22:30:46.671 | DEBUG | simulation | Rebalance applied | date=2021-05-17 00:00:00 | opt_status=ok | turnover=0.033637 | cost=0.000017 | selected=25
+2025-12-26 22:30:46.677 | DEBUG | simulation | Rebalance day 2021-05-24 00:00:00 (i=1364/2203)
+2025-12-26 22:30:47.124 | DEBUG | simulation | Rebalance applied | date=2021-05-24 00:00:00 | opt_status=ok | turnover=0.033475 | cost=0.000017 | selected=25
+2025-12-26 22:30:47.126 | INFO | simulation | Progress: 62% (1366/2203) | date=2021-05-26 00:00:00 nav=2.33604763 opt_status=no_rebalance
+2025-12-26 22:30:47.128 | DEBUG | simulation | Rebalance day 2021-05-31 00:00:00 (i=1369/2203)
+2025-12-26 22:30:47.588 | DEBUG | simulation | Rebalance applied | date=2021-05-31 00:00:00 | opt_status=ok | turnover=0.024113 | cost=0.000012 | selected=25
+2025-12-26 22:30:47.594 | DEBUG | simulation | Rebalance day 2021-06-07 00:00:00 (i=1374/2203)
+2025-12-26 22:30:48.316 | DEBUG | simulation | Rebalance applied | date=2021-06-07 00:00:00 | opt_status=ok | turnover=0.034597 | cost=0.000017 | selected=25
+2025-12-26 22:30:48.321 | DEBUG | simulation | Rebalance day 2021-06-14 00:00:00 (i=1379/2203)
+2025-12-26 22:30:48.920 | DEBUG | simulation | Rebalance applied | date=2021-06-14 00:00:00 | opt_status=ok | turnover=0.025634 | cost=0.000013 | selected=25
+2025-12-26 22:30:48.925 | DEBUG | simulation | Rebalance day 2021-06-21 00:00:00 (i=1384/2203)
+2025-12-26 22:30:50.030 | DEBUG | simulation | Rebalance applied | date=2021-06-21 00:00:00 | opt_status=ok | turnover=0.032611 | cost=0.000016 | selected=25
+2025-12-26 22:30:50.034 | INFO | simulation | Progress: 63% (1388/2203) | date=2021-06-25 00:00:00 nav=2.38177672 opt_status=no_rebalance
+2025-12-26 22:30:50.035 | DEBUG | simulation | Rebalance day 2021-06-28 00:00:00 (i=1389/2203)
+2025-12-26 22:30:50.873 | DEBUG | simulation | Rebalance applied | date=2021-06-28 00:00:00 | opt_status=ok | turnover=0.028101 | cost=0.000014 | selected=25
+2025-12-26 22:30:50.878 | DEBUG | simulation | Rebalance day 2021-07-05 00:00:00 (i=1394/2203)
+2025-12-26 22:30:51.453 | DEBUG | simulation | Rebalance applied | date=2021-07-05 00:00:00 | opt_status=ok | turnover=0.037369 | cost=0.000019 | selected=25
+2025-12-26 22:30:51.461 | DEBUG | simulation | Rebalance day 2021-07-12 00:00:00 (i=1399/2203)
+2025-12-26 22:30:52.123 | DEBUG | simulation | Rebalance applied | date=2021-07-12 00:00:00 | opt_status=ok | turnover=0.021347 | cost=0.000011 | selected=25
+2025-12-26 22:30:52.128 | DEBUG | simulation | Rebalance day 2021-07-19 00:00:00 (i=1404/2203)
+2025-12-26 22:30:52.721 | DEBUG | simulation | Rebalance applied | date=2021-07-19 00:00:00 | opt_status=ok | turnover=0.016708 | cost=0.000008 | selected=25
+2025-12-26 22:30:52.725 | DEBUG | simulation | Rebalance day 2021-07-26 00:00:00 (i=1408/2203)
+2025-12-26 22:30:53.335 | DEBUG | simulation | Rebalance applied | date=2021-07-26 00:00:00 | opt_status=ok | turnover=0.017230 | cost=0.000009 | selected=25
+2025-12-26 22:30:53.337 | INFO | simulation | Progress: 64% (1410/2203) | date=2021-07-28 00:00:00 nav=2.37855896 opt_status=no_rebalance
+2025-12-26 22:30:53.341 | DEBUG | simulation | Rebalance day 2021-08-02 00:00:00 (i=1413/2203)
+2025-12-26 22:30:53.916 | DEBUG | simulation | Rebalance applied | date=2021-08-02 00:00:00 | opt_status=ok | turnover=0.024525 | cost=0.000012 | selected=25
+2025-12-26 22:30:53.921 | DEBUG | simulation | Rebalance day 2021-08-09 00:00:00 (i=1418/2203)
+2025-12-26 22:30:54.425 | DEBUG | simulation | Rebalance applied | date=2021-08-09 00:00:00 | opt_status=ok | turnover=0.019589 | cost=0.000010 | selected=25
+2025-12-26 22:30:54.431 | DEBUG | simulation | Rebalance day 2021-08-16 00:00:00 (i=1423/2203)
+2025-12-26 22:30:55.139 | DEBUG | simulation | Rebalance applied | date=2021-08-16 00:00:00 | opt_status=ok | turnover=0.023591 | cost=0.000012 | selected=25
+2025-12-26 22:30:55.142 | DEBUG | simulation | Rebalance day 2021-08-23 00:00:00 (i=1427/2203)
+2025-12-26 22:30:55.772 | DEBUG | simulation | Rebalance applied | date=2021-08-23 00:00:00 | opt_status=ok | turnover=0.117704 | cost=0.000059 | selected=25
+2025-12-26 22:30:55.776 | DEBUG | simulation | Rebalance day 2021-08-30 00:00:00 (i=1432/2203)
+2025-12-26 22:30:56.404 | DEBUG | simulation | Rebalance applied | date=2021-08-30 00:00:00 | opt_status=ok | turnover=0.106034 | cost=0.000053 | selected=25
+2025-12-26 22:30:56.404 | INFO | simulation | Progress: 65% (1432/2203) | date=2021-08-30 00:00:00 nav=2.59227421 opt_status=ok
+2025-12-26 22:30:56.409 | DEBUG | simulation | Rebalance day 2021-09-06 00:00:00 (i=1437/2203)
+2025-12-26 22:30:57.161 | DEBUG | simulation | Rebalance applied | date=2021-09-06 00:00:00 | opt_status=ok | turnover=0.106934 | cost=0.000053 | selected=25
+2025-12-26 22:30:57.167 | DEBUG | simulation | Rebalance day 2021-09-13 00:00:00 (i=1441/2203)
+2025-12-26 22:30:57.776 | DEBUG | simulation | Rebalance applied | date=2021-09-13 00:00:00 | opt_status=ok | turnover=0.101172 | cost=0.000051 | selected=25
+2025-12-26 22:30:57.781 | DEBUG | simulation | Rebalance day 2021-09-20 00:00:00 (i=1446/2203)
+2025-12-26 22:30:58.584 | DEBUG | simulation | Rebalance applied | date=2021-09-20 00:00:00 | opt_status=ok | turnover=0.119781 | cost=0.000060 | selected=25
+2025-12-26 22:30:58.590 | DEBUG | simulation | Rebalance day 2021-09-27 00:00:00 (i=1451/2203)
+2025-12-26 22:30:59.161 | DEBUG | simulation | Rebalance applied | date=2021-09-27 00:00:00 | opt_status=ok | turnover=0.028130 | cost=0.000014 | selected=25
+2025-12-26 22:30:59.164 | INFO | simulation | Progress: 66% (1454/2203) | date=2021-09-30 00:00:00 nav=2.7203484 opt_status=no_rebalance
+2025-12-26 22:30:59.166 | DEBUG | simulation | Rebalance day 2021-10-04 00:00:00 (i=1456/2203)
+2025-12-26 22:30:59.840 | DEBUG | simulation | Rebalance applied | date=2021-10-04 00:00:00 | opt_status=ok | turnover=0.107360 | cost=0.000054 | selected=25
+2025-12-26 22:30:59.845 | DEBUG | simulation | Rebalance day 2021-10-11 00:00:00 (i=1461/2203)
+2025-12-26 22:31:00.640 | DEBUG | simulation | Rebalance applied | date=2021-10-11 00:00:00 | opt_status=ok | turnover=0.098982 | cost=0.000049 | selected=25
+2025-12-26 22:31:00.644 | DEBUG | simulation | Rebalance day 2021-10-18 00:00:00 (i=1465/2203)
+2025-12-26 22:31:01.287 | DEBUG | simulation | Rebalance applied | date=2021-10-18 00:00:00 | opt_status=ok | turnover=0.185233 | cost=0.000093 | selected=25
+2025-12-26 22:31:01.292 | DEBUG | simulation | Rebalance day 2021-10-25 00:00:00 (i=1470/2203)
+2025-12-26 22:31:02.046 | DEBUG | simulation | Rebalance applied | date=2021-10-25 00:00:00 | opt_status=ok | turnover=0.102531 | cost=0.000051 | selected=25
+2025-12-26 22:31:02.051 | DEBUG | simulation | Rebalance day 2021-11-01 00:00:00 (i=1475/2203)
+2025-12-26 22:31:02.875 | DEBUG | simulation | Rebalance applied | date=2021-11-01 00:00:00 | opt_status=ok | turnover=0.025234 | cost=0.000013 | selected=25
+2025-12-26 22:31:02.877 | INFO | simulation | Progress: 67% (1477/2203) | date=2021-11-03 00:00:00 nav=2.64946595 opt_status=no_rebalance
+2025-12-26 22:31:02.878 | DEBUG | simulation | Rebalance day 2021-11-08 00:00:00 (i=1478/2203)
+2025-12-26 22:31:03.578 | DEBUG | simulation | Rebalance applied | date=2021-11-08 00:00:00 | opt_status=ok | turnover=0.092658 | cost=0.000046 | selected=25
+2025-12-26 22:31:03.584 | DEBUG | simulation | Rebalance day 2021-11-15 00:00:00 (i=1483/2203)
+2025-12-26 22:31:04.184 | DEBUG | simulation | Rebalance applied | date=2021-11-15 00:00:00 | opt_status=ok | turnover=0.030034 | cost=0.000015 | selected=25
+2025-12-26 22:31:04.189 | DEBUG | simulation | Rebalance day 2021-11-22 00:00:00 (i=1487/2203)
+2025-12-26 22:31:04.913 | DEBUG | simulation | Rebalance applied | date=2021-11-22 00:00:00 | opt_status=ok | turnover=0.033198 | cost=0.000017 | selected=25
+2025-12-26 22:31:04.918 | DEBUG | simulation | Rebalance day 2021-11-29 00:00:00 (i=1492/2203)
+2025-12-26 22:31:05.664 | DEBUG | simulation | Rebalance applied | date=2021-11-29 00:00:00 | opt_status=ok | turnover=0.038405 | cost=0.000019 | selected=25
+2025-12-26 22:31:05.669 | DEBUG | simulation | Rebalance day 2021-12-06 00:00:00 (i=1497/2203)
+2025-12-26 22:31:06.276 | DEBUG | simulation | Rebalance applied | date=2021-12-06 00:00:00 | opt_status=ok | turnover=0.023531 | cost=0.000012 | selected=25
+2025-12-26 22:31:06.278 | INFO | simulation | Progress: 68% (1499/2203) | date=2021-12-08 00:00:00 nav=2.650096 opt_status=no_rebalance
+2025-12-26 22:31:06.280 | DEBUG | simulation | Rebalance day 2021-12-13 00:00:00 (i=1502/2203)
+2025-12-26 22:31:07.291 | DEBUG | simulation | Rebalance applied | date=2021-12-13 00:00:00 | opt_status=ok | turnover=0.110060 | cost=0.000055 | selected=25
+2025-12-26 22:31:07.296 | DEBUG | simulation | Rebalance day 2021-12-20 00:00:00 (i=1507/2203)
+2025-12-26 22:31:07.917 | DEBUG | simulation | Rebalance applied | date=2021-12-20 00:00:00 | opt_status=ok | turnover=0.113010 | cost=0.000057 | selected=25
+2025-12-26 22:31:07.923 | DEBUG | simulation | Rebalance day 2021-12-27 00:00:00 (i=1512/2203)
+2025-12-26 22:31:08.746 | DEBUG | simulation | Rebalance applied | date=2021-12-27 00:00:00 | opt_status=ok | turnover=0.101665 | cost=0.000051 | selected=25
+2025-12-26 22:31:08.751 | DEBUG | simulation | Rebalance day 2022-01-03 00:00:00 (i=1517/2203)
+2025-12-26 22:31:09.461 | DEBUG | simulation | Rebalance applied | date=2022-01-03 00:00:00 | opt_status=ok | turnover=0.016326 | cost=0.000008 | selected=25
+2025-12-26 22:31:09.465 | INFO | simulation | Progress: 69% (1521/2203) | date=2022-01-07 00:00:00 nav=2.71252065 opt_status=no_rebalance
+2025-12-26 22:31:09.466 | DEBUG | simulation | Rebalance day 2022-01-10 00:00:00 (i=1522/2203)
+2025-12-26 22:31:09.903 | DEBUG | simulation | Rebalance applied | date=2022-01-10 00:00:00 | opt_status=ok | turnover=0.027364 | cost=0.000014 | selected=25
+2025-12-26 22:31:09.911 | DEBUG | simulation | Rebalance day 2022-01-17 00:00:00 (i=1527/2203)
+2025-12-26 22:31:10.553 | DEBUG | simulation | Rebalance applied | date=2022-01-17 00:00:00 | opt_status=ok | turnover=0.029410 | cost=0.000015 | selected=25
+2025-12-26 22:31:10.559 | DEBUG | simulation | Rebalance day 2022-01-24 00:00:00 (i=1532/2203)
+2025-12-26 22:31:11.135 | DEBUG | simulation | Rebalance applied | date=2022-01-24 00:00:00 | opt_status=ok | turnover=0.127449 | cost=0.000064 | selected=25
+2025-12-26 22:31:11.140 | DEBUG | simulation | Rebalance day 2022-01-31 00:00:00 (i=1536/2203)
+2025-12-26 22:31:11.793 | DEBUG | simulation | Rebalance applied | date=2022-01-31 00:00:00 | opt_status=ok | turnover=0.024792 | cost=0.000012 | selected=25
+2025-12-26 22:31:11.798 | DEBUG | simulation | Rebalance day 2022-02-07 00:00:00 (i=1541/2203)
+2025-12-26 22:31:12.481 | DEBUG | simulation | Rebalance applied | date=2022-02-07 00:00:00 | opt_status=ok | turnover=0.101852 | cost=0.000051 | selected=25
+2025-12-26 22:31:12.484 | INFO | simulation | Progress: 70% (1543/2203) | date=2022-02-09 00:00:00 nav=2.66327873 opt_status=no_rebalance
+2025-12-26 22:31:12.486 | DEBUG | simulation | Rebalance day 2022-02-14 00:00:00 (i=1546/2203)
+2025-12-26 22:31:13.301 | DEBUG | simulation | Rebalance applied | date=2022-02-14 00:00:00 | opt_status=ok | turnover=0.026311 | cost=0.000013 | selected=25
+2025-12-26 22:31:13.305 | DEBUG | simulation | Rebalance day 2022-02-21 00:00:00 (i=1551/2203)
+2025-12-26 22:31:14.009 | DEBUG | simulation | Rebalance applied | date=2022-02-21 00:00:00 | opt_status=ok | turnover=0.098185 | cost=0.000049 | selected=25
+2025-12-26 22:31:14.014 | DEBUG | simulation | Rebalance day 2022-02-28 00:00:00 (i=1556/2203)
+2025-12-26 22:31:14.482 | DEBUG | simulation | Rebalance applied | date=2022-02-28 00:00:00 | opt_status=ok | turnover=0.124345 | cost=0.000062 | selected=25
+2025-12-26 22:31:14.486 | DEBUG | simulation | Rebalance day 2022-03-07 00:00:00 (i=1560/2203)
+2025-12-26 22:31:15.064 | DEBUG | simulation | Rebalance applied | date=2022-03-07 00:00:00 | opt_status=ok | turnover=0.201727 | cost=0.000101 | selected=25
+2025-12-26 22:31:15.070 | DEBUG | simulation | Rebalance day 2022-03-14 00:00:00 (i=1565/2203)
+2025-12-26 22:31:15.720 | DEBUG | simulation | Rebalance applied | date=2022-03-14 00:00:00 | opt_status=ok | turnover=0.042766 | cost=0.000021 | selected=25
+2025-12-26 22:31:15.721 | INFO | simulation | Progress: 71% (1565/2203) | date=2022-03-14 00:00:00 nav=2.65915751 opt_status=ok
+2025-12-26 22:31:15.724 | DEBUG | simulation | Rebalance day 2022-03-21 00:00:00 (i=1569/2203)
+2025-12-26 22:31:16.209 | DEBUG | simulation | Rebalance applied | date=2022-03-21 00:00:00 | opt_status=ok | turnover=0.099974 | cost=0.000050 | selected=25
+2025-12-26 22:31:16.215 | DEBUG | simulation | Rebalance day 2022-03-28 00:00:00 (i=1574/2203)
+2025-12-26 22:31:16.644 | DEBUG | simulation | Rebalance applied | date=2022-03-28 00:00:00 | opt_status=ok | turnover=0.039509 | cost=0.000020 | selected=25
+2025-12-26 22:31:16.649 | DEBUG | simulation | Rebalance day 2022-04-04 00:00:00 (i=1579/2203)
+2025-12-26 22:31:17.416 | DEBUG | simulation | Rebalance applied | date=2022-04-04 00:00:00 | opt_status=ok | turnover=0.036937 | cost=0.000018 | selected=25
+2025-12-26 22:31:17.421 | DEBUG | simulation | Rebalance day 2022-04-11 00:00:00 (i=1584/2203)
+2025-12-26 22:31:18.293 | DEBUG | simulation | Rebalance applied | date=2022-04-11 00:00:00 | opt_status=ok | turnover=0.102644 | cost=0.000051 | selected=25
+2025-12-26 22:31:18.295 | DEBUG | simulation | Rebalance day 2022-04-18 00:00:00 (i=1587/2203)
+2025-12-26 22:31:18.990 | DEBUG | simulation | Rebalance applied | date=2022-04-18 00:00:00 | opt_status=ok | turnover=0.027505 | cost=0.000014 | selected=25
+2025-12-26 22:31:18.990 | INFO | simulation | Progress: 72% (1587/2203) | date=2022-04-18 00:00:00 nav=2.73694001 opt_status=ok
+2025-12-26 22:31:18.995 | DEBUG | simulation | Rebalance day 2022-04-25 00:00:00 (i=1592/2203)
+2025-12-26 22:31:19.598 | DEBUG | simulation | Rebalance applied | date=2022-04-25 00:00:00 | opt_status=ok | turnover=0.110361 | cost=0.000055 | selected=25
+2025-12-26 22:31:19.603 | DEBUG | simulation | Rebalance day 2022-05-02 00:00:00 (i=1597/2203)
+2025-12-26 22:31:20.464 | DEBUG | simulation | Rebalance applied | date=2022-05-02 00:00:00 | opt_status=ok | turnover=0.103269 | cost=0.000052 | selected=25
+2025-12-26 22:31:20.468 | DEBUG | simulation | Rebalance day 2022-05-09 00:00:00 (i=1601/2203)
+2025-12-26 22:31:21.058 | DEBUG | simulation | Rebalance applied | date=2022-05-09 00:00:00 | opt_status=ok | turnover=0.119957 | cost=0.000060 | selected=25
+2025-12-26 22:31:21.063 | DEBUG | simulation | Rebalance day 2022-05-16 00:00:00 (i=1606/2203)
+2025-12-26 22:31:21.770 | DEBUG | simulation | Rebalance applied | date=2022-05-16 00:00:00 | opt_status=ok | turnover=0.036756 | cost=0.000018 | selected=25
+2025-12-26 22:31:21.773 | INFO | simulation | Progress: 73% (1609/2203) | date=2022-05-19 00:00:00 nav=2.54127212 opt_status=no_rebalance
+2025-12-26 22:31:21.775 | DEBUG | simulation | Rebalance day 2022-05-23 00:00:00 (i=1611/2203)
+2025-12-26 22:31:22.461 | DEBUG | simulation | Rebalance applied | date=2022-05-23 00:00:00 | opt_status=ok | turnover=0.034997 | cost=0.000017 | selected=25
+2025-12-26 22:31:22.465 | DEBUG | simulation | Rebalance day 2022-05-30 00:00:00 (i=1616/2203)
+2025-12-26 22:31:23.058 | DEBUG | simulation | Rebalance applied | date=2022-05-30 00:00:00 | opt_status=ok | turnover=0.121871 | cost=0.000061 | selected=25
+2025-12-26 22:31:23.064 | DEBUG | simulation | Rebalance day 2022-06-06 00:00:00 (i=1621/2203)
+2025-12-26 22:31:24.005 | DEBUG | simulation | Rebalance applied | date=2022-06-06 00:00:00 | opt_status=ok | turnover=0.105096 | cost=0.000053 | selected=25
+2025-12-26 22:31:24.010 | DEBUG | simulation | Rebalance day 2022-06-13 00:00:00 (i=1626/2203)
+2025-12-26 22:31:24.468 | DEBUG | simulation | Rebalance applied | date=2022-06-13 00:00:00 | opt_status=ok | turnover=0.100344 | cost=0.000050 | selected=25
+2025-12-26 22:31:24.473 | DEBUG | simulation | Rebalance day 2022-06-20 00:00:00 (i=1631/2203)
+2025-12-26 22:31:25.083 | DEBUG | simulation | Rebalance applied | date=2022-06-20 00:00:00 | opt_status=ok | turnover=0.105060 | cost=0.000053 | selected=25
+2025-12-26 22:31:25.083 | INFO | simulation | Progress: 74% (1631/2203) | date=2022-06-20 00:00:00 nav=2.41341232 opt_status=ok
+2025-12-26 22:31:25.087 | DEBUG | simulation | Rebalance day 2022-06-27 00:00:00 (i=1636/2203)
+2025-12-26 22:31:25.925 | DEBUG | simulation | Rebalance applied | date=2022-06-27 00:00:00 | opt_status=ok | turnover=0.024228 | cost=0.000012 | selected=25
+2025-12-26 22:31:25.929 | DEBUG | simulation | Rebalance day 2022-07-04 00:00:00 (i=1641/2203)
+2025-12-26 22:31:26.371 | DEBUG | simulation | Rebalance applied | date=2022-07-04 00:00:00 | opt_status=ok | turnover=0.098217 | cost=0.000049 | selected=25
+2025-12-26 22:31:26.376 | DEBUG | simulation | Rebalance day 2022-07-11 00:00:00 (i=1646/2203)
+2025-12-26 22:31:26.943 | DEBUG | simulation | Rebalance applied | date=2022-07-11 00:00:00 | opt_status=ok | turnover=0.110006 | cost=0.000055 | selected=25
+2025-12-26 22:31:26.948 | DEBUG | simulation | Rebalance day 2022-07-18 00:00:00 (i=1651/2203)
+2025-12-26 22:31:27.804 | DEBUG | simulation | Rebalance applied | date=2022-07-18 00:00:00 | opt_status=ok | turnover=0.101101 | cost=0.000051 | selected=25
+2025-12-26 22:31:27.806 | INFO | simulation | Progress: 75% (1653/2203) | date=2022-07-20 00:00:00 nav=2.59764274 opt_status=no_rebalance
+2025-12-26 22:31:27.809 | DEBUG | simulation | Rebalance day 2022-07-25 00:00:00 (i=1656/2203)
+2025-12-26 22:31:28.368 | DEBUG | simulation | Rebalance applied | date=2022-07-25 00:00:00 | opt_status=ok | turnover=0.096745 | cost=0.000048 | selected=25
+2025-12-26 22:31:28.373 | DEBUG | simulation | Rebalance day 2022-08-01 00:00:00 (i=1661/2203)
+2025-12-26 22:31:29.252 | DEBUG | simulation | Rebalance applied | date=2022-08-01 00:00:00 | opt_status=ok | turnover=0.027307 | cost=0.000014 | selected=25
+2025-12-26 22:31:29.257 | DEBUG | simulation | Rebalance day 2022-08-08 00:00:00 (i=1666/2203)
+2025-12-26 22:31:30.052 | DEBUG | simulation | Rebalance applied | date=2022-08-08 00:00:00 | opt_status=ok | turnover=0.024941 | cost=0.000012 | selected=25
+2025-12-26 22:31:30.056 | DEBUG | simulation | Rebalance day 2022-08-16 00:00:00 (i=1670/2203)
+2025-12-26 22:31:30.672 | DEBUG | simulation | Rebalance applied | date=2022-08-16 00:00:00 | opt_status=ok | turnover=0.096853 | cost=0.000048 | selected=25
+2025-12-26 22:31:30.676 | DEBUG | simulation | Rebalance day 2022-08-22 00:00:00 (i=1674/2203)
+2025-12-26 22:31:31.518 | DEBUG | simulation | Rebalance applied | date=2022-08-22 00:00:00 | opt_status=ok | turnover=0.100322 | cost=0.000050 | selected=25
+2025-12-26 22:31:31.519 | INFO | simulation | Progress: 76% (1675/2203) | date=2022-08-23 00:00:00 nav=2.73101234 opt_status=no_rebalance
+2025-12-26 22:31:31.523 | DEBUG | simulation | Rebalance day 2022-08-29 00:00:00 (i=1679/2203)
+2025-12-26 22:31:32.118 | DEBUG | simulation | Rebalance applied | date=2022-08-29 00:00:00 | opt_status=ok | turnover=0.028247 | cost=0.000014 | selected=25
+2025-12-26 22:31:32.122 | DEBUG | simulation | Rebalance day 2022-09-05 00:00:00 (i=1683/2203)
+2025-12-26 22:31:32.588 | DEBUG | simulation | Rebalance applied | date=2022-09-05 00:00:00 | opt_status=ok | turnover=0.099380 | cost=0.000050 | selected=25
+2025-12-26 22:31:32.592 | DEBUG | simulation | Rebalance day 2022-09-12 00:00:00 (i=1688/2203)
+2025-12-26 22:31:33.168 | DEBUG | simulation | Rebalance applied | date=2022-09-12 00:00:00 | opt_status=ok | turnover=0.020466 | cost=0.000010 | selected=25
+2025-12-26 22:31:33.174 | DEBUG | simulation | Rebalance day 2022-09-19 00:00:00 (i=1693/2203)
+2025-12-26 22:31:33.563 | DEBUG | simulation | Rebalance applied | date=2022-09-19 00:00:00 | opt_status=ok | turnover=0.188222 | cost=0.000094 | selected=25
+2025-12-26 22:31:33.567 | INFO | simulation | Progress: 77% (1697/2203) | date=2022-09-23 00:00:00 nav=2.77072616 opt_status=no_rebalance
+2025-12-26 22:31:33.567 | DEBUG | simulation | Rebalance day 2022-09-26 00:00:00 (i=1698/2203)
+2025-12-26 22:31:34.308 | DEBUG | simulation | Rebalance applied | date=2022-09-26 00:00:00 | opt_status=ok | turnover=0.266348 | cost=0.000133 | selected=25
+2025-12-26 22:31:34.312 | DEBUG | simulation | Rebalance day 2022-10-03 00:00:00 (i=1703/2203)
+2025-12-26 22:31:35.061 | DEBUG | simulation | Rebalance applied | date=2022-10-03 00:00:00 | opt_status=ok | turnover=0.103305 | cost=0.000052 | selected=25
+2025-12-26 22:31:35.065 | DEBUG | simulation | Rebalance day 2022-10-10 00:00:00 (i=1707/2203)
+2025-12-26 22:31:35.654 | DEBUG | simulation | Rebalance applied | date=2022-10-10 00:00:00 | opt_status=ok | turnover=0.101188 | cost=0.000051 | selected=25
+2025-12-26 22:31:35.658 | DEBUG | simulation | Rebalance day 2022-10-17 00:00:00 (i=1712/2203)
+2025-12-26 22:31:36.163 | DEBUG | simulation | Rebalance applied | date=2022-10-17 00:00:00 | opt_status=ok | turnover=0.095170 | cost=0.000048 | selected=25
+2025-12-26 22:31:36.167 | DEBUG | simulation | Rebalance day 2022-10-25 00:00:00 (i=1717/2203)
+2025-12-26 22:31:36.908 | DEBUG | simulation | Rebalance applied | date=2022-10-25 00:00:00 | opt_status=ok | turnover=0.027561 | cost=0.000014 | selected=25
+2025-12-26 22:31:36.910 | INFO | simulation | Progress: 78% (1719/2203) | date=2022-10-28 00:00:00 nav=2.77366689 opt_status=no_rebalance
+2025-12-26 22:31:36.911 | DEBUG | simulation | Rebalance day 2022-10-31 00:00:00 (i=1720/2203)
+2025-12-26 22:31:37.569 | DEBUG | simulation | Rebalance applied | date=2022-10-31 00:00:00 | opt_status=ok | turnover=0.100902 | cost=0.000050 | selected=25
+2025-12-26 22:31:37.573 | DEBUG | simulation | Rebalance day 2022-11-07 00:00:00 (i=1725/2203)
+2025-12-26 22:31:38.311 | DEBUG | simulation | Rebalance applied | date=2022-11-07 00:00:00 | opt_status=ok | turnover=0.018762 | cost=0.000009 | selected=25
+2025-12-26 22:31:38.314 | DEBUG | simulation | Rebalance day 2022-11-14 00:00:00 (i=1729/2203)
+2025-12-26 22:31:38.748 | DEBUG | simulation | Rebalance applied | date=2022-11-14 00:00:00 | opt_status=ok | turnover=0.100687 | cost=0.000050 | selected=25
+2025-12-26 22:31:38.752 | DEBUG | simulation | Rebalance day 2022-11-21 00:00:00 (i=1734/2203)
+2025-12-26 22:31:39.298 | DEBUG | simulation | Rebalance applied | date=2022-11-21 00:00:00 | opt_status=ok | turnover=0.018948 | cost=0.000009 | selected=25
+2025-12-26 22:31:39.303 | DEBUG | simulation | Rebalance day 2022-11-28 00:00:00 (i=1739/2203)
+2025-12-26 22:31:39.841 | DEBUG | simulation | Rebalance applied | date=2022-11-28 00:00:00 | opt_status=ok | turnover=0.102151 | cost=0.000051 | selected=25
+2025-12-26 22:31:39.843 | INFO | simulation | Progress: 79% (1741/2203) | date=2022-11-30 00:00:00 nav=2.83000301 opt_status=no_rebalance
+2025-12-26 22:31:39.846 | DEBUG | simulation | Rebalance day 2022-12-05 00:00:00 (i=1744/2203)
+2025-12-26 22:31:40.426 | DEBUG | simulation | Rebalance applied | date=2022-12-05 00:00:00 | opt_status=ok | turnover=0.091358 | cost=0.000046 | selected=25
+2025-12-26 22:31:40.431 | DEBUG | simulation | Rebalance day 2022-12-12 00:00:00 (i=1749/2203)
+2025-12-26 22:31:41.087 | DEBUG | simulation | Rebalance applied | date=2022-12-12 00:00:00 | opt_status=ok | turnover=0.176327 | cost=0.000088 | selected=25
+2025-12-26 22:31:41.091 | DEBUG | simulation | Rebalance day 2022-12-19 00:00:00 (i=1754/2203)
+2025-12-26 22:31:41.686 | DEBUG | simulation | Rebalance applied | date=2022-12-19 00:00:00 | opt_status=ok | turnover=0.015152 | cost=0.000008 | selected=25
+2025-12-26 22:31:41.691 | DEBUG | simulation | Rebalance day 2022-12-26 00:00:00 (i=1759/2203)
+2025-12-26 22:31:42.109 | DEBUG | simulation | Rebalance applied | date=2022-12-26 00:00:00 | opt_status=ok | turnover=0.184774 | cost=0.000092 | selected=25
+2025-12-26 22:31:42.115 | INFO | simulation | Progress: 80% (1763/2203) | date=2022-12-30 00:00:00 nav=2.71230277 opt_status=no_rebalance
+2025-12-26 22:31:42.116 | DEBUG | simulation | Rebalance day 2023-01-02 00:00:00 (i=1764/2203)
+2025-12-26 22:31:42.733 | DEBUG | simulation | Rebalance applied | date=2023-01-02 00:00:00 | opt_status=ok | turnover=0.100869 | cost=0.000050 | selected=25
+2025-12-26 22:31:42.738 | DEBUG | simulation | Rebalance day 2023-01-09 00:00:00 (i=1769/2203)
+2025-12-26 22:31:43.277 | DEBUG | simulation | Rebalance applied | date=2023-01-09 00:00:00 | opt_status=ok | turnover=0.014505 | cost=0.000007 | selected=25
+2025-12-26 22:31:43.281 | DEBUG | simulation | Rebalance day 2023-01-16 00:00:00 (i=1774/2203)
+2025-12-26 22:31:43.795 | DEBUG | simulation | Rebalance applied | date=2023-01-16 00:00:00 | opt_status=ok | turnover=0.022193 | cost=0.000011 | selected=25
+2025-12-26 22:31:43.801 | DEBUG | simulation | Rebalance day 2023-01-23 00:00:00 (i=1779/2203)
+2025-12-26 22:31:44.354 | DEBUG | simulation | Rebalance applied | date=2023-01-23 00:00:00 | opt_status=ok | turnover=0.176368 | cost=0.000088 | selected=25
+2025-12-26 22:31:44.359 | DEBUG | simulation | Rebalance day 2023-01-30 00:00:00 (i=1783/2203)
+2025-12-26 22:31:45.151 | DEBUG | simulation | Rebalance applied | date=2023-01-30 00:00:00 | opt_status=ok | turnover=0.173902 | cost=0.000087 | selected=25
+2025-12-26 22:31:45.153 | INFO | simulation | Progress: 81% (1785/2203) | date=2023-02-01 00:00:00 nav=2.66130962 opt_status=no_rebalance
+2025-12-26 22:31:45.156 | DEBUG | simulation | Rebalance day 2023-02-06 00:00:00 (i=1788/2203)
+2025-12-26 22:31:45.873 | DEBUG | simulation | Rebalance applied | date=2023-02-06 00:00:00 | opt_status=ok | turnover=0.103596 | cost=0.000052 | selected=25
+2025-12-26 22:31:45.878 | DEBUG | simulation | Rebalance day 2023-02-13 00:00:00 (i=1793/2203)
+2025-12-26 22:31:46.606 | DEBUG | simulation | Rebalance applied | date=2023-02-13 00:00:00 | opt_status=ok | turnover=0.016269 | cost=0.000008 | selected=25
+2025-12-26 22:31:46.612 | DEBUG | simulation | Rebalance day 2023-02-20 00:00:00 (i=1798/2203)
+2025-12-26 22:31:46.974 | DEBUG | simulation | Rebalance applied | date=2023-02-20 00:00:00 | opt_status=ok | turnover=0.095167 | cost=0.000048 | selected=25
+2025-12-26 22:31:46.979 | DEBUG | simulation | Rebalance day 2023-02-27 00:00:00 (i=1803/2203)
+2025-12-26 22:31:47.330 | DEBUG | simulation | Rebalance applied | date=2023-02-27 00:00:00 | opt_status=ok | turnover=0.097030 | cost=0.000049 | selected=25
+2025-12-26 22:31:47.334 | INFO | simulation | Progress: 82% (1807/2203) | date=2023-03-03 00:00:00 nav=2.5806641 opt_status=no_rebalance
+2025-12-26 22:31:47.334 | DEBUG | simulation | Rebalance day 2023-03-06 00:00:00 (i=1808/2203)
+2025-12-26 22:31:47.968 | DEBUG | simulation | Rebalance applied | date=2023-03-06 00:00:00 | opt_status=ok | turnover=0.182770 | cost=0.000091 | selected=25
+2025-12-26 22:31:47.972 | DEBUG | simulation | Rebalance day 2023-03-13 00:00:00 (i=1812/2203)
+2025-12-26 22:31:48.336 | DEBUG | simulation | Rebalance applied | date=2023-03-13 00:00:00 | opt_status=ok | turnover=0.187924 | cost=0.000094 | selected=25
+2025-12-26 22:31:48.340 | DEBUG | simulation | Rebalance day 2023-03-20 00:00:00 (i=1817/2203)
+2025-12-26 22:31:48.839 | DEBUG | simulation | Rebalance applied | date=2023-03-20 00:00:00 | opt_status=ok | turnover=0.094163 | cost=0.000047 | selected=25
+2025-12-26 22:31:48.844 | DEBUG | simulation | Rebalance day 2023-03-27 00:00:00 (i=1822/2203)
+2025-12-26 22:31:49.231 | DEBUG | simulation | Rebalance applied | date=2023-03-27 00:00:00 | opt_status=ok | turnover=0.016150 | cost=0.000008 | selected=25
+2025-12-26 22:31:49.235 | DEBUG | simulation | Rebalance day 2023-04-03 00:00:00 (i=1826/2203)
+2025-12-26 22:31:49.752 | DEBUG | simulation | Rebalance applied | date=2023-04-03 00:00:00 | opt_status=ok | turnover=0.025109 | cost=0.000013 | selected=25
+2025-12-26 22:31:49.755 | DEBUG | simulation | Rebalance day 2023-04-10 00:00:00 (i=1829/2203)
+2025-12-26 22:31:50.160 | DEBUG | simulation | Rebalance applied | date=2023-04-10 00:00:00 | opt_status=ok | turnover=0.169575 | cost=0.000085 | selected=25
+2025-12-26 22:31:50.161 | INFO | simulation | Progress: 83% (1829/2203) | date=2023-04-10 00:00:00 nav=2.59948854 opt_status=ok
+2025-12-26 22:31:50.164 | DEBUG | simulation | Rebalance day 2023-04-17 00:00:00 (i=1833/2203)
+2025-12-26 22:31:50.737 | DEBUG | simulation | Rebalance applied | date=2023-04-17 00:00:00 | opt_status=ok | turnover=0.185725 | cost=0.000093 | selected=25
+2025-12-26 22:31:50.741 | DEBUG | simulation | Rebalance day 2023-04-24 00:00:00 (i=1838/2203)
+2025-12-26 22:31:51.198 | DEBUG | simulation | Rebalance applied | date=2023-04-24 00:00:00 | opt_status=ok | turnover=0.092460 | cost=0.000046 | selected=25
+2025-12-26 22:31:51.203 | DEBUG | simulation | Rebalance day 2023-05-02 00:00:00 (i=1843/2203)
+2025-12-26 22:31:51.700 | DEBUG | simulation | Rebalance applied | date=2023-05-02 00:00:00 | opt_status=ok | turnover=0.092975 | cost=0.000046 | selected=25
+2025-12-26 22:31:51.704 | DEBUG | simulation | Rebalance day 2023-05-08 00:00:00 (i=1847/2203)
+2025-12-26 22:31:52.233 | DEBUG | simulation | Rebalance applied | date=2023-05-08 00:00:00 | opt_status=ok | turnover=0.092815 | cost=0.000046 | selected=25
+2025-12-26 22:31:52.237 | INFO | simulation | Progress: 84% (1851/2203) | date=2023-05-12 00:00:00 nav=2.70760193 opt_status=no_rebalance
+2025-12-26 22:31:52.238 | DEBUG | simulation | Rebalance day 2023-05-15 00:00:00 (i=1852/2203)
+2025-12-26 22:31:52.853 | DEBUG | simulation | Rebalance applied | date=2023-05-15 00:00:00 | opt_status=ok | turnover=0.101097 | cost=0.000051 | selected=25
+2025-12-26 22:31:52.858 | DEBUG | simulation | Rebalance day 2023-05-22 00:00:00 (i=1857/2203)
+2025-12-26 22:31:53.482 | DEBUG | simulation | Rebalance applied | date=2023-05-22 00:00:00 | opt_status=ok | turnover=0.090886 | cost=0.000045 | selected=25
+2025-12-26 22:31:53.486 | DEBUG | simulation | Rebalance day 2023-05-29 00:00:00 (i=1862/2203)
+2025-12-26 22:31:54.145 | DEBUG | simulation | Rebalance applied | date=2023-05-29 00:00:00 | opt_status=ok | turnover=0.094090 | cost=0.000047 | selected=25
+2025-12-26 22:31:54.150 | DEBUG | simulation | Rebalance day 2023-06-05 00:00:00 (i=1867/2203)
+2025-12-26 22:31:54.565 | DEBUG | simulation | Rebalance applied | date=2023-06-05 00:00:00 | opt_status=ok | turnover=0.097277 | cost=0.000049 | selected=25
+2025-12-26 22:31:54.570 | DEBUG | simulation | Rebalance day 2023-06-12 00:00:00 (i=1872/2203)
+2025-12-26 22:31:55.089 | DEBUG | simulation | Rebalance applied | date=2023-06-12 00:00:00 | opt_status=ok | turnover=0.015525 | cost=0.000008 | selected=25
+2025-12-26 22:31:55.090 | INFO | simulation | Progress: 85% (1873/2203) | date=2023-06-13 00:00:00 nav=2.78540403 opt_status=no_rebalance
+2025-12-26 22:31:55.095 | DEBUG | simulation | Rebalance day 2023-06-19 00:00:00 (i=1877/2203)
+2025-12-26 22:31:55.926 | DEBUG | simulation | Rebalance applied | date=2023-06-19 00:00:00 | opt_status=ok | turnover=0.019206 | cost=0.000010 | selected=25
+2025-12-26 22:31:55.930 | DEBUG | simulation | Rebalance day 2023-06-26 00:00:00 (i=1882/2203)
+2025-12-26 22:31:56.418 | DEBUG | simulation | Rebalance applied | date=2023-06-26 00:00:00 | opt_status=ok | turnover=0.013416 | cost=0.000007 | selected=25
+2025-12-26 22:31:56.421 | DEBUG | simulation | Rebalance day 2023-07-03 00:00:00 (i=1886/2203)
+2025-12-26 22:31:56.962 | DEBUG | simulation | Rebalance applied | date=2023-07-03 00:00:00 | opt_status=ok | turnover=0.094702 | cost=0.000047 | selected=25
+2025-12-26 22:31:56.966 | DEBUG | simulation | Rebalance day 2023-07-10 00:00:00 (i=1891/2203)
+2025-12-26 22:31:57.342 | DEBUG | simulation | Rebalance applied | date=2023-07-10 00:00:00 | opt_status=ok | turnover=0.014349 | cost=0.000007 | selected=25
+2025-12-26 22:31:57.346 | INFO | simulation | Progress: 86% (1895/2203) | date=2023-07-14 00:00:00 nav=2.89807553 opt_status=no_rebalance
+2025-12-26 22:31:57.347 | DEBUG | simulation | Rebalance day 2023-07-17 00:00:00 (i=1896/2203)
+2025-12-26 22:31:57.845 | DEBUG | simulation | Rebalance applied | date=2023-07-17 00:00:00 | opt_status=ok | turnover=0.016804 | cost=0.000008 | selected=25
+2025-12-26 22:31:57.849 | DEBUG | simulation | Rebalance day 2023-07-24 00:00:00 (i=1901/2203)
+2025-12-26 22:31:58.383 | DEBUG | simulation | Rebalance applied | date=2023-07-24 00:00:00 | opt_status=ok | turnover=0.027087 | cost=0.000014 | selected=25
+2025-12-26 22:31:58.387 | DEBUG | simulation | Rebalance day 2023-07-31 00:00:00 (i=1906/2203)
+2025-12-26 22:31:58.799 | DEBUG | simulation | Rebalance applied | date=2023-07-31 00:00:00 | opt_status=ok | turnover=0.037195 | cost=0.000019 | selected=25
+2025-12-26 22:31:58.803 | DEBUG | simulation | Rebalance day 2023-08-07 00:00:00 (i=1911/2203)
+2025-12-26 22:31:59.254 | DEBUG | simulation | Rebalance applied | date=2023-08-07 00:00:00 | opt_status=ok | turnover=0.022305 | cost=0.000011 | selected=25
+2025-12-26 22:31:59.261 | DEBUG | simulation | Rebalance day 2023-08-14 00:00:00 (i=1916/2203)
+2025-12-26 22:31:59.668 | DEBUG | simulation | Rebalance applied | date=2023-08-14 00:00:00 | opt_status=ok | turnover=0.021915 | cost=0.000011 | selected=25
+2025-12-26 22:31:59.669 | INFO | simulation | Progress: 87% (1917/2203) | date=2023-08-16 00:00:00 nav=2.94756573 opt_status=no_rebalance
+2025-12-26 22:31:59.672 | DEBUG | simulation | Rebalance day 2023-08-21 00:00:00 (i=1920/2203)
+2025-12-26 22:32:00.222 | DEBUG | simulation | Rebalance applied | date=2023-08-21 00:00:00 | opt_status=ok | turnover=0.009834 | cost=0.000005 | selected=25
+2025-12-26 22:32:00.226 | DEBUG | simulation | Rebalance day 2023-08-28 00:00:00 (i=1925/2203)
+2025-12-26 22:32:00.894 | DEBUG | simulation | Rebalance applied | date=2023-08-28 00:00:00 | opt_status=ok | turnover=0.012147 | cost=0.000006 | selected=25
+2025-12-26 22:32:00.898 | DEBUG | simulation | Rebalance day 2023-09-04 00:00:00 (i=1930/2203)
+2025-12-26 22:32:01.586 | DEBUG | simulation | Rebalance applied | date=2023-09-04 00:00:00 | opt_status=ok | turnover=0.033485 | cost=0.000017 | selected=25
+2025-12-26 22:32:01.591 | DEBUG | simulation | Rebalance day 2023-09-11 00:00:00 (i=1935/2203)
+2025-12-26 22:32:01.943 | DEBUG | simulation | Rebalance applied | date=2023-09-11 00:00:00 | opt_status=ok | turnover=0.096961 | cost=0.000048 | selected=25
+2025-12-26 22:32:01.947 | INFO | simulation | Progress: 88% (1939/2203) | date=2023-09-15 00:00:00 nav=3.04181676 opt_status=no_rebalance
+2025-12-26 22:32:01.948 | DEBUG | simulation | Rebalance day 2023-09-18 00:00:00 (i=1940/2203)
+2025-12-26 22:32:02.533 | DEBUG | simulation | Rebalance applied | date=2023-09-18 00:00:00 | opt_status=ok | turnover=0.098034 | cost=0.000049 | selected=25
+2025-12-26 22:32:02.536 | DEBUG | simulation | Rebalance day 2023-09-25 00:00:00 (i=1944/2203)
+2025-12-26 22:32:02.920 | DEBUG | simulation | Rebalance applied | date=2023-09-25 00:00:00 | opt_status=ok | turnover=0.092882 | cost=0.000046 | selected=25
+2025-12-26 22:32:02.925 | DEBUG | simulation | Rebalance day 2023-10-03 00:00:00 (i=1949/2203)
+2025-12-26 22:32:03.426 | DEBUG | simulation | Rebalance applied | date=2023-10-03 00:00:00 | opt_status=ok | turnover=0.021062 | cost=0.000011 | selected=25
+2025-12-26 22:32:03.430 | DEBUG | simulation | Rebalance day 2023-10-09 00:00:00 (i=1953/2203)
+2025-12-26 22:32:03.796 | DEBUG | simulation | Rebalance applied | date=2023-10-09 00:00:00 | opt_status=ok | turnover=0.094520 | cost=0.000047 | selected=25
+2025-12-26 22:32:03.800 | DEBUG | simulation | Rebalance day 2023-10-16 00:00:00 (i=1958/2203)
+2025-12-26 22:32:04.192 | DEBUG | simulation | Rebalance applied | date=2023-10-16 00:00:00 | opt_status=ok | turnover=0.021064 | cost=0.000011 | selected=25
+2025-12-26 22:32:04.195 | INFO | simulation | Progress: 89% (1961/2203) | date=2023-10-19 00:00:00 nav=3.03915642 opt_status=no_rebalance
+2025-12-26 22:32:04.197 | DEBUG | simulation | Rebalance day 2023-10-23 00:00:00 (i=1963/2203)
+2025-12-26 22:32:04.570 | DEBUG | simulation | Rebalance applied | date=2023-10-23 00:00:00 | opt_status=ok | turnover=0.017832 | cost=0.000009 | selected=25
+2025-12-26 22:32:04.573 | DEBUG | simulation | Rebalance day 2023-10-30 00:00:00 (i=1967/2203)
+2025-12-26 22:32:05.092 | DEBUG | simulation | Rebalance applied | date=2023-10-30 00:00:00 | opt_status=ok | turnover=0.016388 | cost=0.000008 | selected=25
+2025-12-26 22:32:05.096 | DEBUG | simulation | Rebalance day 2023-11-06 00:00:00 (i=1972/2203)
+2025-12-26 22:32:05.536 | DEBUG | simulation | Rebalance applied | date=2023-11-06 00:00:00 | opt_status=ok | turnover=0.018698 | cost=0.000009 | selected=25
+2025-12-26 22:32:05.543 | DEBUG | simulation | Rebalance day 2023-11-13 00:00:00 (i=1977/2203)
+2025-12-26 22:32:05.950 | DEBUG | simulation | Rebalance applied | date=2023-11-13 00:00:00 | opt_status=ok | turnover=0.098556 | cost=0.000049 | selected=25
+2025-12-26 22:32:05.955 | DEBUG | simulation | Rebalance day 2023-11-20 00:00:00 (i=1981/2203)
+2025-12-26 22:32:06.310 | DEBUG | simulation | Rebalance applied | date=2023-11-20 00:00:00 | opt_status=ok | turnover=0.017295 | cost=0.000009 | selected=25
+2025-12-26 22:32:06.312 | INFO | simulation | Progress: 90% (1983/2203) | date=2023-11-22 00:00:00 nav=3.15014373 opt_status=no_rebalance
+2025-12-26 22:32:06.315 | DEBUG | simulation | Rebalance day 2023-11-28 00:00:00 (i=1986/2203)
+2025-12-26 22:32:06.869 | DEBUG | simulation | Rebalance applied | date=2023-11-28 00:00:00 | opt_status=ok | turnover=0.013439 | cost=0.000007 | selected=25
+2025-12-26 22:32:06.873 | DEBUG | simulation | Rebalance day 2023-12-04 00:00:00 (i=1990/2203)
+2025-12-26 22:32:07.394 | DEBUG | simulation | Rebalance applied | date=2023-12-04 00:00:00 | opt_status=ok | turnover=0.101678 | cost=0.000051 | selected=25
+2025-12-26 22:32:07.398 | DEBUG | simulation | Rebalance day 2023-12-11 00:00:00 (i=1995/2203)
+2025-12-26 22:32:07.982 | DEBUG | simulation | Rebalance applied | date=2023-12-11 00:00:00 | opt_status=ok | turnover=0.022961 | cost=0.000011 | selected=25
+2025-12-26 22:32:07.987 | DEBUG | simulation | Rebalance day 2023-12-18 00:00:00 (i=2000/2203)
+2025-12-26 22:32:08.700 | DEBUG | simulation | Rebalance applied | date=2023-12-18 00:00:00 | opt_status=ok | turnover=0.108246 | cost=0.000054 | selected=25
+2025-12-26 22:32:08.705 | DEBUG | simulation | Rebalance day 2023-12-26 00:00:00 (i=2005/2203)
+2025-12-26 22:32:09.397 | DEBUG | simulation | Rebalance applied | date=2023-12-26 00:00:00 | opt_status=ok | turnover=0.104146 | cost=0.000052 | selected=25
+2025-12-26 22:32:09.397 | INFO | simulation | Progress: 91% (2005/2203) | date=2023-12-26 00:00:00 nav=3.43869623 opt_status=ok
+2025-12-26 22:32:09.401 | DEBUG | simulation | Rebalance day 2024-01-01 00:00:00 (i=2009/2203)
+2025-12-26 22:32:10.110 | DEBUG | simulation | Rebalance applied | date=2024-01-01 00:00:00 | opt_status=ok | turnover=0.098577 | cost=0.000049 | selected=25
+2025-12-26 22:32:10.114 | DEBUG | simulation | Rebalance day 2024-01-08 00:00:00 (i=2014/2203)
+2025-12-26 22:32:10.616 | DEBUG | simulation | Rebalance applied | date=2024-01-08 00:00:00 | opt_status=ok | turnover=0.026074 | cost=0.000013 | selected=25
+2025-12-26 22:32:10.620 | DEBUG | simulation | Rebalance day 2024-01-15 00:00:00 (i=2019/2203)
+2025-12-26 22:32:11.353 | DEBUG | simulation | Rebalance applied | date=2024-01-15 00:00:00 | opt_status=ok | turnover=0.101366 | cost=0.000051 | selected=25
+2025-12-26 22:32:11.358 | DEBUG | simulation | Rebalance day 2024-01-23 00:00:00 (i=2025/2203)
+2025-12-26 22:32:11.724 | DEBUG | simulation | Rebalance applied | date=2024-01-23 00:00:00 | opt_status=ok | turnover=0.190908 | cost=0.000095 | selected=25
+2025-12-26 22:32:11.727 | INFO | simulation | Progress: 92% (2027/2203) | date=2024-01-25 00:00:00 nav=3.55631992 opt_status=no_rebalance
+2025-12-26 22:32:11.727 | DEBUG | simulation | Rebalance day 2024-01-29 00:00:00 (i=2028/2203)
+2025-12-26 22:32:12.086 | DEBUG | simulation | Rebalance applied | date=2024-01-29 00:00:00 | opt_status=ok | turnover=0.187865 | cost=0.000094 | selected=25
+2025-12-26 22:32:12.090 | DEBUG | simulation | Rebalance day 2024-02-05 00:00:00 (i=2033/2203)
+2025-12-26 22:32:12.455 | DEBUG | simulation | Rebalance applied | date=2024-02-05 00:00:00 | opt_status=ok | turnover=0.108357 | cost=0.000054 | selected=25
+2025-12-26 22:32:12.460 | DEBUG | simulation | Rebalance day 2024-02-12 00:00:00 (i=2038/2203)
+2025-12-26 22:32:13.080 | DEBUG | simulation | Rebalance applied | date=2024-02-12 00:00:00 | opt_status=ok | turnover=0.183452 | cost=0.000092 | selected=25
+2025-12-26 22:32:13.084 | DEBUG | simulation | Rebalance day 2024-02-19 00:00:00 (i=2043/2203)
+2025-12-26 22:32:13.867 | DEBUG | simulation | Rebalance applied | date=2024-02-19 00:00:00 | opt_status=ok | turnover=0.099961 | cost=0.000050 | selected=25
+2025-12-26 22:32:13.871 | DEBUG | simulation | Rebalance day 2024-02-26 00:00:00 (i=2048/2203)
+2025-12-26 22:32:14.221 | DEBUG | simulation | Rebalance applied | date=2024-02-26 00:00:00 | opt_status=ok | turnover=0.173571 | cost=0.000087 | selected=25
+2025-12-26 22:32:14.223 | INFO | simulation | Progress: 93% (2049/2203) | date=2024-02-27 00:00:00 nav=3.72891668 opt_status=no_rebalance
+2025-12-26 22:32:14.227 | DEBUG | simulation | Rebalance day 2024-03-04 00:00:00 (i=2054/2203)
+2025-12-26 22:32:14.602 | DEBUG | simulation | Rebalance applied | date=2024-03-04 00:00:00 | opt_status=ok | turnover=0.099887 | cost=0.000050 | selected=25
+2025-12-26 22:32:14.605 | DEBUG | simulation | Rebalance day 2024-03-11 00:00:00 (i=2058/2203)
+2025-12-26 22:32:14.985 | DEBUG | simulation | Rebalance applied | date=2024-03-11 00:00:00 | opt_status=ok | turnover=0.183269 | cost=0.000092 | selected=25
+2025-12-26 22:32:14.990 | DEBUG | simulation | Rebalance day 2024-03-18 00:00:00 (i=2063/2203)
+2025-12-26 22:32:15.665 | DEBUG | simulation | Rebalance applied | date=2024-03-18 00:00:00 | opt_status=ok | turnover=0.108420 | cost=0.000054 | selected=25
+2025-12-26 22:32:15.669 | DEBUG | simulation | Rebalance day 2024-03-26 00:00:00 (i=2068/2203)
+2025-12-26 22:32:16.249 | DEBUG | simulation | Rebalance applied | date=2024-03-26 00:00:00 | opt_status=ok | turnover=0.186346 | cost=0.000093 | selected=25
+2025-12-26 22:32:16.252 | DEBUG | simulation | Rebalance day 2024-04-01 00:00:00 (i=2071/2203)
+2025-12-26 22:32:16.626 | DEBUG | simulation | Rebalance applied | date=2024-04-01 00:00:00 | opt_status=ok | turnover=0.096393 | cost=0.000048 | selected=25
+2025-12-26 22:32:16.626 | INFO | simulation | Progress: 94% (2071/2203) | date=2024-04-01 00:00:00 nav=3.69202088 opt_status=ok
+2025-12-26 22:32:16.631 | DEBUG | simulation | Rebalance day 2024-04-08 00:00:00 (i=2076/2203)
+2025-12-26 22:32:17.036 | DEBUG | simulation | Rebalance applied | date=2024-04-08 00:00:00 | opt_status=ok | turnover=0.102603 | cost=0.000051 | selected=25
+2025-12-26 22:32:17.039 | DEBUG | simulation | Rebalance day 2024-04-15 00:00:00 (i=2080/2203)
+2025-12-26 22:32:17.691 | DEBUG | simulation | Rebalance applied | date=2024-04-15 00:00:00 | opt_status=ok | turnover=0.101237 | cost=0.000051 | selected=25
+2025-12-26 22:32:17.695 | DEBUG | simulation | Rebalance day 2024-04-22 00:00:00 (i=2084/2203)
+2025-12-26 22:32:18.459 | DEBUG | simulation | Rebalance applied | date=2024-04-22 00:00:00 | opt_status=ok | turnover=0.097226 | cost=0.000049 | selected=25
+2025-12-26 22:32:18.463 | DEBUG | simulation | Rebalance day 2024-04-29 00:00:00 (i=2089/2203)
+2025-12-26 22:32:18.860 | DEBUG | simulation | Rebalance applied | date=2024-04-29 00:00:00 | opt_status=ok | turnover=0.027723 | cost=0.000014 | selected=25
+2025-12-26 22:32:18.863 | DEBUG | simulation | Rebalance day 2024-05-06 00:00:00 (i=2093/2203)
+2025-12-26 22:32:19.386 | DEBUG | simulation | Rebalance applied | date=2024-05-06 00:00:00 | opt_status=ok | turnover=0.120698 | cost=0.000060 | selected=25
+2025-12-26 22:32:19.386 | INFO | simulation | Progress: 95% (2093/2203) | date=2024-05-06 00:00:00 nav=3.78037791 opt_status=ok
+2025-12-26 22:32:19.390 | DEBUG | simulation | Rebalance day 2024-05-13 00:00:00 (i=2098/2203)
+2025-12-26 22:32:19.741 | DEBUG | simulation | Rebalance applied | date=2024-05-13 00:00:00 | opt_status=ok | turnover=0.267306 | cost=0.000134 | selected=25
+2025-12-26 22:32:19.747 | DEBUG | simulation | Rebalance day 2024-05-21 00:00:00 (i=2104/2203)
+2025-12-26 22:32:20.266 | DEBUG | simulation | Rebalance applied | date=2024-05-21 00:00:00 | opt_status=ok | turnover=0.263593 | cost=0.000132 | selected=25
+2025-12-26 22:32:20.269 | DEBUG | simulation | Rebalance day 2024-05-27 00:00:00 (i=2108/2203)
+2025-12-26 22:32:20.784 | DEBUG | simulation | Rebalance applied | date=2024-05-27 00:00:00 | opt_status=ok | turnover=0.025293 | cost=0.000013 | selected=25
+2025-12-26 22:32:20.789 | DEBUG | simulation | Rebalance day 2024-06-03 00:00:00 (i=2113/2203)
+2025-12-26 22:32:21.207 | DEBUG | simulation | Rebalance applied | date=2024-06-03 00:00:00 | opt_status=ok | turnover=0.121163 | cost=0.000061 | selected=25
+2025-12-26 22:32:21.209 | INFO | simulation | Progress: 96% (2115/2203) | date=2024-06-05 00:00:00 nav=3.82290214 opt_status=no_rebalance
+2025-12-26 22:32:21.212 | DEBUG | simulation | Rebalance day 2024-06-10 00:00:00 (i=2118/2203)
+2025-12-26 22:32:21.724 | DEBUG | simulation | Rebalance applied | date=2024-06-10 00:00:00 | opt_status=ok | turnover=0.074631 | cost=0.000037 | selected=25
+2025-12-26 22:32:21.728 | DEBUG | simulation | Rebalance day 2024-06-18 00:00:00 (i=2123/2203)
+2025-12-26 22:32:22.219 | DEBUG | simulation | Rebalance applied | date=2024-06-18 00:00:00 | opt_status=ok | turnover=0.117915 | cost=0.000059 | selected=25
+2025-12-26 22:32:22.223 | DEBUG | simulation | Rebalance day 2024-06-24 00:00:00 (i=2127/2203)
+2025-12-26 22:32:22.871 | DEBUG | simulation | Rebalance applied | date=2024-06-24 00:00:00 | opt_status=ok | turnover=0.097488 | cost=0.000049 | selected=25
+2025-12-26 22:32:22.876 | DEBUG | simulation | Rebalance day 2024-07-01 00:00:00 (i=2132/2203)
+2025-12-26 22:32:23.414 | DEBUG | simulation | Rebalance applied | date=2024-07-01 00:00:00 | opt_status=ok | turnover=0.172533 | cost=0.000086 | selected=25
+2025-12-26 22:32:23.418 | DEBUG | simulation | Rebalance day 2024-07-08 00:00:00 (i=2137/2203)
+2025-12-26 22:32:23.817 | DEBUG | simulation | Rebalance applied | date=2024-07-08 00:00:00 | opt_status=ok | turnover=0.261357 | cost=0.000131 | selected=25
+2025-12-26 22:32:23.817 | INFO | simulation | Progress: 97% (2137/2203) | date=2024-07-08 00:00:00 nav=4.11310719 opt_status=ok
+2025-12-26 22:32:23.821 | DEBUG | simulation | Rebalance day 2024-07-15 00:00:00 (i=2142/2203)
+2025-12-26 22:32:24.251 | DEBUG | simulation | Rebalance applied | date=2024-07-15 00:00:00 | opt_status=ok | turnover=0.173750 | cost=0.000087 | selected=25
+2025-12-26 22:32:24.255 | DEBUG | simulation | Rebalance day 2024-07-22 00:00:00 (i=2146/2203)
+2025-12-26 22:32:24.702 | DEBUG | simulation | Rebalance applied | date=2024-07-22 00:00:00 | opt_status=ok | turnover=0.110945 | cost=0.000055 | selected=25
+2025-12-26 22:32:24.707 | DEBUG | simulation | Rebalance day 2024-07-29 00:00:00 (i=2151/2203)
+2025-12-26 22:32:25.249 | DEBUG | simulation | Rebalance applied | date=2024-07-29 00:00:00 | opt_status=ok | turnover=0.185670 | cost=0.000093 | selected=25
+2025-12-26 22:32:25.254 | DEBUG | simulation | Rebalance day 2024-08-05 00:00:00 (i=2156/2203)
+2025-12-26 22:32:25.800 | DEBUG | simulation | Rebalance applied | date=2024-08-05 00:00:00 | opt_status=ok | turnover=0.192129 | cost=0.000096 | selected=25
+2025-12-26 22:32:25.803 | INFO | simulation | Progress: 98% (2159/2203) | date=2024-08-08 00:00:00 nav=4.13533345 opt_status=no_rebalance
+2025-12-26 22:32:25.804 | DEBUG | simulation | Rebalance day 2024-08-12 00:00:00 (i=2161/2203)
+2025-12-26 22:32:26.592 | DEBUG | simulation | Rebalance applied | date=2024-08-12 00:00:00 | opt_status=ok | turnover=0.023570 | cost=0.000012 | selected=25
+2025-12-26 22:32:26.596 | DEBUG | simulation | Rebalance day 2024-08-19 00:00:00 (i=2165/2203)
+2025-12-26 22:32:26.981 | DEBUG | simulation | Rebalance applied | date=2024-08-19 00:00:00 | opt_status=ok | turnover=0.020937 | cost=0.000010 | selected=25
+2025-12-26 22:32:26.985 | DEBUG | simulation | Rebalance day 2024-08-26 00:00:00 (i=2170/2203)
+2025-12-26 22:32:27.354 | DEBUG | simulation | Rebalance applied | date=2024-08-26 00:00:00 | opt_status=ok | turnover=0.094106 | cost=0.000047 | selected=25
+2025-12-26 22:32:27.359 | DEBUG | simulation | Rebalance day 2024-09-02 00:00:00 (i=2175/2203)
+2025-12-26 22:32:27.738 | DEBUG | simulation | Rebalance applied | date=2024-09-02 00:00:00 | opt_status=ok | turnover=0.099120 | cost=0.000050 | selected=25
+2025-12-26 22:32:27.743 | DEBUG | simulation | Rebalance day 2024-09-09 00:00:00 (i=2180/2203)
+2025-12-26 22:32:28.312 | DEBUG | simulation | Rebalance applied | date=2024-09-09 00:00:00 | opt_status=ok | turnover=0.101950 | cost=0.000051 | selected=25
+2025-12-26 22:32:28.313 | INFO | simulation | Progress: 99% (2181/2203) | date=2024-09-10 00:00:00 nav=4.18492522 opt_status=no_rebalance
+2025-12-26 22:32:28.317 | DEBUG | simulation | Rebalance day 2024-09-16 00:00:00 (i=2185/2203)
+2025-12-26 22:32:29.147 | DEBUG | simulation | Rebalance applied | date=2024-09-16 00:00:00 | opt_status=ok | turnover=0.025108 | cost=0.000013 | selected=25
+2025-12-26 22:32:29.151 | DEBUG | simulation | Rebalance day 2024-09-23 00:00:00 (i=2190/2203)
+2025-12-26 22:32:29.463 | DEBUG | simulation | Rebalance applied | date=2024-09-23 00:00:00 | opt_status=ok | turnover=0.107014 | cost=0.000054 | selected=25
+2025-12-26 22:32:29.468 | DEBUG | simulation | Rebalance day 2024-09-30 00:00:00 (i=2195/2203)
+2025-12-26 22:32:29.882 | DEBUG | simulation | Rebalance applied | date=2024-09-30 00:00:00 | opt_status=ok | turnover=0.101561 | cost=0.000051 | selected=25
+2025-12-26 22:32:29.885 | DEBUG | simulation | Rebalance day 2024-10-07 00:00:00 (i=2199/2203)
+2025-12-26 22:32:30.398 | DEBUG | simulation | Rebalance applied | date=2024-10-07 00:00:00 | opt_status=ok | turnover=0.111841 | cost=0.000056 | selected=25
+2025-12-26 22:32:30.402 | INFO | simulation | Progress: 100% (2203/2203) | date=2024-10-11 00:00:00 nav=4.21199347 opt_status=no_rebalance
+2025-12-26 22:32:30.492 | INFO | simulation | Experiment saved to: experiments\20251226_165827__ftrl_weekly_k25_v_target_1.05
+2025-12-26 22:32:30.551 | INFO | simulation | Saved performance artifacts to experiments\20251226_165827__ftrl_weekly_k25_v_target_1.05\outputs\performance
+2025-12-26 22:32:31.773 | INFO | simulation | Saved figures to: experiments\20251226_165827__ftrl_weekly_k25_v_target_1.05\artifacts\figures
+2025-12-26 22:32:31.773 | INFO | simulation | Run complete
