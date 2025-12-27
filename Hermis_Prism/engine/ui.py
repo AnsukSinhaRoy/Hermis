@@ -43,10 +43,6 @@ CSS = """
 /* ---- Header ---- */
 .hermis-header {
   padding: 18px 18px;
-<<<<<<< HEAD
-=======
-  
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
   border-radius: 18px;
   background: linear-gradient(120deg, rgba(124,58,237,0.20), rgba(59,130,246,0.18), rgba(16,185,129,0.12));
   border: 1px solid rgba(120,120,120,0.25);
@@ -105,23 +101,15 @@ def run_app():
     st.markdown(
         """
         <div class="hermis-header">
-<<<<<<< HEAD
           <h1>💎 Hermis Prism</h1>
           <p>Deeper portfolio simulation insights • diagnostics • comparisons</p>
-=======
-          <h2>💎 Hermis Prism</h2>
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
         </div>
         """,
         unsafe_allow_html=True,
     )
 
     with st.sidebar:
-<<<<<<< HEAD
         st.header("⚙️ Controls")
-=======
-        st.header("Controls")
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
         root = st.text_input("Experiments Root Folder", value="experiments")
         rootp = Path(root)
         exp_dirs = load_experiment_list(rootp)
@@ -135,21 +123,13 @@ def run_app():
         selected_path = exp_dirs[exp_labels.index(sel_label)]
 
         st.divider()
-<<<<<<< HEAD
         st.header("⚡ Data loading")
-=======
-        st.header("Data loading")
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
         load_weights = st.checkbox("Load weights (allocation & attribution)", value=True)
         load_trades = st.checkbox("Load trades (turnover & diagnostics)", value=True)
         load_prices = st.checkbox("Load prices snapshot (asset plots & attribution)", value=False)
 
         st.divider()
-<<<<<<< HEAD
         st.header("📊 Comparison Mode")
-=======
-        st.header("Comparison Mode")
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
         enable_cmp = st.checkbox("Enable Comparison", value=False)
         if enable_cmp:
             default_choices = [sel_label] if sel_label in exp_labels else []
@@ -159,22 +139,13 @@ def run_app():
             cmp_paths = []
 
         st.divider()
-<<<<<<< HEAD
         st.header("🎨 Plot Options")
-=======
-        st.header("Plot Options")
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
         sample_max = st.number_input("Max Assets to Plot", min_value=10, max_value=5000, value=100, step=10)
         normalize_default = st.checkbox("Normalize Prices & NAV to 1", value=True)
 
         st.divider()
-<<<<<<< HEAD
         st.header("📈 Metrics")
         rf_annual = st.number_input("Risk-free rate (annual, decimal)", min_value=0.0, max_value=0.30, value=0.0, step=0.005)
-=======
-        st.header("Metrics")
-        rf_annual = st.number_input("Risk-free rate", min_value=0.0, max_value=0.30, value=0.0, step=0.005)
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
 
     # --- Fast load: NAV + params/meta (small) ---
     with st.spinner(f"Loading `{selected_path.name}`…"):
@@ -191,11 +162,7 @@ def run_app():
     # date range control (based on NAV, always available)
     with st.sidebar:
         st.divider()
-<<<<<<< HEAD
         st.header("🗓️ Date range")
-=======
-        st.header("Date range")
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
         nav_min, nav_max = nav.index.min(), nav.index.max()
         start_end = st.slider(
             "Window",
@@ -544,7 +511,6 @@ If you want end-of-month rebalances or to avoid any look-ahead, we should adjust
         if not cmp_paths:
             st.info("Enable Comparison Mode in the sidebar and select multiple experiments.")
         else:
-<<<<<<< HEAD
             # NOTE: Comparison metrics and plots should respect the global date-window slider.
             # The previous implementation used cached *full-period* metrics, so changing the
             # date window appeared to "do nothing" in Compare mode.
@@ -582,58 +548,6 @@ If you want end-of-month rebalances or to avoid any look-ahead, we should adjust
                 st.warning("No valid NAV data found for the selected experiments.")
             else:
                 st.subheader("Metrics table")
-=======
-            st.caption(f"Date window applied to comparison: **{start.date()} → {end.date()}**")
-
-            @st.cache_data(show_spinner=False)
-            def get_comparison_data(
-                paths: List[Path],
-                start: pd.Timestamp,
-                end: pd.Timestamp,
-                rf_annual: float,
-            ) -> tuple[pd.DataFrame, pd.DataFrame]:
-                rows = []
-                skipped = []
-                for p in paths:
-                    exp_data = load_nav_only(str(p))
-                    nav_s = ensure_series(exp_data.get("nav"))
-                    if nav_s is None or nav_s.empty:
-                        skipped.append((p.name, "no NAV"))
-                        continue
-
-                    nav_w = _subset_series(nav_s, start, end)
-                    if nav_w is None or nav_w.dropna().empty:
-                        skipped.append((p.name, "no data in window"))
-                        continue
-
-                    metrics = ann_metrics(nav_w, rf_annual=rf_annual)
-                    rows.append({
-                        "Experiment": p.name,
-                        "Total Return": metrics.get("total_return"),
-                        "CAGR": metrics.get("cagr"),
-                        "Volatility": metrics.get("ann_vol"),
-                        "Max Drawdown": metrics.get("max_drawdown"),
-                        "Sharpe": metrics.get("sharpe"),
-                        "Calmar": metrics.get("calmar"),
-                        "Observations": int(nav_w.dropna().shape[0]),
-                    })
-
-                df = pd.DataFrame(rows)
-                df = df.set_index("Experiment") if not df.empty else pd.DataFrame()
-                skipped_df = pd.DataFrame(skipped, columns=["Experiment", "Reason"]) if skipped else pd.DataFrame()
-                return df, skipped_df
-
-            metrics_df, skipped_df = get_comparison_data(cmp_paths, start, end, rf_annual)
-
-            if not skipped_df.empty:
-                with st.expander("Skipped experiments (why they don't show up)", expanded=False):
-                    st.dataframe(skipped_df, use_container_width=True)
-
-            if metrics_df.empty:
-                st.warning("No valid NAV data found for the selected experiments in the chosen date window.")
-            else:
-                st.subheader("Metrics table (windowed)")
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
                 st.dataframe(
                     metrics_df.style.format({
                         "Total Return": "{:.2%}",
@@ -641,20 +555,11 @@ If you want end-of-month rebalances or to avoid any look-ahead, we should adjust
                         "Volatility": "{:.2%}",
                         "Max Drawdown": "{:.2%}",
                         "Sharpe": "{:.2f}",
-<<<<<<< HEAD
-=======
-                        "Calmar": "{:.2f}",
-                        "Observations": "{:,.0f}",
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
                     }),
                     use_container_width=True,
                 )
 
-<<<<<<< HEAD
                 st.subheader("Risk/return map")
-=======
-                st.subheader("Risk/return map (windowed)")
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
                 scatter_df = metrics_df.reset_index()
                 fig = px.scatter(
                     scatter_df,
@@ -667,7 +572,6 @@ If you want end-of-month rebalances or to avoid any look-ahead, we should adjust
                 fig.update_traces(textposition="top center")
                 st.plotly_chart(fig, use_container_width=True, key="pl_19")
 
-<<<<<<< HEAD
                 st.subheader("Normalized NAV comparison")
                 nav_series: List[pd.Series] = []
                 names: List[str] = []
@@ -684,25 +588,6 @@ If you want end-of-month rebalances or to avoid any look-ahead, we should adjust
                     st.info("No NAV data overlaps the selected date window for the chosen experiments.")
                 else:
                     st.caption(f"Window: {start.date()} → {end.date()}")
-=======
-                st.subheader("Normalized NAV comparison (windowed)")
-                nav_series = []
-                names = []
-                for path in cmp_paths:
-                    exp_data = load_nav_only(str(path))
-                    nav_s = ensure_series(exp_data.get("nav"))
-                    if nav_s is None or nav_s.empty:
-                        continue
-                    nav_w = _subset_series(nav_s, start, end)
-                    if nav_w is None or nav_w.dropna().empty:
-                        continue
-                    nav_series.append(nav_w)
-                    names.append(path.name)
-
-                if len(nav_series) < 2:
-                    st.info("Select at least 2 experiments with data in the chosen window to see a meaningful comparison plot.")
-                else:
->>>>>>> e1b381404b3f0548e4926be3a51dbf4a55a00ae8
                     st.plotly_chart(plot_compare_navs(nav_series, names), use_container_width=True, key="pl_20")
 
     # -------------------
