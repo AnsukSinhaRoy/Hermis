@@ -1,0 +1,37 @@
+experiment:
+  name: "ftrl_weekly_k25_v_target_1.05_both"  #  choose a name for your experiment
+  #tag: "mvreg"
+  start_date: "2015-11-06" #yyyy-mm-dd
+  end_date: "2025-03-05"
+  rebalance: "weekly"  #  choose one: daily | weekly | monthly
+  seed: 42
+  use_gpu: false
+
+data:
+  mode: "processed"  # 👈 choose one: synthetic | processed
+  # Option A (recommended): pick which processed dataset to use
+  processed:
+    dataset: "both"   # 👈 choose one: india | us | both
+    base_dir: "data/processed"
+    freq: "1D"
+
+risk_model:
+  type: "sample_cov"
+  lookback: 252
+
+csv_path: ""
+
+optimizer:
+  type: ftrl
+  k_cardinality: 25
+  long_only: true
+  box: {min: 0.0, max: 0.2}
+  v_target: 1.05
+  ftrl:
+    lambda_2: 10.0
+    gamma: 0.995
+    max_iter: 250
+    tol: 1e-9
+
+transaction_costs:
+  proportional: 0.0005

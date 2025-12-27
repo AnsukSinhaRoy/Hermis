@@ -1,0 +1,29 @@
+experiment:
+  name: "entropy_newton_weekly_lam_0.10"  #  choose a name for your experiment
+  #tag: "mvreg"
+  start_date: "2015-11-06" #yyyy-mm-dd
+  end_date: "2024-10-12"
+  rebalance: "weekly"  #  choose one: daily | weekly | monthly
+  seed: 42
+  use_gpu: false
+
+data:
+  mode: "processed"  #  choose one: synthetic | processed
+  processed_path: "data/processed/prices_1D.parquet"
+
+risk_model:
+  type: "sample_cov"
+  lookback: 252
+
+csv_path: ""
+
+optimizer:
+  type: entropy_newton
+  p_avg: 0.0
+  lam: 0.10 # try lower lamda: 0.005
+  K: 1.0
+
+
+
+transaction_costs:
+  proportional: 0.0005

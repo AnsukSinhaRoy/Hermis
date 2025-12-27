@@ -1,0 +1,31 @@
+{
+  "raw_root": "..\\raw_stock_data",
+  "dataset": "both",
+  "freq": "1D",
+  "start_date": null,
+  "end_date": null,
+  "min_coverage_frac": 0.5,
+  "drop_tickers_with_low_coverage": true,
+  "restrict_to_common_intersection": false,
+  "written": {
+    "per_market": {
+      "India": {
+        "path": "data\\processed\\prices_1D_india.parquet",
+        "rows": 3698,
+        "cols": 138
+      },
+      "US": {
+        "path": "data\\processed\\prices_1D_us.parquet",
+        "rows": 3769,
+        "cols": 165
+      }
+    },
+    "combined": {
+      "path": "data\\processed\\prices_1D.parquet",
+      "rows": 7467,
+      "cols": 303
+    },
+    "asset_metadata": "data\\processed\\asset_metadata.parquet"
+  },
+  "failed": []
+}

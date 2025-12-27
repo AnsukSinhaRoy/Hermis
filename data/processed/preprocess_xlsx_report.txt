@@ -1,0 +1,7 @@
+Preprocess XLSX report
+dataset=both freq=1D
+start_date=None end_date=None
+asset_metadata=data\processed\asset_metadata.parquet
+per_market_written={'India': {'path': 'data\\processed\\prices_1D_india.parquet', 'rows': 3698, 'cols': 138}, 'US': {'path': 'data\\processed\\prices_1D_us.parquet', 'rows': 3769, 'cols': 165}}
+combined_written={'path': 'data\\processed\\prices_1D.parquet', 'rows': 7467, 'cols': 303}
+failed_count=0

@@ -2,7 +2,10 @@
 import numpy as np
 import pandas as pd
 from typing import Tuple, Dict, Optional, List
-import cvxpy as cp
+try:
+    import cvxpy as cp  # optional
+except Exception:  # pragma: no cover
+    cp = None
 from numpy.linalg import solve, norm
 
 
@@ -42,26 +45,195 @@ def mv_optimize(expected_returns: pd.Series,
     lambdas = kwargs.get("lambdas", [1e-4, 1e-3, 1e-2, 1e-1, 0.5, 1.0])
     return mv_reg_optimize(expected_returns, cov, lambdas=lambdas, box=box_norm, long_only=long_only)
 
-def _clip_box_and_long_only(w: pd.Series, box: Optional[dict], long_only: bool) -> pd.Series:
-    if box is None:
-        low, high = None, None
-    else:
+def _clip_box_and_long_only(w, box: Optional[dict], long_only: bool):
+    """Apply long-only / box constraints by clipping and renormalizing.
+
+    Accepts numpy array-like OR pd.Series. Returns the same *kind* (Series in, Series out;
+    ndarray-like in, ndarray out).
+    """
+    w_is_series = isinstance(w, pd.Series)
+    w_arr = np.asarray(w, dtype=float).copy()
+
+    low, high = None, None
+    if box is not None:
         low, high = box.get("min", None), box.get("max", None)
+
     if long_only:
-        if low is None:
-            low = 0.0
-        else:
-            low = max(0.0, low)
-    # apply clipping
+        low = 0.0 if low is None else max(0.0, float(low))
+
     if low is not None:
-        w = np.maximum(w, low)
+        w_arr = np.maximum(w_arr, float(low))
     if high is not None:
-        w = np.minimum(w, high)
-    # renormalize to sum 1 if any positive mass
-    s = np.nansum(w)
+        w_arr = np.minimum(w_arr, float(high))
+
+    s = float(np.nansum(w_arr))
     if s > 0:
-        w = w / s
-    return pd.Series(w, index=w.index if isinstance(w, pd.Series) else None)
+        w_arr = w_arr / s
+
+    if w_is_series:
+        return pd.Series(w_arr, index=w.index)
+    return w_arr
+
+
+# ---------------------------
+# Online portfolio optimizers (stateful)
+# ---------------------------
+
+def project_to_k_set(w, k: int):
+    """Project a weight vector onto a top-k simplex (keep only k largest entries, renormalize)."""
+    w_arr = np.asarray(w, dtype=float).copy()
+    n = w_arr.shape[0]
+    if k is None or int(k) <= 0 or int(k) >= n:
+        # nothing to do
+        s = float(np.sum(w_arr))
+        return w_arr / s if s > 0 else np.ones(n) / n
+
+    k = int(k)
+    out = np.zeros_like(w_arr)
+    top_k = np.argsort(w_arr)[-k:]
+    out[top_k] = w_arr[top_k]
+    s = float(out.sum())
+    if s > 0:
+        out /= s
+    else:
+        out[top_k] = 1.0 / k
+    return out
+
+
+def _price_relatives_from_prices_window(prices_window: pd.DataFrame) -> Optional[np.ndarray]:
+    """Compute last-step price relatives r_t = p_t / p_{t-1} from a price window."""
+    if prices_window is None or not isinstance(prices_window, pd.DataFrame) or len(prices_window) < 2:
+        return None
+
+    p_t = prices_window.iloc[-1].astype(float)
+    p_prev = prices_window.iloc[-2].astype(float)
+
+    with np.errstate(divide='ignore', invalid='ignore'):
+        r = p_t / p_prev
+
+    # Clean anomalies: keep strictly positive
+    r = r.replace([np.inf, -np.inf], 1.0)
+    r = r.fillna(1.0)
+    r = r.clip(lower=1e-12)
+    return r.values.astype(float)
+
+
+def omd_step(
+    w_prev: np.ndarray,
+    r_t: np.ndarray,
+    eta: float,
+    v_target: float = 1.01,
+    k_cardinality: Optional[int] = None,
+    box: Optional[dict] = None,
+    long_only: bool = True,
+) -> Tuple[np.ndarray, Dict[str, float]]:
+    """Online Mirror Descent (Exponentiated Gradient) step using asymmetric shortfall loss."""
+    w_prev = np.asarray(w_prev, dtype=float)
+    r_t = np.asarray(r_t, dtype=float)
+
+    daily = float(np.dot(w_prev, r_t))
+    shortfall = float(v_target - daily)
+    loss = float(max(0.0, shortfall) ** 2)
+
+    grad = (-2.0 * shortfall * r_t) if shortfall > 0 else np.zeros_like(r_t)
+
+    # multiplicative update
+    w_new = w_prev * np.exp(-float(eta) * grad)
+    s = float(w_new.sum())
+    w_new = (w_new / s) if s > 0 else np.ones_like(w_new) / len(w_new)
+
+    # enforce constraints
+    if k_cardinality is not None and int(k_cardinality) > 0:
+        w_new = project_to_k_set(w_new, int(k_cardinality))
+
+    w_new = _clip_box_and_long_only(w_new, box=box, long_only=long_only)
+
+    # sparsify again after clipping if requested
+    if k_cardinality is not None and int(k_cardinality) > 0:
+        w_new = project_to_k_set(w_new, int(k_cardinality))
+
+    info = {"daily_return": daily, "loss": loss, "shortfall": shortfall}
+    return w_new, info
+
+
+def ftrl_step(
+    w_prev: np.ndarray,
+    r_t: np.ndarray,
+    B_prev: np.ndarray,
+    v_prev: np.ndarray,
+    lambda_2: float,
+    gamma: float,
+    v_target: float = 1.01,
+    k_cardinality: Optional[int] = None,
+    box: Optional[dict] = None,
+    long_only: bool = True,
+    max_iter: int = 200,
+    tol: float = 1e-9,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, Dict[str, float], str]:
+    """FTRL with entropy regularization + forgetting (SLSQP solve each step)."""
+    from scipy.optimize import minimize
+
+    w_prev = np.asarray(w_prev, dtype=float)
+    r_t = np.asarray(r_t, dtype=float)
+
+    B_t = (float(gamma) * B_prev) + np.outer(r_t, r_t)
+    v_t = (float(gamma) * v_prev) + r_t
+
+    daily = float(np.dot(w_prev, r_t))
+    shortfall = float(v_target - daily)
+    loss = float(max(0.0, shortfall) ** 2)
+
+    n = len(w_prev)
+
+    def obj(w):
+        w = np.asarray(w, dtype=float)
+        w_safe = np.maximum(w, 1e-12)
+        quad = float(w @ B_t @ w)
+        lin = float(-2.0 * float(v_target) * (v_t @ w))
+        reg = float(lambda_2) * float(np.sum(w_safe * np.log(w_safe)))
+        return quad + lin + reg
+
+    cons = ({'type': 'eq', 'fun': lambda w: float(np.sum(w) - 1.0)})
+
+    # bounds: default [0,1] for long-only; otherwise allow shorting within box if provided
+    bounds = [(None, None)] * n
+    if long_only:
+        bounds = [(0.0, 1.0)] * n
+    if box is not None:
+        low = box.get('min', None)
+        high = box.get('max', None)
+        bounds = [(low if low is not None else b0, high if high is not None else b1) for (b0, b1) in bounds]
+
+    x0 = w_prev.copy()
+    # make feasible
+    x0 = np.clip(x0, 1e-12, None)
+    x0 = x0 / x0.sum()
+
+    status = "ok"
+    try:
+        res = minimize(obj, x0, method='SLSQP', bounds=bounds, constraints=cons, options={'maxiter': int(max_iter), 'ftol': float(tol)})
+        if res.success and res.x is not None:
+            w_dense = np.asarray(res.x, dtype=float)
+        else:
+            w_dense = x0
+            status = "solver_failed"
+    except Exception:
+        w_dense = x0
+        status = "solver_exception"
+
+    w_new = w_dense
+
+    # enforce constraints (clip+renorm) and optional k-sparsity
+    if k_cardinality is not None and int(k_cardinality) > 0:
+        w_new = project_to_k_set(w_new, int(k_cardinality))
+
+    w_new = _clip_box_and_long_only(w_new, box=box, long_only=long_only)
+
+    if k_cardinality is not None and int(k_cardinality) > 0:
+        w_new = project_to_k_set(w_new, int(k_cardinality))
+
+    info = {"daily_return": daily, "loss": loss, "shortfall": shortfall}
+    return np.asarray(w_new, dtype=float), B_t, v_t, info, status
 
 # ---------------------------
 # MV Regularized (sweep lambda)
@@ -75,85 +247,92 @@ def mv_reg_optimize(mu: pd.Series,
                     long_only: bool = True,
                     solver: Optional[str] = None,
                     **kwargs) -> Dict:
+    """Regularized mean-variance optimizer without requiring CVXPY.
+
+    Objective (per lambda):
+        maximize   mu^T w - lambda * w^T Sigma w
+        subject to sum(w)=1 and optional bounds.
+
+    Implementation notes:
+      - Uses SciPy SLSQP (works in environments where cvxpy is not installed).
+      - If `lambdas` is provided, it performs a sweep and selects the best in-sample Sharpe.
+      - If only `lambda_reg` is provided, it is treated as a single-element sweep.
     """
-    Regularized mean-variance: maximize mu^T w - lambda * w^T Sigma w
-    Backwards-compatible: accepts either `lambdas` (list) or `lambda_reg` (single float)
-    and normalizes to a list of lambda values to try.
-    We try several lambda values and pick the best in-sample Sharpe.
-    Returns dict {weights: pd.Series, status: "ok"/"failed", lambda: chosen}
-    """
+    from scipy.optimize import minimize
+
     # support legacy single-value param `lambda_reg`
     if lambdas is None and lambda_reg is not None:
-        # if user passed a single float, turn it into a list for the sweep
         lambdas = [float(lambda_reg)]
 
-    # if someone passed a single scalar in lambdas, coerce to list
-    if lambdas is not None and not isinstance(lambdas, (list, tuple, set)):
-        try:
-            lambdas = [float(lambdas)]
-        except Exception:
-            lambdas = None
-
     if lambdas is None:
-        lambdas = [1e-4, 1e-3, 1e-2, 1e-1, 0.5, 1.0, 2.0]
+        lambdas = [1e-4, 1e-3, 1e-2, 1e-1, 0.5, 1.0]
 
-    # inputs to numpy
+    if lambdas is not None and not isinstance(lambdas, (list, tuple)):
+        lambdas = [float(lambdas)]
+
     assets = list(mu.index)
     n = len(assets)
     if n == 0:
         return {"weights": None, "status": "no_assets"}
-    mu_np = mu.reindex(assets).values.astype(float)
+
+    mu_np = mu.reindex(assets).fillna(0.0).values.astype(float)
     Sigma_np = Sigma.reindex(index=assets, columns=assets).fillna(0.0).values.astype(float)
 
-    best_sharpe = -np.inf
+    # bounds
+    bounds = [(None, None)] * n
+    if long_only:
+        bounds = [(0.0, 1.0)] * n
+    if box is not None:
+        low = box.get('min', None)
+        high = box.get('max', None)
+        bounds = [(low if low is not None else b0, high if high is not None else b1) for (b0, b1) in bounds]
+
+    cons = ({'type': 'eq', 'fun': lambda w: float(w.sum() - 1.0)})
+
+    x0 = np.ones(n) / n
+    x0 = _clip_box_and_long_only(x0, box=box, long_only=long_only)
+    x0 = np.asarray(x0, dtype=float)
+
     best_res = None
+    best_sharpe = -np.inf
 
     for lam in lambdas:
+        lam = float(lam)
+
+        def obj(w):
+            w = np.asarray(w, dtype=float)
+            return float(lam * (w @ Sigma_np @ w) - (mu_np @ w))
+
         try:
-            w = cp.Variable(n)
-            # objective: maximize mu^T w - lam * w^T Sigma w
-            obj = cp.Maximize(mu_np @ w - float(lam) * cp.quad_form(w, Sigma_np))
-            constraints = [cp.sum(w) == 1]
+            res = minimize(obj, x0, method='SLSQP', bounds=bounds, constraints=cons, options={'maxiter': 500, 'ftol': 1e-9})
+            if not res.success or res.x is None:
+                continue
+            w_np = np.asarray(res.x, dtype=float)
+            # safety
             if long_only:
-                constraints += [w >= 0]
-            if box is not None:
-                low = box.get("min", None)
-                high = box.get("max", None)
-                if low is not None:
-                    constraints += [w >= float(low)]
-                if high is not None:
-                    constraints += [w <= float(high)]
-            prob = cp.Problem(obj, constraints)
-            prob.solve(solver=solver, warm_start=True)
-            if w.value is None:
+                w_np = np.clip(w_np, 0.0, None)
+            s = float(w_np.sum())
+            if s <= 0:
                 continue
-            w_np = np.array(w.value).flatten()
-            # postprocess small negatives
-            w_np = np.where(w_np < 1e-8, 0.0, w_np)
-            if w_np.sum() <= 0:
-                continue
-            w_np = w_np / w_np.sum()
-            # compute in-sample performance: mean return and vol (annualized)
+            w_np /= s
+
             port_mean = float(mu_np @ w_np)
             port_var = float(w_np @ Sigma_np @ w_np)
             port_vol = np.sqrt(port_var) if port_var > 0 else 1e-9
             sharpe = port_mean / port_vol if port_vol > 0 else -np.inf
+
             if sharpe > best_sharpe:
                 best_sharpe = sharpe
                 best_res = {"weights": pd.Series(w_np, index=assets), "status": "ok", "lambda": lam, "sharpe_insample": float(sharpe)}
         except Exception:
-            # skip failing lambda
             continue
 
     if best_res is None:
-        # fallback: equal weight among assets, respecting long_only/box
-        w0 = np.ones(n) / n
-        w0 = pd.Series(w0, index=assets)
+        w0 = pd.Series(np.ones(n) / n, index=assets)
         if box or long_only:
-            # clip and renormalize
-            w0 = _clip_box_and_long_only(w0.values, box, long_only)
-            w0 = pd.Series(w0, index=assets)
+            w0 = pd.Series(_clip_box_and_long_only(w0.values, box, long_only), index=assets)
         return {"weights": w0, "status": "fallback_equal", "lambda": None, "sharpe_insample": None}
+
     return best_res
 
 
@@ -166,43 +345,52 @@ def min_variance_optimize(Sigma: pd.DataFrame,
                           long_only: bool = True,
                           solver: Optional[str] = None,
                           **kwargs) -> Dict:
+    """Minimum variance portfolio without requiring CVXPY (SciPy SLSQP).
+
+    Minimize: w^T Sigma w
+    Subject to: sum(w)=1 and optional bounds.
     """
-    Minimum variance under sum(w)=1 and box/long-only constraints.
-    Accepts **kwargs to be tolerant of extra forwarded parameters.
-    """
+    from scipy.optimize import minimize
+
     assets = list(Sigma.index)
     n = len(assets)
     if n == 0:
         return {"weights": None, "status": "no_assets"}
+
     Sigma_np = Sigma.reindex(index=assets, columns=assets).fillna(0.0).values.astype(float)
-    w = cp.Variable(n)
-    obj = cp.Minimize(cp.quad_form(w, Sigma_np))
-    constraints = [cp.sum(w) == 1]
+
+    bounds = [(None, None)] * n
     if long_only:
-        constraints += [w >= 0]
+        bounds = [(0.0, 1.0)] * n
     if box is not None:
-        low = box.get("min", None)
-        high = box.get("max", None)
-        if low is not None:
-            constraints += [w >= float(low)]
-        if high is not None:
-            constraints += [w <= float(high)]
-    prob = cp.Problem(obj, constraints)
+        low = box.get('min', None)
+        high = box.get('max', None)
+        bounds = [(low if low is not None else b0, high if high is not None else b1) for (b0, b1) in bounds]
+
+    cons = ({'type': 'eq', 'fun': lambda w: float(np.sum(w) - 1.0)})
+
+    x0 = np.ones(n) / n
+    x0 = _clip_box_and_long_only(x0, box=box, long_only=long_only)
+    x0 = np.asarray(x0, dtype=float)
+
+    def obj(w):
+        w = np.asarray(w, dtype=float)
+        return float(w @ Sigma_np @ w)
+
     try:
-        prob.solve(solver=solver, warm_start=True)
-        if w.value is None:
-            raise RuntimeError("solver_failed")
-        w_np = np.array(w.value).flatten()
-        w_np = np.where(w_np < 1e-8, 0.0, w_np)
-        if w_np.sum() <= 0:
-            # fallback equal
-            w_np = np.ones(n) / n
-        w_np = w_np / w_np.sum()
+        res = minimize(obj, x0, method='SLSQP', bounds=bounds, constraints=cons, options={'maxiter': 500, 'ftol': 1e-12})
+        if not res.success or res.x is None:
+            raise RuntimeError(res.message if hasattr(res, 'message') else 'solver_failed')
+        w_np = np.asarray(res.x, dtype=float)
+        if long_only:
+            w_np = np.clip(w_np, 0.0, None)
+        s = float(w_np.sum())
+        w_np = (w_np / s) if s > 0 else (np.ones(n) / n)
         return {"weights": pd.Series(w_np, index=assets), "status": "ok"}
     except Exception as e:
-        # fallback
         w0 = np.ones(n) / n
         return {"weights": pd.Series(w0, index=assets), "status": f"solver_failed:{repr(e)}"}
+
 
 # ---------------------------
 # Risk parity (numerical)
@@ -334,54 +522,69 @@ def greedy_k_cardinality(expected: pd.Series,
         return min_variance_optimize(Sigma_sub, box=box, long_only=long_only, **kwargs)
     elif method == "risk_parity":
         return risk_parity_optimize(Sigma_sub, box=box, long_only=long_only, **kwargs)
+    elif method == "sharpe":
+        return sharpe_optimize(mu_sub, Sigma_sub, box=box, long_only=long_only)
     else:
         # default fallback
         return mv_reg_optimize(mu_sub, Sigma_sub, box=box, long_only=long_only, **kwargs)
 
 
 def sharpe_optimize(mu: pd.Series, Sigma: pd.DataFrame, box=None, long_only=True, solver=None) -> Dict:
+    """Maximize Sharpe ratio using SciPy SLSQP (no CVXPY dependency).
+
+    Maximize: (mu^T w) / sqrt(w^T Sigma w)
+    Subject to: sum(w)=1 and optional bounds.
+
+    Note: This is non-convex; we use a single-start local optimizer. For stability,
+    prefer long-only + box constraints.
     """
-    Maximize Sharpe ratio = (mu^T w) / sqrt(w^T Σ w)
-    """
+    from scipy.optimize import minimize
+
     assets = list(mu.index)
     n = len(assets)
     if n == 0:
         return {"weights": None, "status": "no_assets"}
 
-    mu_np = mu.values
-    Sigma_np = Sigma.values
+    mu_np = mu.reindex(assets).fillna(0.0).values.astype(float)
+    Sigma_np = Sigma.reindex(index=assets, columns=assets).fillna(0.0).values.astype(float)
 
-    w = cp.Variable(n)
-    port_return = mu_np @ w
-    port_var = cp.quad_form(w, Sigma_np)
-    port_vol = cp.sqrt(port_var + 1e-8)
-
-    objective = cp.Maximize(port_return / port_vol)
-    constraints = [cp.sum(w) == 1]
+    bounds = [(None, None)] * n
     if long_only:
-        constraints += [w >= 0]
+        bounds = [(0.0, 1.0)] * n
     if box is not None:
-        low, high = box.get("min", None), box.get("max", None)
-        if low is not None:
-            constraints += [w >= float(low)]
-        if high is not None:
-            constraints += [w <= float(high)]
+        low = box.get('min', None)
+        high = box.get('max', None)
+        bounds = [(low if low is not None else b0, high if high is not None else b1) for (b0, b1) in bounds]
 
-    prob = cp.Problem(objective, constraints)
+    cons = ({'type': 'eq', 'fun': lambda w: float(np.sum(w) - 1.0)})
+
+    x0 = np.ones(n) / n
+    x0 = _clip_box_and_long_only(x0, box=box, long_only=long_only)
+    x0 = np.asarray(x0, dtype=float)
+
+    def obj(w):
+        w = np.asarray(w, dtype=float)
+        denom = float(w @ Sigma_np @ w)
+        denom = max(denom, 1e-12)
+        return float(-(mu_np @ w) / (denom ** 0.5))
+
     try:
-        prob.solve(solver=solver, warm_start=True)
-        if w.value is None:
-            raise RuntimeError("Solver returned None")
-        wv = np.array(w.value).flatten()
-        wv = np.clip(wv, 0, None)
-        wv /= wv.sum()
+        res = minimize(obj, x0, method='SLSQP', bounds=bounds, constraints=cons, options={'maxiter': 500, 'ftol': 1e-9})
+        if not res.success or res.x is None:
+            raise RuntimeError(res.message if hasattr(res, 'message') else 'solver_failed')
+        wv = np.asarray(res.x, dtype=float)
+        if long_only:
+            wv = np.clip(wv, 0.0, None)
+        s = float(wv.sum())
+        wv = (wv / s) if s > 0 else (np.ones(n) / n)
         port_mean = float(mu_np @ wv)
-        port_vol = np.sqrt(float(wv @ Sigma_np @ wv))
+        port_var = float(wv @ Sigma_np @ wv)
+        port_vol = float(port_var ** 0.5) if port_var > 0 else 1e-9
         sharpe = port_mean / port_vol if port_vol > 0 else 0.0
         return {"weights": pd.Series(wv, index=assets), "status": "ok", "sharpe": sharpe}
     except Exception as e:
-        return {"weights": np.ones(n) / n, "status": f"solver_failed:{repr(e)}"}
-    
+        return {"weights": pd.Series(np.ones(n) / n, index=assets), "status": f"solver_failed:{repr(e)}"}
+
 """
 Optimizers for Hermis Prism
 
