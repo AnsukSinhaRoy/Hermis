@@ -39,7 +39,7 @@ def resolve_experiment_name(cfg: Dict[str, Any], name_override: Optional[str] = 
 def make_experiment_folder(base_dir: str, name: str, tag: Optional[str]=None) -> Path:
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     safe_tag = f"__{tag}" if tag else ""
-    folder_name = f"{ts}__{name}{safe_tag}"
+    folder_name = f"{name}{safe_tag}_{ts}"
     exp_path = Path(base_dir) / folder_name
     exp_path.mkdir(parents=True, exist_ok=False)
     (exp_path / "outputs").mkdir()

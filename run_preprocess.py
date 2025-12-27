@@ -15,7 +15,7 @@ from portfolio_sim.preprocess_xlsx import preprocess_xlsx_pipeline
 
 if __name__ == "__main__":
     summary = preprocess_xlsx_pipeline(
-        raw_root="raw_stock_data",
+        raw_root="../raw_stock_data",
         processed_dir="data/processed",
         dataset="both",  # india | us | both
         freq="1D",

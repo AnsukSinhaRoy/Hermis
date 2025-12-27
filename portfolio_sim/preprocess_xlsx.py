@@ -88,6 +88,54 @@ def _pick_close_col(cols: List[str]) -> Optional[str]:
     return None
 
 
+def _add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
+    """Add common technical indicators for convenience.
+
+    Added columns (if a close/price column is available):
+      - RSI_14
+      - BB_MID_20, BB_UPPER_20, BB_LOWER_20   (20-period, 2 std)
+      - EMA_<period> for: 25, 50, 90, 120, 150, 200
+
+    Note: This runs during XLSX -> Parquet caching, so indicators are present in
+    per-asset parquet files and downstream consumers can reuse them.
+    """
+    if df is None or df.empty:
+        return df
+
+    close_col = _pick_close_col(list(df.columns))
+    if close_col is None:
+        return df
+
+    close = pd.to_numeric(df[close_col], errors="coerce").replace([np.inf, -np.inf], np.nan)
+    close = close.where(close > 0)
+
+    # --- RSI (14) using Wilder-style EMA smoothing ---
+    rsi_period = 14
+    delta = close.diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+
+    avg_gain = gain.ewm(alpha=1 / rsi_period, adjust=False, min_periods=rsi_period).mean()
+    avg_loss = loss.ewm(alpha=1 / rsi_period, adjust=False, min_periods=rsi_period).mean()
+    rs = avg_gain / avg_loss
+    df["RSI_14"] = 100 - (100 / (1 + rs))
+
+    # --- Bollinger Bands (20, 2 std) ---
+    bb_period = 20
+    ma = close.rolling(bb_period, min_periods=bb_period).mean()
+    sd = close.rolling(bb_period, min_periods=bb_period).std(ddof=0)
+    df["BB_MID_20"] = ma
+    df["BB_UPPER_20"] = ma + 2.0 * sd
+    df["BB_LOWER_20"] = ma - 2.0 * sd
+
+    # --- EMAs ---
+    for p in (25, 50, 90, 120, 150, 200):
+        df[f"EMA_{p}"] = close.ewm(span=p, adjust=False, min_periods=p).mean()
+
+    return df
+
+
+
 def _find_sidecar_json(xlsx_path: Path) -> Optional[Path]:
     """Find the JSON file corresponding to an xlsx.
 
@@ -137,6 +185,18 @@ def _read_excel_robust(path: Path) -> pd.DataFrame:
         except Exception:
             pass
 
+    # Normalize to date-only to avoid time-of-day mismatches across files/markets.
+    # This prevents combined joins from treating the same calendar day as distinct
+    # timestamps (e.g., 00:00 vs 13:30) and exploding the row count.
+    try:
+        tmp.index = tmp.index.normalize()
+    except Exception:
+        tmp.index = pd.to_datetime(tmp.index, errors="coerce").normalize()
+        tmp = tmp.loc[~tmp.index.isna()]
+
+    # Re-drop duplicates in case normalization collapsed multiple rows into the same day.
+    tmp = tmp.loc[~tmp.index.duplicated(keep="first")]
+
     return tmp
 
 
@@ -149,6 +209,7 @@ def _xlsx_to_parquet(xlsx_path: Path, parquet_path: Path, overwrite: bool = True
             return out
 
         df = _read_excel_robust(xlsx_path)
+        df = _add_technical_indicators(df)
         out["rows"] = int(df.shape[0])
         parquet_path.parent.mkdir(parents=True, exist_ok=True)
         df.to_parquet(parquet_path, index=True)

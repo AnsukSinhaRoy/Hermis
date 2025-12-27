@@ -22,7 +22,7 @@
     },
     "combined": {
       "path": "data\\processed\\prices_1D.parquet",
-      "rows": 7467,
+      "rows": 4624,
       "cols": 303
     },
     "asset_metadata": "data\\processed\\asset_metadata.parquet"
