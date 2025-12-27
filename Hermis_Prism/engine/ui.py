@@ -43,6 +43,7 @@ CSS = """
 /* ---- Header ---- */
 .hermis-header {
   padding: 18px 18px;
+  
   border-radius: 18px;
   background: linear-gradient(120deg, rgba(124,58,237,0.20), rgba(59,130,246,0.18), rgba(16,185,129,0.12));
   border: 1px solid rgba(120,120,120,0.25);
@@ -101,15 +102,14 @@ def run_app():
     st.markdown(
         """
         <div class="hermis-header">
-          <h1>💎 Hermis Prism</h1>
-          <p>Deeper portfolio simulation insights • diagnostics • comparisons</p>
+          <h2>💎 Hermis Prism</h2>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
     with st.sidebar:
-        st.header("⚙️ Controls")
+        st.header("Controls")
         root = st.text_input("Experiments Root Folder", value="experiments")
         rootp = Path(root)
         exp_dirs = load_experiment_list(rootp)
@@ -123,13 +123,13 @@ def run_app():
         selected_path = exp_dirs[exp_labels.index(sel_label)]
 
         st.divider()
-        st.header("⚡ Data loading")
+        st.header("Data loading")
         load_weights = st.checkbox("Load weights (allocation & attribution)", value=True)
         load_trades = st.checkbox("Load trades (turnover & diagnostics)", value=True)
         load_prices = st.checkbox("Load prices snapshot (asset plots & attribution)", value=False)
 
         st.divider()
-        st.header("📊 Comparison Mode")
+        st.header("Comparison Mode")
         enable_cmp = st.checkbox("Enable Comparison", value=False)
         if enable_cmp:
             default_choices = [sel_label] if sel_label in exp_labels else []
@@ -139,13 +139,13 @@ def run_app():
             cmp_paths = []
 
         st.divider()
-        st.header("🎨 Plot Options")
+        st.header("Plot Options")
         sample_max = st.number_input("Max Assets to Plot", min_value=10, max_value=5000, value=100, step=10)
         normalize_default = st.checkbox("Normalize Prices & NAV to 1", value=True)
 
         st.divider()
-        st.header("📈 Metrics")
-        rf_annual = st.number_input("Risk-free rate (annual, decimal)", min_value=0.0, max_value=0.30, value=0.0, step=0.005)
+        st.header("Metrics")
+        rf_annual = st.number_input("Risk-free rate", min_value=0.0, max_value=0.30, value=0.0, step=0.005)
 
     # --- Fast load: NAV + params/meta (small) ---
     with st.spinner(f"Loading `{selected_path.name}`…"):
@@ -162,7 +162,7 @@ def run_app():
     # date range control (based on NAV, always available)
     with st.sidebar:
         st.divider()
-        st.header("🗓️ Date range")
+        st.header("Date range")
         nav_min, nav_max = nav.index.min(), nav.index.max()
         start_end = st.slider(
             "Window",
