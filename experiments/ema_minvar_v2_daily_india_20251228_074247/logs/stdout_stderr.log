@@ -1,0 +1,167 @@
+2025-12-28 13:12:50,430 | INFO | Run initialized
+2025-12-28 13:12:50,431 | INFO | Run folder: experiments\ema_minvar_v2_daily_india_20251228_074247
+2025-12-28 13:12:50,431 | INFO | Config used: experiments\ema_minvar_v2_daily_india_20251228_074247\params.yaml
+2025-12-28 13:12:50,431 | INFO | Experiments dir: experiments
+2025-12-28 13:12:50,431 | INFO | Running experiment from config
+2025-12-28 13:12:50,437 | INFO | Runner starting | data.mode=processed | use_gpu=False
+2025-12-28 13:12:50,499 | INFO | Loaded prices | rows=1098 cols=138 | start=2020-04-06 00:00:00 end=2024-09-10 00:00:00
+2025-12-28 13:12:50,499 | INFO | Optimizer configured | raw_type=ema_hybrid resolved=ema_hybrid | k=None | long_only=True | box={'min': 0.025, 'max': 0.25}
+2025-12-28 13:12:50,500 | INFO | Planned total steps: 1098
+2025-12-28 13:12:50,500 | INFO | Progress logging every 1%
+2025-12-28 13:12:50,501 | INFO | Backtest starting | steps=1098 | rebalance=daily | tc(proportional)=0.0005 | record_non_rebalance=False
+2025-12-28 13:12:50,501 | INFO | Date range: 2020-04-06 00:00:00 -> 2024-09-10 00:00:00 | assets=138
+2025-12-28 13:12:50,502 | INFO | Rebalance dates computed: 1098 (first=2020-04-06 00:00:00 last=2024-09-10 00:00:00)
+2025-12-28 13:12:50,515 | WARNING | No common tickers between expected_returns (0) and covariance (138) on 2020-04-06 00:00:00
+2025-12-28 13:12:50,515 | WARNING | Using fallback equal-weight on 2020-04-06 00:00:00 | opt_status=skipped_no_common_tickers | n_valid_assets=138
+2025-12-28 13:12:50,522 | WARNING | Using fallback equal-weight on 2020-04-07 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,529 | WARNING | Using fallback equal-weight on 2020-04-08 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,536 | WARNING | Using fallback equal-weight on 2020-04-12 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,543 | WARNING | Using fallback equal-weight on 2020-04-14 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,550 | WARNING | Using fallback equal-weight on 2020-04-15 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,557 | WARNING | Using fallback equal-weight on 2020-04-16 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,564 | WARNING | Using fallback equal-weight on 2020-04-19 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,571 | WARNING | Using fallback equal-weight on 2020-04-20 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,578 | WARNING | Using fallback equal-weight on 2020-04-21 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,586 | WARNING | Using fallback equal-weight on 2020-04-22 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,587 | INFO | Progress: 1% (11/1098) | date=2020-04-22 00:00:00 nav=1.07674008 opt_status=ema_insufficient_window
+2025-12-28 13:12:50,593 | WARNING | Using fallback equal-weight on 2020-04-23 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,601 | WARNING | Using fallback equal-weight on 2020-04-26 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,608 | WARNING | Using fallback equal-weight on 2020-04-27 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,617 | WARNING | Using fallback equal-weight on 2020-04-28 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,625 | WARNING | Using fallback equal-weight on 2020-04-29 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,632 | WARNING | Using fallback equal-weight on 2020-05-03 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,639 | WARNING | Using fallback equal-weight on 2020-05-04 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,647 | WARNING | Using fallback equal-weight on 2020-05-05 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,654 | WARNING | Using fallback equal-weight on 2020-05-06 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,661 | WARNING | Using fallback equal-weight on 2020-05-07 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,668 | WARNING | Using fallback equal-weight on 2020-05-10 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,669 | INFO | Progress: 2% (22/1098) | date=2020-05-10 00:00:00 nav=1.0661375 opt_status=ema_insufficient_window
+2025-12-28 13:12:50,675 | WARNING | Using fallback equal-weight on 2020-05-11 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,683 | WARNING | Using fallback equal-weight on 2020-05-12 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,691 | WARNING | Using fallback equal-weight on 2020-05-13 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,701 | WARNING | Using fallback equal-weight on 2020-05-14 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,709 | WARNING | Using fallback equal-weight on 2020-05-17 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,716 | WARNING | Using fallback equal-weight on 2020-05-18 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,724 | WARNING | Using fallback equal-weight on 2020-05-19 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,731 | WARNING | Using fallback equal-weight on 2020-05-20 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,738 | WARNING | Using fallback equal-weight on 2020-05-21 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,746 | WARNING | Using fallback equal-weight on 2020-05-25 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,753 | WARNING | Using fallback equal-weight on 2020-05-26 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,754 | INFO | Progress: 3% (33/1098) | date=2020-05-26 00:00:00 nav=1.09271793 opt_status=ema_insufficient_window
+2025-12-28 13:12:50,761 | WARNING | Using fallback equal-weight on 2020-05-27 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,769 | WARNING | Using fallback equal-weight on 2020-05-28 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,779 | WARNING | Using fallback equal-weight on 2020-05-31 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,788 | WARNING | Using fallback equal-weight on 2020-06-01 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,795 | WARNING | Using fallback equal-weight on 2020-06-02 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,802 | WARNING | Using fallback equal-weight on 2020-06-03 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,809 | WARNING | Using fallback equal-weight on 2020-06-04 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,816 | WARNING | Using fallback equal-weight on 2020-06-07 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,823 | WARNING | Using fallback equal-weight on 2020-06-08 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,831 | WARNING | Using fallback equal-weight on 2020-06-09 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,838 | WARNING | Using fallback equal-weight on 2020-06-10 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,839 | INFO | Progress: 4% (44/1098) | date=2020-06-10 00:00:00 nav=1.19663175 opt_status=ema_insufficient_window
+2025-12-28 13:12:50,845 | WARNING | Using fallback equal-weight on 2020-06-11 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,853 | WARNING | Using fallback equal-weight on 2020-06-14 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,861 | WARNING | Using fallback equal-weight on 2020-06-15 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,869 | WARNING | Using fallback equal-weight on 2020-06-16 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:50,876 | WARNING | Using fallback equal-weight on 2020-06-17 00:00:00 | opt_status=ema_insufficient_window | n_valid_assets=138
+2025-12-28 13:12:51,438 | INFO | Progress: 5% (55/1098) | date=2020-06-25 00:00:00 nav=1.25966914 opt_status=ok_ema_minvar
+2025-12-28 13:12:52,794 | INFO | Progress: 6% (66/1098) | date=2020-07-12 00:00:00 nav=1.30854825 opt_status=ok_ema_minvar
+2025-12-28 13:12:54,274 | INFO | Progress: 7% (77/1098) | date=2020-07-27 00:00:00 nav=1.40829366 opt_status=ok_ema_minvar
+2025-12-28 13:12:55,762 | INFO | Progress: 8% (88/1098) | date=2020-08-11 00:00:00 nav=1.44187979 opt_status=ok_ema_minvar
+2025-12-28 13:12:57,359 | INFO | Progress: 9% (99/1098) | date=2020-08-26 00:00:00 nav=1.45358422 opt_status=ok_ema_minvar
+2025-12-28 13:12:58,919 | INFO | Progress: 10% (110/1098) | date=2020-09-10 00:00:00 nav=1.41431089 opt_status=ok_ema_minvar
+2025-12-28 13:13:00,472 | INFO | Progress: 11% (121/1098) | date=2020-09-27 00:00:00 nav=1.4324596 opt_status=ok_ema_minvar
+2025-12-28 13:13:02,301 | INFO | Progress: 12% (132/1098) | date=2020-10-13 00:00:00 nav=1.44912696 opt_status=ok_ema_minvar
+2025-12-28 13:13:04,166 | INFO | Progress: 13% (143/1098) | date=2020-10-28 00:00:00 nav=1.40415401 opt_status=ok_ema_minvar
+2025-12-28 13:13:05,789 | INFO | Progress: 14% (154/1098) | date=2020-11-12 00:00:00 nav=1.48545541 opt_status=ok_ema_minvar
+2025-12-28 13:13:07,283 | INFO | Progress: 15% (165/1098) | date=2020-11-30 00:00:00 nav=1.56277965 opt_status=ok_ema_minvar
+2025-12-28 13:13:08,696 | INFO | Progress: 16% (176/1098) | date=2020-12-15 00:00:00 nav=1.68871199 opt_status=ok_ema_minvar
+2025-12-28 13:13:10,226 | INFO | Progress: 17% (187/1098) | date=2020-12-31 00:00:00 nav=1.68755027 opt_status=ok_ema_minvar
+2025-12-28 13:13:11,836 | INFO | Progress: 18% (198/1098) | date=2021-01-17 00:00:00 nav=1.71352712 opt_status=ok_ema_minvar
+2025-12-28 13:13:13,382 | INFO | Progress: 19% (209/1098) | date=2021-02-02 00:00:00 nav=1.79952575 opt_status=ok_ema_minvar
+2025-12-28 13:13:14,800 | INFO | Progress: 20% (220/1098) | date=2021-02-17 00:00:00 nav=1.85137091 opt_status=ok_ema_minvar
+2025-12-28 13:13:16,212 | INFO | Progress: 21% (231/1098) | date=2021-03-04 00:00:00 nav=1.91617888 opt_status=ok_ema_minvar
+2025-12-28 13:13:17,734 | INFO | Progress: 22% (242/1098) | date=2021-03-22 00:00:00 nav=1.91531764 opt_status=ok_ema_minvar
+2025-12-28 13:13:19,252 | INFO | Progress: 23% (253/1098) | date=2021-04-08 00:00:00 nav=1.95390178 opt_status=ok_ema_minvar
+2025-12-28 13:13:20,752 | INFO | Progress: 24% (264/1098) | date=2021-04-27 00:00:00 nav=1.88863851 opt_status=ok_ema_minvar
+2025-12-28 13:13:22,658 | INFO | Progress: 25% (275/1098) | date=2021-05-13 00:00:00 nav=1.97293328 opt_status=ok_ema_minvar
+2025-12-28 13:13:24,485 | INFO | Progress: 26% (286/1098) | date=2021-05-30 00:00:00 nav=1.9995101 opt_status=ok_ema_minvar
+2025-12-28 13:13:26,180 | INFO | Progress: 27% (297/1098) | date=2021-06-14 00:00:00 nav=2.05564366 opt_status=ok_ema_minvar
+2025-12-28 13:13:28,049 | INFO | Progress: 28% (308/1098) | date=2021-06-29 00:00:00 nav=2.01444608 opt_status=ok_ema_minvar
+2025-12-28 13:13:29,864 | INFO | Progress: 29% (319/1098) | date=2021-07-14 00:00:00 nav=2.06768626 opt_status=ok_ema_minvar
+2025-12-28 13:13:31,744 | INFO | Progress: 30% (330/1098) | date=2021-08-01 00:00:00 nav=2.1317361 opt_status=ok_ema_minvar
+2025-12-28 13:13:33,396 | INFO | Progress: 31% (341/1098) | date=2021-08-16 00:00:00 nav=2.13603522 opt_status=ok_ema_minvar
+2025-12-28 13:13:35,022 | INFO | Progress: 32% (352/1098) | date=2021-09-01 00:00:00 nav=2.196061 opt_status=ok_ema_minvar
+2025-12-28 13:13:36,675 | INFO | Progress: 33% (363/1098) | date=2021-09-19 00:00:00 nav=2.19434142 opt_status=ok_ema_minvar
+2025-12-28 13:13:38,647 | INFO | Progress: 34% (374/1098) | date=2021-10-04 00:00:00 nav=2.24550759 opt_status=ok_ema_minvar
+2025-12-28 13:13:40,318 | INFO | Progress: 35% (385/1098) | date=2021-10-20 00:00:00 nav=2.23962303 opt_status=ok_ema_minvar
+2025-12-28 13:13:42,216 | INFO | Progress: 36% (396/1098) | date=2021-11-07 00:00:00 nav=2.27440777 opt_status=ok_ema_minvar
+2025-12-28 13:13:44,310 | INFO | Progress: 37% (407/1098) | date=2021-11-23 00:00:00 nav=2.15481055 opt_status=ok_ema_minvar
+2025-12-28 13:13:45,973 | INFO | Progress: 38% (418/1098) | date=2021-12-08 00:00:00 nav=2.16495442 opt_status=ok_ema_minvar
+2025-12-28 13:13:47,794 | INFO | Progress: 39% (429/1098) | date=2021-12-23 00:00:00 nav=2.11575575 opt_status=ok_ema_minvar
+2025-12-28 13:13:49,820 | INFO | Progress: 40% (440/1098) | date=2022-01-09 00:00:00 nav=2.19115927 opt_status=ok_ema_minvar
+2025-12-28 13:13:51,479 | INFO | Progress: 41% (451/1098) | date=2022-01-24 00:00:00 nav=2.0811847 opt_status=ok_ema_minvar
+2025-12-28 13:13:53,140 | INFO | Progress: 42% (462/1098) | date=2022-02-09 00:00:00 nav=2.09847103 opt_status=ok_ema_minvar
+2025-12-28 13:13:54,682 | INFO | Progress: 43% (473/1098) | date=2022-02-24 00:00:00 nav=1.92151093 opt_status=ok_ema_minvar
+2025-12-28 13:13:56,016 | INFO | Progress: 44% (484/1098) | date=2022-03-14 00:00:00 nav=1.8978662 opt_status=ok_ema_minvar
+2025-12-28 13:13:57,554 | INFO | Progress: 45% (495/1098) | date=2022-03-30 00:00:00 nav=1.97104053 opt_status=ok_ema_minvar
+2025-12-28 13:13:59,158 | INFO | Progress: 46% (506/1098) | date=2022-04-18 00:00:00 nav=1.93238325 opt_status=ok_ema_minvar
+2025-12-28 13:14:01,342 | INFO | Progress: 47% (517/1098) | date=2022-05-04 00:00:00 nav=1.87285308 opt_status=ok_ema_minvar
+2025-12-28 13:14:03,274 | INFO | Progress: 48% (528/1098) | date=2022-05-19 00:00:00 nav=1.82630539 opt_status=ok_ema_minvar
+2025-12-28 13:14:05,755 | INFO | Progress: 49% (539/1098) | date=2022-06-05 00:00:00 nav=1.84364258 opt_status=ok_ema_minvar
+2025-12-28 13:14:07,684 | INFO | Progress: 50% (549/1098) | date=2022-06-19 00:00:00 nav=1.72713575 opt_status=ok_ema_minvar
+2025-12-28 13:14:09,186 | INFO | Progress: 51% (560/1098) | date=2022-07-04 00:00:00 nav=1.82779067 opt_status=ok_ema_minvar
+2025-12-28 13:14:11,714 | INFO | Progress: 52% (571/1098) | date=2022-07-19 00:00:00 nav=1.91924173 opt_status=ok_ema_minvar
+2025-12-28 13:14:13,750 | INFO | Progress: 53% (582/1098) | date=2022-08-03 00:00:00 nav=1.96228815 opt_status=ok_ema_minvar
+2025-12-28 13:14:15,422 | INFO | Progress: 54% (593/1098) | date=2022-08-22 00:00:00 nav=2.01970479 opt_status=ok_ema_minvar
+2025-12-28 13:14:16,976 | INFO | Progress: 55% (604/1098) | date=2022-09-07 00:00:00 nav=2.11399879 opt_status=ok_ema_minvar
+2025-12-28 13:14:18,462 | INFO | Progress: 56% (615/1098) | date=2022-09-22 00:00:00 nav=2.09620705 opt_status=ok_ema_minvar
+2025-12-28 13:14:19,984 | INFO | Progress: 57% (626/1098) | date=2022-10-10 00:00:00 nav=2.03111688 opt_status=ok_ema_minvar
+2025-12-28 13:14:21,678 | INFO | Progress: 58% (637/1098) | date=2022-10-26 00:00:00 nav=2.12795772 opt_status=ok_ema_minvar
+2025-12-28 13:14:23,552 | INFO | Progress: 59% (648/1098) | date=2022-11-13 00:00:00 nav=2.12348006 opt_status=ok_ema_minvar
+2025-12-28 13:14:25,239 | INFO | Progress: 60% (659/1098) | date=2022-11-28 00:00:00 nav=2.16425472 opt_status=ok_ema_minvar
+2025-12-28 13:14:26,796 | INFO | Progress: 61% (670/1098) | date=2022-12-13 00:00:00 nav=2.24469524 opt_status=ok_ema_minvar
+2025-12-28 13:14:28,340 | INFO | Progress: 62% (681/1098) | date=2022-12-28 00:00:00 nav=2.17747289 opt_status=ok_ema_minvar
+2025-12-28 13:14:30,092 | INFO | Progress: 63% (692/1098) | date=2023-01-12 00:00:00 nav=2.22480433 opt_status=ok_ema_minvar
+2025-12-28 13:14:31,804 | INFO | Progress: 64% (703/1098) | date=2023-01-30 00:00:00 nav=2.11726727 opt_status=ok_ema_minvar
+2025-12-28 13:14:33,494 | INFO | Progress: 65% (714/1098) | date=2023-02-14 00:00:00 nav=2.09098198 opt_status=ok_ema_minvar
+2025-12-28 13:14:35,222 | INFO | Progress: 66% (725/1098) | date=2023-03-01 00:00:00 nav=2.03933132 opt_status=ok_ema_minvar
+2025-12-28 13:14:37,036 | INFO | Progress: 67% (736/1098) | date=2023-03-19 00:00:00 nav=2.02000826 opt_status=ok_ema_minvar
+2025-12-28 13:14:39,055 | INFO | Progress: 68% (747/1098) | date=2023-04-05 00:00:00 nav=2.05850458 opt_status=ok_ema_minvar
+2025-12-28 13:14:40,983 | INFO | Progress: 69% (758/1098) | date=2023-04-24 00:00:00 nav=2.08862911 opt_status=ok_ema_minvar
+2025-12-28 13:14:42,556 | INFO | Progress: 70% (769/1098) | date=2023-05-10 00:00:00 nav=2.16215589 opt_status=ok_ema_minvar
+2025-12-28 13:14:44,270 | INFO | Progress: 71% (780/1098) | date=2023-05-25 00:00:00 nav=2.20923442 opt_status=ok_ema_minvar
+2025-12-28 13:14:46,181 | INFO | Progress: 72% (791/1098) | date=2023-06-11 00:00:00 nav=2.28435747 opt_status=ok_ema_minvar
+2025-12-28 13:14:48,069 | INFO | Progress: 73% (802/1098) | date=2023-06-26 00:00:00 nav=2.33035065 opt_status=ok_ema_minvar
+2025-12-28 13:14:49,929 | INFO | Progress: 74% (813/1098) | date=2023-07-12 00:00:00 nav=2.34878295 opt_status=ok_ema_minvar
+2025-12-28 13:14:51,673 | INFO | Progress: 75% (824/1098) | date=2023-07-27 00:00:00 nav=2.47671631 opt_status=ok_ema_minvar
+2025-12-28 13:14:53,322 | INFO | Progress: 76% (835/1098) | date=2023-08-13 00:00:00 nav=2.48826064 opt_status=ok_ema_minvar
+2025-12-28 13:14:54,893 | INFO | Progress: 77% (846/1098) | date=2023-08-29 00:00:00 nav=2.54156539 opt_status=ok_ema_minvar
+2025-12-28 13:14:56,595 | INFO | Progress: 78% (857/1098) | date=2023-09-13 00:00:00 nav=2.59051755 opt_status=ok_ema_minvar
+2025-12-28 13:14:58,628 | INFO | Progress: 79% (868/1098) | date=2023-10-02 00:00:00 nav=2.60233457 opt_status=ok_ema_minvar
+2025-12-28 13:15:00,648 | INFO | Progress: 80% (879/1098) | date=2023-10-17 00:00:00 nav=2.57273625 opt_status=ok_ema_minvar
+2025-12-28 13:15:02,616 | INFO | Progress: 81% (890/1098) | date=2023-11-02 00:00:00 nav=2.50531406 opt_status=ok_ema_minvar
+2025-12-28 13:15:04,661 | INFO | Progress: 82% (901/1098) | date=2023-11-20 00:00:00 nav=2.60972548 opt_status=ok_ema_minvar
+2025-12-28 13:15:06,374 | INFO | Progress: 83% (912/1098) | date=2023-12-06 00:00:00 nav=2.81346506 opt_status=ok_ema_minvar
+2025-12-28 13:15:08,191 | INFO | Progress: 84% (923/1098) | date=2023-12-21 00:00:00 nav=2.87268144 opt_status=ok_ema_minvar
+2025-12-28 13:15:09,960 | INFO | Progress: 85% (934/1098) | date=2024-01-08 00:00:00 nav=3.02637346 opt_status=ok_ema_minvar
+2025-12-28 13:15:11,623 | INFO | Progress: 86% (945/1098) | date=2024-01-24 00:00:00 nav=3.08640525 opt_status=ok_ema_minvar
+2025-12-28 13:15:13,359 | INFO | Progress: 87% (956/1098) | date=2024-02-11 00:00:00 nav=3.18043445 opt_status=ok_ema_minvar
+2025-12-28 13:15:15,091 | INFO | Progress: 88% (967/1098) | date=2024-02-26 00:00:00 nav=3.31927011 opt_status=ok_ema_minvar
+2025-12-28 13:15:16,819 | INFO | Progress: 89% (978/1098) | date=2024-03-13 00:00:00 nav=3.22967084 opt_status=ok_ema_minvar
+2025-12-28 13:15:18,692 | INFO | Progress: 90% (989/1098) | date=2024-04-01 00:00:00 nav=3.34769437 opt_status=ok_ema_minvar
+2025-12-28 13:15:20,344 | INFO | Progress: 91% (1000/1098) | date=2024-04-18 00:00:00 nav=3.32167392 opt_status=ok_ema_minvar
+2025-12-28 13:15:22,116 | INFO | Progress: 92% (1011/1098) | date=2024-05-06 00:00:00 nav=3.38558953 opt_status=ok_ema_minvar
+2025-12-28 13:15:23,854 | INFO | Progress: 93% (1022/1098) | date=2024-05-22 00:00:00 nav=3.75211301 opt_status=ok_ema_minvar
+2025-12-28 13:15:25,591 | INFO | Progress: 94% (1033/1098) | date=2024-06-06 00:00:00 nav=3.8245845 opt_status=ok_ema_minvar
+2025-12-28 13:15:27,494 | INFO | Progress: 95% (1044/1098) | date=2024-06-24 00:00:00 nav=3.8647355 opt_status=ok_ema_minvar
+2025-12-28 13:15:29,217 | INFO | Progress: 96% (1055/1098) | date=2024-07-09 00:00:00 nav=3.92749291 opt_status=ok_ema_minvar
+2025-12-28 13:15:31,002 | INFO | Progress: 97% (1066/1098) | date=2024-07-25 00:00:00 nav=3.91847006 opt_status=ok_ema_minvar
+2025-12-28 13:15:32,793 | INFO | Progress: 98% (1077/1098) | date=2024-08-11 00:00:00 nav=3.94360172 opt_status=ok_ema_minvar
+2025-12-28 13:15:34,637 | INFO | Progress: 99% (1088/1098) | date=2024-08-27 00:00:00 nav=4.02022861 opt_status=ok_ema_minvar
+2025-12-28 13:15:36,441 | INFO | Progress: 100% (1098/1098) | date=2024-09-10 00:00:00 nav=4.08073496 opt_status=ok_ema_minvar
+2025-12-28 13:15:36,597 | INFO | Experiment saved to: experiments\ema_minvar_v2_daily_india_20251228_074247
+2025-12-28 13:15:36,664 | INFO | Saved performance artifacts to experiments\ema_minvar_v2_daily_india_20251228_074247\outputs\performance
+2025-12-28 13:15:37,932 | INFO | Saved figures to: experiments\ema_minvar_v2_daily_india_20251228_074247\artifacts\figures
+2025-12-28 13:15:37,932 | INFO | Run complete

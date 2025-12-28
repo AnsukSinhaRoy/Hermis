@@ -39,7 +39,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
+from engine.optimizer.ema_trend import ema_trend_optimize
+from engine.analytics.ema_signals import ema_trend_score
 # portfolio_sim imports (local package)
 from portfolio_sim.data import (
     generate_synthetic_prices,
@@ -129,6 +130,13 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
         'damped_newton': 'entropy_newton',
         'exp_grad': 'omd',
         'exponentiated_gradient': 'omd',
+
+        # EMA trend
+        'ema': 'ema_trend',
+        'ema_trend': 'ema_trend',
+        'ema_filter': 'ema_hybrid',
+        'ema_hybrid': 'ema_hybrid',
+        'ema_mv_reg': 'ema_hybrid',
         'eg': 'omd',
     }
     opt_type = aliases.get(raw_type, raw_type)
@@ -173,6 +181,31 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
 
     omd_cfg = opt_cfg.get('omd', {}) if isinstance(opt_cfg.get('omd', {}), dict) else {}
     eta = float(omd_cfg.get('eta', opt_cfg.get('eta', 0.1)))
+
+    ema_cfg = opt_cfg.get('ema', {}) if isinstance(opt_cfg.get('ema', {}), dict) else {}
+    ema_fast_span = int(ema_cfg.get('fast_span', opt_cfg.get('fast_span', 12)))
+    ema_slow_span = int(ema_cfg.get('slow_span', opt_cfg.get('slow_span', 26)))
+    ema_fallback_k = int(ema_cfg.get('fallback_k', opt_cfg.get('fallback_k', 5)))
+    ema_weight_power = float(ema_cfg.get('weight_power', opt_cfg.get('weight_power', 1.0)))
+    ema_epsilon = float(ema_cfg.get('epsilon', opt_cfg.get('epsilon', 1e-12)))
+    ema_fast_field = str(ema_cfg.get('fast_price_field', opt_cfg.get('fast_price_field', 'close')))
+    ema_slow_field = str(ema_cfg.get('slow_price_field', opt_cfg.get('slow_price_field', 'close')))
+
+    ema_post_optimizer = str(ema_cfg.get('post_optimizer', ema_cfg.get('base_optimizer', opt_cfg.get('post_optimizer', 'mv_reg')))).strip().lower()
+    ema_mu_source = str(ema_cfg.get('mu_source', opt_cfg.get('mu_source', 'ema_score'))).strip().lower()
+    ema_mu_blend_alpha = float(ema_cfg.get('mu_blend_alpha', opt_cfg.get('mu_blend_alpha', 1.0)))
+    ema_mu_scale = float(ema_cfg.get('mu_scale', opt_cfg.get('mu_scale', 1.0)))
+    ema_bullish_threshold = float(ema_cfg.get('bullish_threshold', opt_cfg.get('bullish_threshold', 0.0)))
+    ema_min_assets = ema_cfg.get('min_assets', opt_cfg.get('min_assets', None))
+    ema_max_assets = ema_cfg.get('max_assets', opt_cfg.get('max_assets', None))
+    try:
+        ema_min_assets = int(ema_min_assets) if ema_min_assets is not None else None
+    except Exception:
+        ema_min_assets = None
+    try:
+        ema_max_assets = int(ema_max_assets) if ema_max_assets is not None else None
+    except Exception:
+        ema_max_assets = None
 
     if logger:
         try:
@@ -278,7 +311,7 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
         # ------------------
         # k-cardinality wrapper (subset selection)
         # ------------------
-        if k is not None and int(k) > 0:
+        if k is not None and int(k) > 0 and opt_type not in {'ema_trend','ema_hybrid'}:
             if opt_type == "entropy_newton":
                 # manual subset selection then entropy solve
                 topk = _select_topk_assets(expected, cov, int(k))
@@ -340,7 +373,153 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
             except Exception as e:
                 return {"weights": None, "status": f"error_entropy_opt:{e}"}
 
-        # unknown → safe fallback
+        if opt_type in {"ema_trend", "ema_hybrid"}:
+            prices_window = ctx.get("prices_window", None)
+
+            # Current datasets are close-only. Keep the config fields for forward-compat,
+            # but fall back to close when callers set other fields.
+            if (ema_fast_field != "close") or (ema_slow_field != "close"):
+                if logger:
+                    logger.warning(
+                        "EMA strategy configured with non-close fields (fast=%s slow=%s) but prices are close-only; falling back to close.",
+                        str(ema_fast_field), str(ema_slow_field)
+                    )
+
+            scores = None
+            try:
+                if prices_window is not None:
+                    scores = ema_trend_score(
+                        prices_window,
+                        fast_span=ema_fast_span,
+                        slow_span=ema_slow_span,
+                    )
+            except Exception as e:
+                if logger:
+                    logger.exception("EMA score computation failed: %s", repr(e))
+                scores = None
+
+            if scores is None or len(scores) == 0:
+                return {"weights": None, "status": "ema_insufficient_window"}
+
+            # Align to current asset universe for this rebalance.
+            scores = pd.Series(scores).replace([np.inf, -np.inf], np.nan).reindex(assets)
+            scores_clean = scores.dropna()
+            if scores_clean.empty:
+                return {"weights": None, "status": "ema_no_scores"}
+
+            thr = float(ema_bullish_threshold)
+            bullish = scores_clean[scores_clean > thr].sort_values(ascending=False)
+
+            selected = bullish
+            if ema_max_assets is not None and len(selected) > 0:
+                selected = selected.head(min(int(ema_max_assets), len(selected)))
+
+            # ensure minimum diversification by filling with next-best (least bearish) scores
+            min_assets = ema_min_assets if ema_min_assets is not None else max(1, min(ema_fallback_k, len(scores_clean)))
+            if len(selected) < min_assets:
+                remaining = scores_clean.drop(index=selected.index, errors="ignore").sort_values(ascending=False)
+                need = min_assets - len(selected)
+                if need > 0:
+                    selected = pd.concat([selected, remaining.head(need)])
+
+            if selected.empty:
+                selected = scores_clean.sort_values(ascending=False).head(min(ema_fallback_k, len(scores_clean)))
+
+            selected_assets = list(selected.index)
+
+            mode = str(ema_post_optimizer).strip().lower()
+
+            # -------------
+            # Greedy mode (original EMA implementation)
+            # -------------
+            if mode in {"greedy", "trend_greedy"}:
+                w = ema_trend_optimize(
+                    scores=scores,
+                    box=box,
+                    long_only=long_only,
+                    fallback_k=ema_fallback_k,
+                    weight_power=ema_weight_power,
+                    epsilon=ema_epsilon,
+                )
+                return {"weights": w, "status": "ok_ema_greedy", "selected_n": int(len(selected_assets))}
+
+            # -------------
+            # Build mu for the base optimizer
+            # -------------
+            mu_returns = expected.reindex(selected_assets).astype(float)
+            mu_score = (scores.reindex(selected_assets).astype(float) * float(ema_mu_scale))
+
+            mu_source = str(ema_mu_source).strip().lower()
+            if mu_source in {"ema", "ema_score", "score"}:
+                mu_sub = mu_score
+            elif mu_source in {"returns", "mean_returns", "er"}:
+                mu_sub = mu_returns
+            elif mu_source in {"blend", "mix", "hybrid"}:
+                a = float(ema_mu_blend_alpha)
+                a = max(0.0, min(1.0, a))
+                mu_sub = (a * mu_score) + ((1.0 - a) * mu_returns)
+            else:
+                mu_sub = mu_score
+
+            cov_sub = cov.reindex(index=selected_assets, columns=selected_assets).fillna(0.0)
+
+            # -------------
+            # Run the chosen base optimizer on the EMA-filtered universe
+            # -------------
+            if mode in {"mv_reg", "mv", "mean_variance", "mean-variance"}:
+                res = mv_reg_optimize(mu_sub, cov_sub, box=box, long_only=long_only, lambda_reg=lambda_reg, lambdas=lambdas, solver=solver)
+            elif mode in {"minvar", "min_variance", "gmv"}:
+                res = min_variance_optimize(cov_sub, box=box, long_only=long_only, solver=solver)
+            elif mode in {"risk_parity", "erc"}:
+                res = risk_parity_optimize(cov_sub, box=box, long_only=long_only, tol=rp_tol, max_iter=rp_max_iter)
+            elif mode in {"sharpe", "max_sharpe"}:
+                res = sharpe_optimize(mu_sub, cov_sub, box=box, long_only=long_only, solver=solver)
+            elif mode in {"entropy_newton", "entropy"}:
+                try:
+                    Sigma = cov_sub.values.astype(float)
+                    mu_np = mu_sub.reindex(selected_assets).fillna(0.0).values.astype(float)
+                    n = Sigma.shape[0]
+                    w0 = np.ones(n) * (K / n)
+                    w_opt = _damped_newton_projected(
+                        w0,
+                        Sigma,
+                        mu_np,
+                        p_avg,
+                        lam,
+                        K=K,
+                        max_iters=50,
+                        tol=1e-8,
+                    )
+                    res = {"weights": pd.Series(w_opt, index=selected_assets), "status": "success"}
+                except Exception as e:
+                    res = {"weights": None, "status": f"error_entropy_opt:{e}"}
+            else:
+                # default fallback
+                res = mv_reg_optimize(mu_sub, cov_sub, box=box, long_only=long_only, lambda_reg=lambda_reg, lambdas=lambdas, solver=solver)
+
+            w = res.get("weights") if isinstance(res, dict) else res
+            st = res.get("status", "ok") if isinstance(res, dict) else "ok"
+            if w is None:
+                return {"weights": None, "status": f"ema_base_opt_failed:{mode}"}
+
+            if isinstance(w, np.ndarray):
+                w = pd.Series(w, index=selected_assets)
+            elif isinstance(w, pd.Series):
+                w = w.reindex(selected_assets)
+            else:
+                try:
+                    w = pd.Series(w, index=selected_assets)
+                except Exception:
+                    return {"weights": None, "status": "ema_bad_weights"}
+
+            w = w.replace([np.inf, -np.inf], 0.0).fillna(0.0)
+            s = float(w.sum())
+            if (not np.isfinite(s)) or s <= 0:
+                w = pd.Series(1.0 / len(selected_assets), index=selected_assets)
+            else:
+                w = w / s
+
+            return {"weights": w, "status": f"ok_ema_{mode}", "selected_n": int(len(selected_assets)), "base_status": st}
         return mv_reg_optimize(expected_use, cov_use, **common_args, lambda_reg=lambda_reg, lambdas=lambdas, solver=solver)
 
     return optimizer_func
