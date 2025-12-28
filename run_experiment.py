@@ -612,6 +612,16 @@ def runner_func(cfg: dict, logger=None):
         except Exception:
             pass
 
+
+# --- Optional cash asset (constant price series) ---
+# Enables proper cash handling in the backtest + UI/analytics compatibility.
+    cash_cfg = cfg.get('cash', {}) if isinstance(cfg.get('cash', {}), dict) else {}
+    if bool(cash_cfg.get('enabled', cash_cfg.get('use_cash', False))):
+        cash_name = str(cash_cfg.get('asset_name', cash_cfg.get('cash_asset_name', cash_cfg.get('ticker', 'CASH')))).strip() or "CASH"
+        if cash_name not in prices.columns:
+            prices = prices.copy()
+            prices[cash_name] = 1.0
+
     # 2) estimators
     expected_return_estimator_callable = expected_return_estimator
     cov_estimator_callable = cov_estimator_factory(use_gpu=use_gpu)
@@ -626,6 +636,7 @@ def runner_func(cfg: dict, logger=None):
         "lookback": (cfg.get('risk_model', {}) or {}).get('lookback', None),
         # optional debug setting:
         "record_non_rebalance": bool(exp_cfg.get("record_non_rebalance", False)),
+        "cash": cash_cfg,
     }
 
     # 5) progress (log every 1%)
