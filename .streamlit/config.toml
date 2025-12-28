@@ -1,4 +1,7 @@
 [theme]
-# The preset Streamlit theme that your custom theme inherits from.
-# Can be "light" or "dark".
 base = "light"
+primaryColor = "#1a73e8"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8f9fa"
+textColor = "#202124"
+font = "sans serif"

@@ -100,12 +100,25 @@ def plot_compare_navs(nav_series: List[pd.Series], names: List[str]) -> go.Figur
 
 def plot_calendar_heatmap(
     heatmap_df: pd.DataFrame,
-    title: Optional[str] = "Monthly Returns Heatmap",
+    title: Optional[str] = "Calendar Returns",
     cell_height: int = 28,
+    zmin: float = -0.30,
+    zmax: float = 0.30,
 ) -> go.Figure:
     """
-    Plot a colored heatmap of monthly returns (from create_calendar_heatmap()) and overlay numeric labels.
-    `cell_height` controls the vertical pixel height allocated per row (year).
+    Monthly returns heatmap with *fixed* color buckets (not relative to sample range).
+
+    Buckets (fixed bins):
+      <= -15% : deep red
+      -15%..-10% : red
+      -10%..-5% : orange
+      -5%..0% : yellow
+      0%..5% : light green
+      5%..10% : medium green
+      10%..15% : deep green
+      >= 15% : bluish green
+
+    `zmin`/`zmax` control the clamp range for the palette.
     """
     df = heatmap_df.copy()
     if 'Year' in df.columns:
@@ -113,64 +126,97 @@ def plot_calendar_heatmap(
     else:
         df_plot = df
 
-    # axis labels and numeric matrix
-    z = df_plot.values.astype(float)  # shape (n_years, n_months)
-    x = list(df_plot.columns)         # month names (x axis)
-    y = [str(i) for i in df_plot.index]  # years (y axis as strings)
+    # numeric matrix
+    z = df_plot.values.astype(float)
+    x = list(df_plot.columns)
+    y = [str(i) for i in df_plot.index]
 
-    # Base image (colored heatmap)
-    fig = px.imshow(
-        z,
-        x=x,
-        y=y,
-        labels={'x': 'Month', 'y': 'Year', 'color': 'Monthly Return'},
-        aspect='auto',
-        origin='lower',
-        color_continuous_scale='RdYlGn',
+    # Clamp to fixed range for consistent coloring
+    z = z.clip(min=zmin, max=zmax)
+
+    # Fixed bucket edges (in decimal returns)
+    edges = [zmin, -0.15, -0.10, -0.05, 0.0, 0.05, 0.10, 0.15, zmax]
+    colors = [
+        "#8e0000",  # deep red
+        "#e53935",  # red
+        "#fb8c00",  # orange
+        "#fdd835",  # yellow
+        "#c8e6c9",  # light green
+        "#66bb6a",  # medium green
+        "#2e7d32",  # deep green
+        "#00897b",  # bluish green
+    ]
+    def _pos(v: float) -> float:
+        return 0.0 if zmax == zmin else (v - zmin) / (zmax - zmin)
+
+    # Build a stepped colorscale (discrete buckets)
+    # Plotly colorscale expects positions in [0,1]
+    cs = []
+    for i in range(len(colors)):
+        left = _pos(edges[i])
+        right = _pos(edges[i + 1])
+        cs.append([left, colors[i]])
+        cs.append([right, colors[i]])
+        if i < len(colors) - 1:
+            cs.append([right, colors[i + 1]])
+
+    # Colorbar labels at bucket midpoints
+    mids = [(edges[i] + edges[i + 1]) / 2 for i in range(len(colors))]
+    tickvals = mids
+    ticktext = [
+        "≤ -15%",
+        "-15% .. -10%",
+        "-10% .. -5%",
+        "-5% .. 0%",
+        "0% .. 5%",
+        "5% .. 10%",
+        "10% .. 15%",
+        "≥ 15%",
+    ]
+# Figure height: one row per year
+    fig_height = max(320, int(cell_height * max(1, len(y)) + 160))
+
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=z,
+            x=x,
+            y=y,
+            zmin=zmin,
+            zmax=zmax,
+            colorscale=cs,
+            colorbar=dict(
+                title="Monthly return",
+                tickmode="array",
+                tickvals=tickvals,
+                ticktext=ticktext,
+            ),
+            hovertemplate="Year: %{y}<br>Month: %{x}<br>Return: %{z:.2%}<extra></extra>",
+        )
     )
-    fig.update_coloraxes(colorbar_tickformat=".2%")
 
-    # Compute dynamic figure height using cell_height
-    # Add some padding for title/axis labels:
-    top_bottom_padding = 140  # px for title, x-axis ticks, margins (tweak if needed)
-    fig_height = max(300, len(y) * int(cell_height) + top_bottom_padding)
-
-    # Text overlay: format as percent with sign, handle NaN
-    texts = []
-    text_colors = []
-    xs = []
-    ys = []
-
-    # Determine normalization for text color contrast
-    flat = pd.Series(z.flatten())
-    zmin = float(flat.min(skipna=True)) if not flat.empty else 0.0
-    zmax = float(flat.max(skipna=True)) if not flat.empty else 0.0
-    center = 0.0
-    span = max(abs(zmin - center), abs(zmax - center), 1e-9)
-
+    # Overlay the values as text
+    texts, xs, ys, text_colors = [], [], [], []
     for yi, row in enumerate(y):
         for xi, col in enumerate(x):
             val = z[yi, xi]
             if pd.isna(val):
-                text = ""
-            else:
-                text = f"{val:+.2%}"
-            texts.append(text)
+                texts.append("")
+                xs.append(col)
+                ys.append(row)
+                text_colors.append("#202124")
+                continue
+
+            texts.append(f"{val:+.2%}")
             xs.append(col)
             ys.append(row)
-            # choose text color for contrast: white on strong color, else black
-            if pd.isna(val):
-                text_colors.append("black")
-            else:
-                norm = abs(val - center) / span
-                text_colors.append("white" if norm > 0.45 else "black")
 
-    # Compute font size proportional to cell_height (clamped for legibility)
-    # Rough heuristic: ~40% of cell height, clamp between 8 and 18
-    font_size = int(max(8, min(18, round(cell_height * 0.42))))
+            # Decide text color for readability based on fixed normalization
+            norm = _pos(float(val))
+            # Dark text on lighter colors; white text on strong red/green
+            text_colors.append("white" if (norm <= 0.18 or norm >= 0.78) else "#202124")
 
+    font_size = 12 if len(y) <= 20 else 10
 
-    # Add Scatter text layer (overlay). hoverinfo='skip' to keep heatmap hover
     fig.add_trace(
         go.Scatter(
             x=xs,
@@ -183,21 +229,13 @@ def plot_calendar_heatmap(
         )
     )
 
-    # Tweak layout: dynamic height, margins and tick styling
     fig.update_layout(
         title=title,
         height=fig_height,
-        margin=dict(l=80, r=20, t=60, b=120),  # more bottom margin for rotated x-ticks
+        margin=dict(l=70, r=20, t=55, b=110),
+        template="plotly_white",
     )
     fig.update_xaxes(tickangle=-45, automargin=True)
     fig.update_yaxes(automargin=True)
-
-    # Make hover template still informative on the heatmap trace
-    # Note: px.imshow created the heatmap trace already; update its hovertemplate
-    # The first trace is usually the heatmap; find and update its hovertemplate if possible
-    for trace in fig.data:
-        if isinstance(trace, go.Heatmap) or (hasattr(trace, 'z') and trace.name in (None, '')):
-            trace.hovertemplate = 'Year: %{y}<br>Month: %{x}<br>Return: %{z:.2%}'
-            break
 
     return fig
