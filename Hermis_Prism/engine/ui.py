@@ -33,6 +33,8 @@ from .viz import (
     plot_calendar_heatmap,
 )
 
+from .benchmarks import BENCHMARKS, try_get_benchmark_nav, get_custom_yahoo_nav
+
 
 CSS = """
 <style>
@@ -131,10 +133,25 @@ def run_app():
         st.divider()
         st.header("📊 Comparison Mode")
         enable_cmp = st.checkbox("Enable Comparison", value=False)
+        bench_labels: List[str] = []
+        custom_bench_ticker: str = ""
+        custom_bench_label: str = ""
         if enable_cmp:
             default_choices = [sel_label] if sel_label in exp_labels else []
             cmp_choices = st.multiselect("Select Experiments to Compare", exp_labels, default=default_choices)
             cmp_paths = [exp_dirs[exp_labels.index(x)] for x in cmp_choices]
+
+            st.subheader("Benchmarks")
+            include_bench = st.checkbox("Include benchmark(s)", value=False)
+            if include_bench:
+                bench_labels = st.multiselect(
+                    "Select benchmarks",
+                    list(BENCHMARKS.keys()),
+                    default=["NIFTY 50 (Auto: NSE / Yahoo)"] if "NIFTY 50 (Auto: NSE / Yahoo)" in BENCHMARKS else (["NIFTY 50 (Yahoo: ^NSEI)"] if "NIFTY 50 (Yahoo: ^NSEI)" in BENCHMARKS else []),
+                )
+                with st.expander("Custom Yahoo ticker (optional)", expanded=False):
+                    custom_bench_ticker = st.text_input("Ticker", value="")
+                    custom_bench_label = st.text_input("Label", value="")
         else:
             cmp_paths = []
 
@@ -544,6 +561,70 @@ If you want end-of-month rebalances or to avoid any look-ahead, we should adjust
                 return pd.DataFrame(rows).set_index("Experiment")
 
             metrics_df = get_comparison_data([str(p) for p in cmp_paths], start, end, rf_annual)
+
+            # ---- Benchmarks (optional) ----
+            bench_rows = []
+            bench_navs: List[pd.Series] = []
+            bench_names: List[str] = []
+            missing_bench: List[str] = []
+            bench_errors: Dict[str, str] = {}
+
+            for bl in (bench_labels or []):
+                bnav, err = try_get_benchmark_nav(bl, start=start, end=end)
+                if bnav is None or bnav.dropna().empty or len(bnav.dropna()) < 2:
+                    missing_bench.append(bl)
+                    if err:
+                        bench_errors[bl] = err
+                    continue
+                bm = ann_metrics(bnav, rf_annual=rf_annual) or {}
+                bench_rows.append({
+                    "Experiment": bnav.name or bl,
+                    "Total Return": bm.get("total_return"),
+                    "CAGR": bm.get("cagr"),
+                    "Volatility": bm.get("ann_vol"),
+                    "Max Drawdown": bm.get("max_drawdown"),
+                    "Sharpe": bm.get("sharpe"),
+                })
+                bench_navs.append(bnav)
+                bench_names.append(bnav.name or bl)
+
+            if (custom_bench_ticker or "").strip():
+                bnav = get_custom_yahoo_nav(
+                    custom_bench_ticker,
+                    start=start,
+                    end=end,
+                    label=(custom_bench_label or "").strip() or custom_bench_ticker,
+                )
+                if bnav is None or bnav.dropna().empty or len(bnav.dropna()) < 2:
+                    missing_bench.append(f"Custom: {custom_bench_ticker}")
+                else:
+                    bm = ann_metrics(bnav, rf_annual=rf_annual) or {}
+                    bench_rows.append({
+                        "Experiment": bnav.name or f"Benchmark: {custom_bench_ticker}",
+                        "Total Return": bm.get("total_return"),
+                        "CAGR": bm.get("cagr"),
+                        "Volatility": bm.get("ann_vol"),
+                        "Max Drawdown": bm.get("max_drawdown"),
+                        "Sharpe": bm.get("sharpe"),
+                    })
+                    bench_navs.append(bnav)
+                    bench_names.append(bnav.name or f"Benchmark: {custom_bench_ticker}")
+
+            if missing_bench:
+                st.info(
+                    "Some benchmarks could not be loaded (network / ticker / library issue): "
+                    + ", ".join(missing_bench)
+                )
+                if bench_errors:
+                    with st.expander("Show benchmark error details", expanded=False):
+                        for k, v in bench_errors.items():
+                            st.markdown(f"**{k}**")
+                            st.code(v)
+
+            if bench_rows:
+                bench_df = pd.DataFrame(bench_rows).set_index("Experiment")
+                # merge, keeping experiments first
+                metrics_df = pd.concat([metrics_df, bench_df], axis=0)
             if metrics_df.empty:
                 st.warning("No valid NAV data found for the selected experiments.")
             else:
@@ -583,6 +664,11 @@ If you want end-of-month rebalances or to avoid any look-ahead, we should adjust
                     if nav_s is not None and not nav_s.dropna().empty:
                         nav_series.append(nav_s)
                         names.append(path.name)
+
+                # Add benchmarks to NAV chart (if available)
+                if bench_navs:
+                    nav_series.extend(bench_navs)
+                    names.extend(bench_names)
 
                 if len(nav_series) < 1:
                     st.info("No NAV data overlaps the selected date window for the chosen experiments.")

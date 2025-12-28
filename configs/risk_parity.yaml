@@ -1,9 +1,9 @@
 experiment:
-  name: "risk_parity_daily_k25_india"  #  choose a name for your experiment
+  name: "risk_parity_weekly_k25_both"  #  choose a name for your experiment
   #tag: "mvreg"
-  start_date: "2020-04-06" #yyyy-mm-dd
-  end_date: "2024-09-10"
-  rebalance: "daily"  #  choose one: daily | weekly | monthly
+  start_date: "2015-11-06" #yyyy-mm-dd
+  end_date: "2025-03-05"
+  rebalance: "weekly"  #  choose one: daily | weekly | monthly
   seed: 42
   use_gpu: false
 
@@ -11,7 +11,7 @@ data:
   mode: "processed"  # 👈 choose one: synthetic | processed
   # Option A (recommended): pick which processed dataset to use
   processed:
-    dataset: "india"   # 👈 choose one: india | us | both
+    dataset: "both"   # 👈 choose one: india | us | both
     base_dir: "data/processed"
     freq: "1D"
 
@@ -23,7 +23,7 @@ csv_path: ""
 
 optimizer:
   type: risk_parity
-  box: {min: 0.0, max: 0.25}
+  box: {min: 0.0, max: 1.0}
   long_only: true
   risk_parity:
     tol: 1e-8
