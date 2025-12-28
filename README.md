@@ -6,12 +6,13 @@ What you do with it:
 
 1) Run an experiment (backtest) using a YAML config
 2) Get an output folder under `experiments/` (NAV, weights, trades, logs)
-3) Open **Hermis Prism** (Streamlit) to view and compare runs
+3) Open **Prism** (Streamlit) to view and compare runs
 
 What’s included out of the box:
 
 - **EMA Trend / EMA Hybrid strategy** (EMA fast/slow crossover used as a universe filter)
-- Several optimizers in `portfolio_sim/optimizer.py` (mv_reg, minvar, risk_parity, sharpe, online OMD/FTRL, etc.)
+- Several optimizers under `hermis/optimizers/` (mv_reg, minvar, risk_parity, sharpe, online OMD/FTRL, etc.)
+  - `portfolio_sim/optimizer.py` is now a thin compatibility wrapper.
 - Benchmark overlay in the UI (e.g., **NIFTY 50** via Yahoo ticker `^NSEI`)
 
 ---
@@ -49,10 +50,10 @@ This creates a new folder under `experiments/` containing:
 - `params.yaml` (snapshot of the config you ran)
 - `logs/` (run logs + metadata)
 
-### Open the UI (Hermis Prism)
+### Open the UI (Prism)
 
 ```bash
-streamlit run Hermis_Prism/engine/ui.py
+streamlit run prism/app.py
 ```
 
 ---
@@ -178,7 +179,7 @@ Hermis Prism can overlay a benchmark NAV alongside your strategy NAV.
 
 We load NIFTY 50 using **Yahoo Finance** (ticker: `^NSEI`).
 
-Implementation: `Hermis_Prism/engine/benchmarks.py`
+Implementation: `prism/engine/benchmarks.py`
 
 Order of attempts:
 
@@ -212,7 +213,7 @@ In practice: use Yahoo (`^NSEI`) as the benchmark source and treat NSE as best-e
 
 ### Adding more benchmarks
 
-Open `Hermis_Prism/engine/benchmarks.py` and add an entry to `BENCHMARKS`.
+Open `prism/engine/benchmarks.py` and add an entry to `BENCHMARKS`.
 Example (S&amp;P 500):
 
 ```python
@@ -233,10 +234,12 @@ Hermis/
   levitate / levitate.bat        # convenience launcher
   configs/                       # YAML configs
   experiments/                   # output folders for runs
-  portfolio_sim/                 # backtest + optimizers (core)
-  engine/                        # additional strategy/analytics helpers
-  Hermis_Prism/engine/ui.py      # Streamlit app
-  Hermis_Prism/engine/benchmarks.py
+  hermis/                        # new modular API (optimizers, data, event-driven skeleton)
+  portfolio_sim/                 # legacy simulation code (still used) + compat wrappers
+  engine/                        # strategy/analytics helpers
+  prism/app.py                   # Streamlit entrypoint
+  prism/engine/ui.py             # Streamlit UI implementation
+  prism/engine/benchmarks.py
 ```
 
 ---
