@@ -15,6 +15,7 @@ data:
     base_dir: "data/processed"
     freq: "1D"
 
+
 risk_model:
   type: "sample_cov"
   lookback: 252
