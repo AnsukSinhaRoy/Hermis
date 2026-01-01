@@ -201,6 +201,25 @@ def run_minute_replay_from_cfg(cfg: Dict[str, Any], logger=None) -> Dict[str, An
     dd_threshold = float(dd_cfg.get("threshold", 0.15))
     dd_reduced = float(dd_cfg.get("reduced_exposure", 0.3))
 
+    # --- stoploss (intraday using minute data, but only active between rebalances by default) ---
+    sl_cfg = exp_cfg.get("stoploss", {}) if isinstance(exp_cfg.get("stoploss", {}), dict) else {}
+    sl_enabled = bool(sl_cfg.get("enabled", False))
+    sl_active_on = str(sl_cfg.get("active_on", "non_rebalance")).strip().lower()  # always|non_rebalance
+    sl_price_field = str(sl_cfg.get("trigger_price", "close")).strip().lower()   # close|low (future)
+    sl_exec_field = str(sl_cfg.get("exec_price", "open")).strip().lower()       # open|close
+
+    # Per-position stops (percent, e.g. 0.08 for 8%). 0 disables.
+    sl_hard = float(sl_cfg.get("hard_stop_pct", sl_cfg.get("stop_pct", 0.0)) or 0.0)
+    sl_trail = float(sl_cfg.get("trailing_stop_pct", sl_cfg.get("trail_pct", 0.0)) or 0.0)
+    sl_min_weight = float(sl_cfg.get("min_weight", 0.001))
+    sl_cooldown = str(sl_cfg.get("cooldown", "until_rebalance")).strip().lower()
+    sl_latency = int(sl_cfg.get("latency_minutes", latency_minutes))
+    sl_latency = max(0, sl_latency)
+
+    # Sanity: trailing stop should be positive if enabled, otherwise disable to avoid surprises
+    if sl_enabled and (sl_hard <= 0 and sl_trail <= 0):
+        sl_enabled = False
+
     # --- estimators / optimizer ---
     use_gpu = bool(exp_cfg.get("use_gpu", False))
     cov_estimator = cov_estimator_factory(use_gpu=use_gpu)
@@ -341,6 +360,7 @@ def run_minute_replay_from_cfg(cfg: Dict[str, Any], logger=None) -> Dict[str, An
                 market_start=market_start,
                 latency_minutes=latency_minutes,
                 include_ohlcv=False,
+                include_minutes=sl_enabled,
                 logger=logger,
                 log_every_month=True,
             ):
@@ -374,6 +394,11 @@ def run_minute_replay_from_cfg(cfg: Dict[str, Any], logger=None) -> Dict[str, An
 
     last_week_key: Optional[Tuple[int, int]] = None
 
+    # stoploss state (risky only)
+    sl_entry = pd.Series(np.nan, index=pd.Index(symbols, dtype=str), dtype=float)
+    sl_peak = pd.Series(np.nan, index=pd.Index(symbols, dtype=str), dtype=float)
+    sl_stopped: set[str] = set()
+
     # outputs
     nav_idx: List[pd.Timestamp] = []
     nav_vals: List[float] = []
@@ -391,7 +416,8 @@ def run_minute_replay_from_cfg(cfg: Dict[str, Any], logger=None) -> Dict[str, An
         if err_holder:
             raise err_holder[0]
 
-        (yy, mm), close_w, exec_w, _ = item
+        # iterator yields: (yy,mm), close_w, exec_w, ohlcv_w, minutes_long
+        (yy, mm), close_w, exec_w, _, minutes_long = item
         if close_w is None or close_w.empty:
             continue
 
@@ -453,6 +479,10 @@ def run_minute_replay_from_cfg(cfg: Dict[str, Any], logger=None) -> Dict[str, An
                     last_week_key = wk
 
             have_history = len(close_hist) >= min_lookback
+
+            # Cooldown reset: once per rebalance window.
+            if sl_enabled and do_rebalance and sl_cooldown in ("until_rebalance", "rebalance"):
+                sl_stopped.clear()
 
             w_target = w_exec_pre.copy()
             opt_status = "hold"
@@ -525,13 +555,171 @@ def run_minute_replay_from_cfg(cfg: Dict[str, Any], logger=None) -> Dict[str, An
                 last_rebalance_exec_prices = p_exec.reindex(all_assets).copy()
                 last_rebalance_day = day
                 w_exec_post = w_target
+
+                # Reset stoploss references at rebalance execution (entry price and peak start here)
+                if sl_enabled:
+                    if sl_cooldown in ("until_rebalance", "rebalance", "on_rebalance"):
+                        sl_stopped.clear()
+                    held = w_exec_post.drop(labels=[cash_name], errors="ignore")
+                    held = held[held > sl_min_weight]
+                    sl_entry[:] = np.nan
+                    sl_peak[:] = np.nan
+                    if len(held) > 0:
+                        px = p_exec.reindex(held.index)
+                        sl_entry.loc[held.index] = px.values
+                        sl_peak.loc[held.index] = px.values
             else:
                 w_exec_post = w_exec_pre
 
-            # Drift: exec -> close
+            # Drift: exec -> close (with optional intraday stoploss overrides)
             rel_intraday = _safe_rel(p_close.reindex(all_assets), p_exec.reindex(all_assets))
-            nav_close = nav_exec * float((w_exec_post * rel_intraday).sum())
-            w_close_prev = _weights_drift(w_exec_post, rel_intraday)
+
+            # --- intraday stoploss ---
+            stop_syms: List[str] = []
+            stop_exec_px: Dict[str, float] = {}
+            stop_exec_ts: Dict[str, pd.Timestamp] = {}
+
+            should_check_sl = sl_enabled and (sl_active_on == "always" or (sl_active_on in ("non_rebalance", "between_rebalances") and not do_rebalance))
+            if should_check_sl and minutes_long is not None and not minutes_long.empty:
+                # Only evaluate for held positions above threshold and not already stopped.
+                held_w = w_exec_post.drop(labels=[cash_name], errors="ignore")
+                held_w = held_w[held_w > sl_min_weight]
+                if len(held_w) > 0:
+                    held_syms = [s for s in held_w.index.astype(str).tolist() if s not in sl_stopped]
+                else:
+                    held_syms = []
+
+                if held_syms:
+                    dfd = minutes_long
+                    # filter to this day
+                    dfd = dfd.loc[dfd["date"] == day]
+                    if not dfd.empty:
+                        dfd = dfd.loc[dfd["symbol"].isin(held_syms)]
+
+                    if not dfd.empty:
+                        # Ensure the stop refs exist (if you start mid-week without rebalance, seed from today's exec)
+                        seed = sl_entry.loc[held_syms].isna()
+                        if bool(seed.any()):
+                            seed_syms = sl_entry.loc[held_syms].index[seed].tolist()
+                            px0 = p_exec.reindex(seed_syms).astype(float)
+                            sl_entry.loc[seed_syms] = px0.values
+                            sl_peak.loc[seed_syms] = px0.values
+
+                        # group by symbol and find first trigger minute
+                        for sym, g in dfd.groupby("symbol", sort=False):
+                            # pull refs
+                            entry = float(sl_entry.get(sym, np.nan))
+                            peak0 = float(sl_peak.get(sym, np.nan))
+                            if not np.isfinite(entry) or entry <= 0:
+                                continue
+                            if not np.isfinite(peak0) or peak0 <= 0:
+                                peak0 = entry
+
+                            # choose columns
+                            closes = pd.to_numeric(g.get("close"), errors="coerce").to_numpy(dtype=float)
+                            opens = pd.to_numeric(g.get("open"), errors="coerce").to_numpy(dtype=float) if "open" in g.columns else closes.copy()
+                            dts = pd.to_datetime(g.get("datetime"), errors="coerce").to_numpy()
+                            if closes.size == 0:
+                                continue
+
+                            # update peak path (for trailing)
+                            peak_path = np.maximum.accumulate(np.where(np.isfinite(closes), closes, -np.inf))
+                            peak_path = np.maximum(peak_path, peak0)
+
+                            # effective stop level per minute
+                            lvl = np.full_like(closes, -np.inf, dtype=float)
+                            if sl_trail > 0:
+                                lvl = np.maximum(lvl, peak_path * (1.0 - sl_trail))
+                            if sl_hard > 0:
+                                lvl = np.maximum(lvl, entry * (1.0 - sl_hard))
+
+                            # trigger on close
+                            trig = np.where(np.isfinite(closes) & (closes <= lvl))[0]
+                            if trig.size == 0:
+                                # update peak state with max close
+                                mx = float(np.nanmax(closes)) if np.isfinite(closes).any() else np.nan
+                                if np.isfinite(mx):
+                                    sl_peak.loc[sym] = max(peak0, mx)
+                                continue
+
+                            i0 = int(trig[0])
+                            iexec = min(i0 + sl_latency, closes.size - 1)
+                            # execute at next minute open (preferred) else close
+                            px_exec = opens[iexec] if (sl_exec_field == "open" and np.isfinite(opens[iexec]) and opens[iexec] > 0) else closes[iexec]
+                            if not np.isfinite(px_exec) or px_exec <= 0:
+                                px_exec = closes[i0]
+                            ts_exec = pd.Timestamp(dts[iexec]) if iexec < dts.size else day
+
+                            stop_syms.append(str(sym))
+                            stop_exec_px[str(sym)] = float(px_exec)
+                            stop_exec_ts[str(sym)] = ts_exec
+
+                            # mark stopped; reset refs
+                            sl_stopped.add(str(sym))
+                            sl_entry.loc[str(sym)] = np.nan
+                            sl_peak.loc[str(sym)] = np.nan
+
+                        # Deduplicate in case categories/strings mismatch
+                        stop_syms = sorted(list(set(stop_syms)))
+
+            # Apply stoploss by overriding intraday relatives for stopped symbols.
+            if stop_syms:
+                # Build a rel vector that uses the stop execution price for sold names.
+                rel_eff = rel_intraday.copy()
+                for sym in stop_syms:
+                    px0 = float(p_exec.get(sym, np.nan))
+                    pxs = float(stop_exec_px.get(sym, np.nan))
+                    if np.isfinite(px0) and px0 > 0 and np.isfinite(pxs) and pxs > 0:
+                        rel_eff.loc[sym] = pxs / px0
+
+                # Transaction costs on stop trades (approx): sell notional ~= weight at exec.
+                # Turnover includes cash leg, so we use 2*sum(weights_sold).
+                sold_w = float(w_exec_post.reindex(stop_syms).sum())
+                turnover_sl = 2.0 * max(0.0, sold_w)
+                cost_sl = float(turnover_sl * tc) if tc > 0 else 0.0
+                cost_sl = min(max(cost_sl, 0.0), 0.99)
+
+                nav_close = nav_exec * float((w_exec_post * rel_eff).sum())
+                nav_close = nav_close * (1.0 - cost_sl)
+
+                # Close weights: move stopped value into cash.
+                value = (w_exec_post * rel_eff).copy()
+                if cash_enabled and cash_name in value.index:
+                    cash_val = float(value.get(cash_name, 0.0))
+                    for sym in stop_syms:
+                        cash_val += float(value.get(sym, 0.0))
+                        value.loc[sym] = 0.0
+                    value.loc[cash_name] = cash_val
+                # normalize
+                tot = float(value.sum())
+                if tot > 0 and np.isfinite(tot):
+                    w_close_prev = value / tot
+                else:
+                    w_close_prev = w_exec_post.copy()
+
+                # Record stop events
+                for sym in stop_syms:
+                    trade_rows.append({
+                        "date": day,
+                        "type": "stoploss",
+                        "symbol": sym,
+                        "exec_time": stop_exec_ts.get(sym),
+                        "exec_price": stop_exec_px.get(sym),
+                        "hard_stop_pct": sl_hard,
+                        "trailing_stop_pct": sl_trail,
+                    })
+                trade_rows.append({
+                    "date": day,
+                    "type": "stoploss_cost",
+                    "turnover": turnover_sl,
+                    "tc": tc,
+                    "cost": cost_sl,
+                    "n_exits": int(len(stop_syms)),
+                })
+            else:
+                nav_close = nav_exec * float((w_exec_post * rel_intraday).sum())
+                w_close_prev = _weights_drift(w_exec_post, rel_intraday)
+
             peak_nav = max(peak_nav, nav_close)
 
             nav_idx.append(day)

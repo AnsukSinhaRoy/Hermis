@@ -1,6 +1,6 @@
 experiment:
   name: nifty500_LIVE_sharpe_stoploss_ema_online_replay_1m_weekly
-  start_date: '2015-02-02'
+  start_date: '2014-01-01'
   end_date: '2024-07-04'
   rebalance: weekly
   seed: 42

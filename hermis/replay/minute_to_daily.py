@@ -95,10 +95,11 @@ def iter_daily_months_from_partitioned_minute_store(
     market_start: str = "09:15:00",
     latency_minutes: int = 1,
     include_ohlcv: bool = False,
+    include_minutes: bool = False,
     logger: Optional[Any] = None,
     log_every_month: bool = True,
 ):
-    """Yield (month_id, close_wide, exec_wide, ohlcv_wide_or_none) month-by-month.
+    """Yield (month_id, close_wide, exec_wide, ohlcv_wide_or_none, minutes_long_or_None) month-by-month.
 
     This is the streaming primitive used by the replay engine. It lets the strategy start
     as soon as the first month is processed (instead of waiting for the entire date range).
@@ -134,6 +135,17 @@ def iter_daily_months_from_partitioned_minute_store(
         if raw.empty:
             continue
 
+        # Optional: keep a compact long minute frame for intraday features (e.g., stoploss).
+        minutes_long = None
+        if include_minutes:
+            keep = [c for c in ["datetime", "date", "symbol", "open", "close"] if c in raw.columns]
+            minutes_long = raw[keep].copy()
+            # Reduce memory footprint.
+            try:
+                minutes_long["symbol"] = minutes_long["symbol"].astype("category")
+            except Exception:
+                pass
+
         # daily aggregates
         daily = _daily_ohlcv_from_minute(raw)
         exec_s = _execution_price_from_minute(raw, market_start=market_start, latency_minutes=latency_minutes)
@@ -162,7 +174,7 @@ def iter_daily_months_from_partitioned_minute_store(
             except Exception:
                 pass
 
-        yield (yy, mm), close_w, exec_w, ohlcv_w
+        yield (yy, mm), close_w, exec_w, ohlcv_w, minutes_long
 
 
 def _load_month_pyarrow(

@@ -1,0 +1,11 @@
+{
+  "config_path": "experiments\\nifty500_LIVE_sharpe_stoploss_ema_online_replay_1m_weekly_20260101_184550\\params.yaml",
+  "experiments_dir": "experiments",
+  "experiment_folder": "experiments\\nifty500_LIVE_sharpe_stoploss_ema_online_replay_1m_weekly_20260101_184550",
+  "launcher_pid": 2676,
+  "detached_pid": 18216,
+  "cwd": "E:\\Python\\GIT-Hermis\\Hermis",
+  "updated_utc": "2026-01-01T18:45:50.157976",
+  "name_override": null,
+  "tag": null
+}

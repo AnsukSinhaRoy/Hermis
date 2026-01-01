@@ -1,10 +1,28 @@
 experiment:
-  name: nifty500_LIVE_sharpe_ema_online_replay_1m_weekly
-  start_date: '2015-02-02'
+  name: nifty500_ema_online_replay_1m_weekly
+  start_date: '2014-01-01'
   end_date: '2024-07-04'
   rebalance: weekly
   seed: 42
   use_gpu: true
+  # Intraday risk control (uses 1-minute replay data).
+  # ...
+  stoploss:
+    enabled: true
+    # active_on: always | non_rebalance
+    active_on: non_rebalance
+    # Trigger on minute close; execute on next minute open (with latency).
+    trigger_price: close
+    exec_price: open
+    latency_minutes: 1
+    # Per-position hard stop from the rebalance execution price.
+    hard_stop_pct: 0.07
+    # Per-position trailing stop from the post-rebalance peak.
+    trailing_stop_pct: 0.10
+    # Ignore tiny weights (speeds up + avoids noise exits).
+    min_weight: 0.002
+    # Once stopped, keep it out until next rebalance.
+    cooldown: until_rebalance
 data:
   mode: replay_minute
   processed:
@@ -24,7 +42,6 @@ data:
     live_plot: true
     live_plot_update_every: 1   # update every N daily points
     live_plot_theme: dark
-    live_plot_hold_on_finish: true
 risk_model:
   type: sample_cov
   lookback: 252
@@ -46,7 +63,7 @@ optimizer:
     fast_span: 12
     slow_span: 26
     max_assets: 50
-    base_optimizer: sharpe
-    post_optimizer: sharpe
+    base_optimizer: mv_reg
+    post_optimizer: mv_reg
 transaction_costs:
   proportional: 0.0005
