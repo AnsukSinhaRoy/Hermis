@@ -1,17 +1,29 @@
+"""
+utils/run_logging.py
+
+Lightweight logging / run-metadata helpers expected by run_experiment.py.
+
+The original project had a richer implementation; this provides compatible
+APIs for:
+- RunPaths dataclass
+- setup_logging(log_file, verbose)
+- write_metadata(paths, extra)
+- PercentProgressLogger
+- log_failure(logger, failure_file, exc)
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, Optional
 import json
 import logging
-import os
-import platform
-import shutil
 import sys
-import time
 import traceback
-from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
-from uuid import uuid4
 
-@dataclass
+
+@dataclass(frozen=True)
 class RunPaths:
     run_dir: Path
     config_copy: Path
@@ -20,109 +32,88 @@ class RunPaths:
     failure_file: Path
     metadata_file: Path
 
-def _now_stamp() -> str:
-    # sortable + human readable
-    return datetime.now().strftime("%Y%m%d_%H%M%S")
 
-def make_run_dir(base_dir: str | Path, config_path: str | Path) -> RunPaths:
-    base_dir = Path(base_dir)
-    config_path = Path(config_path)
+def setup_logging(log_file: str | Path, verbose: bool = True, name: str = "hermis") -> logging.Logger:
+    """
+    Configure and return a logger writing to `log_file` and (optionally) console.
 
-    cfg_stem = config_path.stem.replace(" ", "_")
-    run_id = f"{_now_stamp()}_{str(uuid4())[:8]}"
-    run_dir = base_dir / cfg_stem / run_id
-    run_dir.mkdir(parents=True, exist_ok=False)
+    - verbose=True: also logs to stdout
+    - verbose=False: file-only
+    """
+    log_file = Path(log_file)
+    log_file.parent.mkdir(parents=True, exist_ok=True)
 
-    config_copy = run_dir / "config.yaml"
-    shutil.copy2(config_path, config_copy)
-
-    return RunPaths(
-        run_dir=run_dir,
-        config_copy=config_copy,
-        log_file=run_dir / "run.log",
-        stdio_log_file=run_dir / "stdout_stderr.log",
-        failure_file=run_dir / "failure.traceback.txt",
-        metadata_file=run_dir / "metadata.json",
-    )
-
-def setup_logging(log_path: Path, verbose: bool = True) -> logging.Logger:
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-
-    logger = logging.getLogger("simulation")
-    logger.setLevel(logging.DEBUG)
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
     logger.handlers.clear()
     logger.propagate = False
 
-    # File: super detailed
-    fh = logging.FileHandler(log_path, mode="a", encoding="utf-8")
-    fh.setLevel(logging.DEBUG)
-    fh.setFormatter(logging.Formatter(
-        fmt="%(asctime)s.%(msecs)03d | %(levelname)s | %(name)s | %(message)s",
+    fmt = logging.Formatter(
+        fmt="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
-    ))
+    )
+
+    fh = logging.FileHandler(log_file, encoding="utf-8")
+    fh.setLevel(logging.DEBUG if verbose else logging.INFO)
+    fh.setFormatter(fmt)
     logger.addHandler(fh)
 
-    # Console: less noisy
     if verbose:
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.INFO)
-        ch.setFormatter(logging.Formatter("%(asctime)s | %(levelname)s | %(message)s"))
-        logger.addHandler(ch)
-
-    # Capture warnings into logging too
-    logging.captureWarnings(True)
+        sh = logging.StreamHandler(sys.stdout)
+        sh.setLevel(logging.INFO)
+        sh.setFormatter(fmt)
+        logger.addHandler(sh)
 
     return logger
 
-def write_metadata(paths: RunPaths, extra: dict | None = None) -> None:
-    payload = {
-        "run_dir": str(paths.run_dir),
-        "pid": os.getpid(),
-        "python": sys.version,
-        "platform": platform.platform(),
-        "start_time_unix": time.time(),
-    }
-    if extra:
-        payload.update(extra)
-    paths.metadata_file.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+def write_metadata(paths: RunPaths, extra: Optional[Dict[str, Any]] = None) -> None:
+    """Best-effort merge into paths.metadata_file."""
+    try:
+        paths.metadata_file.parent.mkdir(parents=True, exist_ok=True)
+        meta: Dict[str, Any] = {}
+        if paths.metadata_file.exists():
+            meta = json.loads(paths.metadata_file.read_text(encoding="utf-8") or "{}")
+        if extra:
+            meta.update(extra)
+        meta.setdefault("updated_utc", datetime.utcnow().isoformat())
+        paths.metadata_file.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
+    except Exception:
+        return
+
 
 class PercentProgressLogger:
-    """
-    Logs at each 1% increment (or any percent_step you choose).
-    """
+    """Log progress every N percent steps."""
+
     def __init__(self, logger: logging.Logger, total_steps: int, percent_step: int = 1):
-        if total_steps <= 0:
-            raise ValueError("total_steps must be > 0")
-        if percent_step <= 0:
-            raise ValueError("percent_step must be > 0")
-
         self.logger = logger
-        self.total_steps = total_steps
-        self.percent_step = percent_step
-        self._next_percent = percent_step
+        self.total_steps = max(1, int(total_steps))
+        self.percent_step = max(1, int(percent_step))
+        self._next_pct = 0
 
-        # always log the plan first
-        self.logger.info(f"Planned total steps: {total_steps}")
-        self.logger.info(f"Progress logging every {percent_step}%")
+    def maybe_log(self, step: int, **fields: Any) -> None:
+        try:
+            pct = int((100 * (step + 1)) / self.total_steps)
+            if pct >= self._next_pct:
+                self._next_pct = pct + self.percent_step
+                msg = "Progress: %d%% (%d/%d)" % (pct, step + 1, self.total_steps)
+                if fields:
+                    msg += " | " + " ".join(f"{k}={v}" for k, v in fields.items())
+                self.logger.info(msg)
+        except Exception:
+            # progress logging must never break a run
+            return
 
-    def update(self, step_index_1_based: int, **details):
-        # clamp
-        if step_index_1_based < 0:
-            step_index_1_based = 0
-        if step_index_1_based > self.total_steps:
-            step_index_1_based = self.total_steps
 
-        pct = int((step_index_1_based / self.total_steps) * 100)
-
-        # log at each threshold crossing
-        while pct >= self._next_percent:
-            msg = f"Progress: {self._next_percent}% ({step_index_1_based}/{self.total_steps})"
-            if details:
-                msg += " | " + " ".join(f"{k}={v}" for k, v in details.items())
-            self.logger.info(msg)
-            self._next_percent += self.percent_step
-
-def log_failure(logger: logging.Logger, failure_file: Path, exc: BaseException):
-    logger.exception("Simulation failed with an exception.")
-    tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
-    failure_file.write_text(tb, encoding="utf-8")
+def log_failure(logger: logging.Logger, failure_file: str | Path, exc: Exception) -> None:
+    """Write exception repr + traceback to failure_file and log it."""
+    failure_file = Path(failure_file)
+    failure_file.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        failure_file.write_text(f"{repr(exc)}\n\n{traceback.format_exc()}", encoding="utf-8")
+    except Exception:
+        pass
+    try:
+        logger.exception("Run failed: %s", repr(exc))
+    except Exception:
+        pass

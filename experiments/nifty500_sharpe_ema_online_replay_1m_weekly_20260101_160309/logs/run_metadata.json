@@ -1,0 +1,9 @@
+{
+  "config_path": "experiments\\nifty500_sharpe_ema_online_replay_1m_weekly_20260101_160309\\params.yaml",
+  "experiments_dir": "experiments",
+  "experiment_folder": "experiments\\nifty500_sharpe_ema_online_replay_1m_weekly_20260101_160309",
+  "name_override": null,
+  "tag": null,
+  "cwd": "E:\\Python\\GIT-Hermis\\Hermis",
+  "updated_utc": "2026-01-01T16:03:09.776915"
+}

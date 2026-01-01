@@ -1,0 +1,43 @@
+experiment:
+  name: nifty500_sharpe_ema_online_replay_1m_weekly
+  start_date: '2015-2-02'
+  end_date: '2024-07-04'
+  rebalance: weekly
+  seed: 42
+  use_gpu: true
+data:
+  mode: replay_minute
+  processed:
+    dataset: nifty500
+    base_dir: data/processed
+  replay:
+    store_dir: data/processed/nifty500/1min_store
+    universe_file: data/processed/nifty500/universe_symbols.json
+    market_start: 09:15:00
+    latency_minutes: 1
+    prefetch: 1
+risk_model:
+  type: sample_cov
+  lookback: 252
+  lookback_unit: bars
+  scale_to_rebalance_horizon: false
+  min_lookback: 60
+cash:
+  enabled: true
+  asset_name: CASH
+  max_gross_exposure: 1.0
+  drawdown_brake:
+    enabled: true
+    threshold: 0.08
+    reduced_exposure: 0.65
+optimizer:
+  type: ema_online
+  long_only: true
+  ema_online:
+    fast_span: 12
+    slow_span: 26
+    max_assets: 50
+    base_optimizer: sharpe
+    post_optimizer: sharpe
+transaction_costs:
+  proportional: 0.0005

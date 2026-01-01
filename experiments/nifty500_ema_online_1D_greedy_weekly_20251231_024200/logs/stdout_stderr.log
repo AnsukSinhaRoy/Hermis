@@ -1,0 +1,116 @@
+2025-12-31 08:12:01,988 | INFO | Run initialized
+2025-12-31 08:12:01,989 | INFO | Run folder: experiments\nifty500_ema_online_1D_greedy_weekly_20251231_024200
+2025-12-31 08:12:01,989 | INFO | Config used: experiments\nifty500_ema_online_1D_greedy_weekly_20251231_024200\params.yaml
+2025-12-31 08:12:01,989 | INFO | Experiments dir: experiments
+2025-12-31 08:12:01,989 | INFO | Running experiment from config
+2025-12-31 08:12:01,994 | INFO | Runner starting | data.mode=processed | use_gpu=False
+2025-12-31 08:12:02,185 | INFO | Loaded prices | rows=2572 cols=486 | start=2015-02-02 00:00:00 end=2025-07-04 00:00:00
+2025-12-31 08:12:02,189 | INFO | Optimizer configured | raw_type=ema_online resolved=ema_online | k=None | long_only=True | box={'min': 0.005, 'max': 0.45}
+2025-12-31 08:12:02,189 | INFO | Planned total steps: 2572
+2025-12-31 08:12:02,189 | INFO | Progress logging every 1%
+2025-12-31 08:12:02,191 | INFO | Backtest starting | steps=2572 | rebalance=weekly | tc(proportional)=0.0005 | record_non_rebalance=False | cash=True(CASH)
+2025-12-31 08:12:02,191 | INFO | Date range: 2015-02-02 00:00:00 -> 2025-07-04 00:00:00 | assets=487
+2025-12-31 08:12:02,361 | INFO | Progress: 1% (26/2572) | date=2015-03-10 00:00:00 nav=1.01205326 opt_status=no_rebalance
+2025-12-31 08:12:03,441 | INFO | Progress: 2% (52/2572) | date=2015-04-20 00:00:00 nav=0.83967861 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:03,949 | INFO | Progress: 3% (78/2572) | date=2015-05-27 00:00:00 nav=0.79022807 opt_status=no_rebalance
+2025-12-31 08:12:04,369 | INFO | Progress: 4% (103/2572) | date=2015-07-01 00:00:00 nav=0.92600484 opt_status=no_rebalance
+2025-12-31 08:12:04,776 | INFO | Progress: 5% (129/2572) | date=2015-08-06 00:00:00 nav=0.97557469 opt_status=no_rebalance
+2025-12-31 08:12:05,212 | INFO | Progress: 6% (155/2572) | date=2015-09-11 00:00:00 nav=0.86825106 opt_status=no_rebalance
+2025-12-31 08:12:05,855 | INFO | Progress: 7% (181/2572) | date=2015-10-23 00:00:00 nav=0.94158383 opt_status=no_rebalance
+2025-12-31 08:12:06,536 | INFO | Progress: 8% (206/2572) | date=2015-12-02 00:00:00 nav=1.11253929 opt_status=no_rebalance
+2025-12-31 08:12:07,245 | INFO | Progress: 9% (232/2572) | date=2016-01-11 00:00:00 nav=1.06702237 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:07,876 | INFO | Progress: 10% (258/2572) | date=2016-02-17 00:00:00 nav=0.87497269 opt_status=no_rebalance
+2025-12-31 08:12:08,645 | INFO | Progress: 11% (283/2572) | date=2016-03-28 00:00:00 nav=0.90455459 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:09,323 | INFO | Progress: 12% (309/2572) | date=2016-05-06 00:00:00 nav=1.0632668 opt_status=no_rebalance
+2025-12-31 08:12:10,063 | INFO | Progress: 13% (335/2572) | date=2016-06-13 00:00:00 nav=1.2775326 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:10,704 | INFO | Progress: 14% (361/2572) | date=2016-07-20 00:00:00 nav=1.62443879 opt_status=no_rebalance
+2025-12-31 08:12:11,325 | INFO | Progress: 15% (386/2572) | date=2016-08-25 00:00:00 nav=1.44319699 opt_status=no_rebalance
+2025-12-31 08:12:12,144 | INFO | Progress: 16% (412/2572) | date=2016-10-04 00:00:00 nav=1.55581735 opt_status=no_rebalance
+2025-12-31 08:12:12,879 | INFO | Progress: 17% (438/2572) | date=2016-11-15 00:00:00 nav=1.35880934 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:13,490 | INFO | Progress: 18% (463/2572) | date=2016-12-20 00:00:00 nav=1.43323212 opt_status=no_rebalance
+2025-12-31 08:12:14,123 | INFO | Progress: 19% (489/2572) | date=2017-01-25 00:00:00 nav=1.51123136 opt_status=no_rebalance
+2025-12-31 08:12:14,902 | INFO | Progress: 20% (515/2572) | date=2017-03-06 00:00:00 nav=1.6727004 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:15,525 | INFO | Progress: 21% (541/2572) | date=2017-04-13 00:00:00 nav=2.08790024 opt_status=no_rebalance
+2025-12-31 08:12:16,276 | INFO | Progress: 22% (566/2572) | date=2017-05-22 00:00:00 nav=1.96647107 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:16,896 | INFO | Progress: 23% (592/2572) | date=2017-06-28 00:00:00 nav=2.06057494 opt_status=no_rebalance
+2025-12-31 08:12:17,484 | INFO | Progress: 24% (618/2572) | date=2017-08-03 00:00:00 nav=2.0895845 opt_status=no_rebalance
+2025-12-31 08:12:18,197 | INFO | Progress: 25% (643/2572) | date=2017-09-11 00:00:00 nav=2.61908272 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:18,812 | INFO | Progress: 26% (669/2572) | date=2017-10-18 00:00:00 nav=3.3250792 opt_status=no_rebalance
+2025-12-31 08:12:19,536 | INFO | Progress: 27% (695/2572) | date=2017-11-27 00:00:00 nav=4.05156792 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:20,183 | INFO | Progress: 28% (721/2572) | date=2018-01-03 00:00:00 nav=5.04342392 opt_status=no_rebalance
+2025-12-31 08:12:20,784 | INFO | Progress: 29% (746/2572) | date=2018-02-08 00:00:00 nav=5.29487384 opt_status=no_rebalance
+2025-12-31 08:12:21,523 | INFO | Progress: 30% (772/2572) | date=2018-03-20 00:00:00 nav=5.18200332 opt_status=no_rebalance
+2025-12-31 08:12:22,159 | INFO | Progress: 31% (798/2572) | date=2018-04-27 00:00:00 nav=7.33510327 opt_status=no_rebalance
+2025-12-31 08:12:22,939 | INFO | Progress: 32% (824/2572) | date=2018-06-05 00:00:00 nav=7.13732911 opt_status=no_rebalance
+2025-12-31 08:12:23,653 | INFO | Progress: 33% (849/2572) | date=2018-07-10 00:00:00 nav=7.45463674 opt_status=no_rebalance
+2025-12-31 08:12:24,319 | INFO | Progress: 34% (875/2572) | date=2018-08-16 00:00:00 nav=8.21971043 opt_status=no_rebalance
+2025-12-31 08:12:25,179 | INFO | Progress: 35% (901/2572) | date=2018-09-26 00:00:00 nav=7.25858398 opt_status=no_rebalance
+2025-12-31 08:12:25,828 | INFO | Progress: 36% (926/2572) | date=2018-11-02 00:00:00 nav=7.28784054 opt_status=no_rebalance
+2025-12-31 08:12:26,555 | INFO | Progress: 37% (952/2572) | date=2018-12-13 00:00:00 nav=7.59405523 opt_status=no_rebalance
+2025-12-31 08:12:27,263 | INFO | Progress: 38% (978/2572) | date=2019-01-21 00:00:00 nav=5.99028509 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:27,984 | INFO | Progress: 39% (1004/2572) | date=2019-02-26 00:00:00 nav=5.96719338 opt_status=no_rebalance
+2025-12-31 08:12:28,734 | INFO | Progress: 40% (1029/2572) | date=2019-04-04 00:00:00 nav=5.95312665 opt_status=no_rebalance
+2025-12-31 08:12:29,513 | INFO | Progress: 41% (1055/2572) | date=2019-05-16 00:00:00 nav=5.43569931 opt_status=no_rebalance
+2025-12-31 08:12:30,346 | INFO | Progress: 42% (1081/2572) | date=2019-06-24 00:00:00 nav=5.33937834 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:31,094 | INFO | Progress: 43% (1106/2572) | date=2019-07-29 00:00:00 nav=5.16128429 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:31,813 | INFO | Progress: 44% (1132/2572) | date=2019-09-06 00:00:00 nav=5.21830839 opt_status=no_rebalance
+2025-12-31 08:12:32,624 | INFO | Progress: 45% (1158/2572) | date=2019-10-17 00:00:00 nav=5.58412822 opt_status=no_rebalance
+2025-12-31 08:12:33,410 | INFO | Progress: 46% (1184/2572) | date=2019-11-27 00:00:00 nav=6.06165873 opt_status=no_rebalance
+2025-12-31 08:12:34,121 | INFO | Progress: 47% (1209/2572) | date=2020-01-02 00:00:00 nav=6.48974664 opt_status=no_rebalance
+2025-12-31 08:12:34,756 | INFO | Progress: 48% (1235/2572) | date=2020-02-06 00:00:00 nav=6.75773231 opt_status=no_rebalance
+2025-12-31 08:12:35,540 | INFO | Progress: 49% (1261/2572) | date=2020-03-17 00:00:00 nav=8.24246897 opt_status=no_rebalance
+2025-12-31 08:12:36,360 | INFO | Progress: 50% (1286/2572) | date=2020-04-27 00:00:00 nav=12.59134805 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:37,018 | INFO | Progress: 51% (1312/2572) | date=2020-06-04 00:00:00 nav=18.65771542 opt_status=no_rebalance
+2025-12-31 08:12:37,673 | INFO | Progress: 52% (1338/2572) | date=2020-07-10 00:00:00 nav=31.28074328 opt_status=no_rebalance
+2025-12-31 08:12:38,438 | INFO | Progress: 53% (1364/2572) | date=2020-08-17 00:00:00 nav=34.53998897 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:39,074 | INFO | Progress: 54% (1389/2572) | date=2020-09-21 00:00:00 nav=34.27348042 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:39,751 | INFO | Progress: 55% (1415/2572) | date=2020-10-28 00:00:00 nav=35.56381532 opt_status=no_rebalance
+2025-12-31 08:12:40,591 | INFO | Progress: 56% (1441/2572) | date=2020-12-07 00:00:00 nav=49.28843842 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:41,265 | INFO | Progress: 57% (1467/2572) | date=2021-01-13 00:00:00 nav=45.07766934 opt_status=no_rebalance
+2025-12-31 08:12:42,033 | INFO | Progress: 58% (1492/2572) | date=2021-02-18 00:00:00 nav=44.93441881 opt_status=no_rebalance
+2025-12-31 08:12:42,816 | INFO | Progress: 59% (1518/2572) | date=2021-03-30 00:00:00 nav=42.40741593 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:43,681 | INFO | Progress: 60% (1544/2572) | date=2021-05-10 00:00:00 nav=50.99439953 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:44,456 | INFO | Progress: 61% (1569/2572) | date=2021-06-15 00:00:00 nav=63.98695702 opt_status=no_rebalance
+2025-12-31 08:12:45,104 | INFO | Progress: 62% (1595/2572) | date=2021-07-22 00:00:00 nav=85.99161078 opt_status=no_rebalance
+2025-12-31 08:12:45,899 | INFO | Progress: 63% (1621/2572) | date=2021-08-30 00:00:00 nav=77.98766046 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:46,577 | INFO | Progress: 64% (1647/2572) | date=2021-10-06 00:00:00 nav=90.01188729 opt_status=no_rebalance
+2025-12-31 08:12:47,601 | INFO | Progress: 65% (1672/2572) | date=2021-11-15 00:00:00 nav=105.18047874 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:48,360 | INFO | Progress: 66% (1698/2572) | date=2021-12-22 00:00:00 nav=128.40959238 opt_status=no_rebalance
+2025-12-31 08:12:49,127 | INFO | Progress: 67% (1724/2572) | date=2022-01-28 00:00:00 nav=133.32456847 opt_status=no_rebalance
+2025-12-31 08:12:50,078 | INFO | Progress: 68% (1749/2572) | date=2022-03-07 00:00:00 nav=134.11772459 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:50,848 | INFO | Progress: 69% (1775/2572) | date=2022-04-13 00:00:00 nav=169.92972135 opt_status=no_rebalance
+2025-12-31 08:12:51,807 | INFO | Progress: 70% (1801/2572) | date=2022-05-24 00:00:00 nav=185.91528472 opt_status=no_rebalance
+2025-12-31 08:12:52,585 | INFO | Progress: 71% (1827/2572) | date=2022-06-29 00:00:00 nav=174.26970373 opt_status=no_rebalance
+2025-12-31 08:12:53,296 | INFO | Progress: 72% (1852/2572) | date=2022-08-03 00:00:00 nav=173.03115119 opt_status=no_rebalance
+2025-12-31 08:12:54,178 | INFO | Progress: 73% (1878/2572) | date=2022-09-13 00:00:00 nav=172.96840089 opt_status=no_rebalance
+2025-12-31 08:12:54,865 | INFO | Progress: 74% (1904/2572) | date=2022-10-20 00:00:00 nav=190.19997486 opt_status=no_rebalance
+2025-12-31 08:12:55,677 | INFO | Progress: 75% (1929/2572) | date=2022-11-29 00:00:00 nav=211.55150694 opt_status=no_rebalance
+2025-12-31 08:12:56,483 | INFO | Progress: 76% (1955/2572) | date=2023-01-04 00:00:00 nav=223.5967268 opt_status=no_rebalance
+2025-12-31 08:12:57,173 | INFO | Progress: 77% (1981/2572) | date=2023-02-10 00:00:00 nav=193.59655134 opt_status=no_rebalance
+2025-12-31 08:12:57,972 | INFO | Progress: 78% (2007/2572) | date=2023-03-21 00:00:00 nav=194.26124693 opt_status=no_rebalance
+2025-12-31 08:12:58,845 | INFO | Progress: 79% (2032/2572) | date=2023-05-02 00:00:00 nav=203.61563959 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:12:59,589 | INFO | Progress: 80% (2058/2572) | date=2023-06-07 00:00:00 nav=210.79665591 opt_status=no_rebalance
+2025-12-31 08:13:00,281 | INFO | Progress: 81% (2084/2572) | date=2023-07-14 00:00:00 nav=253.19602663 opt_status=no_rebalance
+2025-12-31 08:13:01,181 | INFO | Progress: 82% (2110/2572) | date=2023-08-22 00:00:00 nav=263.66338533 opt_status=no_rebalance
+2025-12-31 08:13:01,904 | INFO | Progress: 83% (2135/2572) | date=2023-09-27 00:00:00 nav=277.97622494 opt_status=no_rebalance
+2025-12-31 08:13:02,782 | INFO | Progress: 84% (2161/2572) | date=2023-11-06 00:00:00 nav=275.54966369 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:13:03,465 | INFO | Progress: 85% (2187/2572) | date=2023-12-14 00:00:00 nav=305.21346104 opt_status=no_rebalance
+2025-12-31 08:13:04,165 | INFO | Progress: 86% (2212/2572) | date=2024-01-19 00:00:00 nav=324.7922316 opt_status=no_rebalance
+2025-12-31 08:13:05,051 | INFO | Progress: 87% (2238/2572) | date=2024-02-27 00:00:00 nav=285.08984907 opt_status=no_rebalance
+2025-12-31 08:13:05,756 | INFO | Progress: 88% (2264/2572) | date=2024-04-05 00:00:00 nav=266.74072806 opt_status=no_rebalance
+2025-12-31 08:13:06,643 | INFO | Progress: 89% (2290/2572) | date=2024-05-16 00:00:00 nav=270.33049412 opt_status=no_rebalance
+2025-12-31 08:13:07,423 | INFO | Progress: 90% (2315/2572) | date=2024-06-21 00:00:00 nav=276.39420162 opt_status=no_rebalance
+2025-12-31 08:13:08,251 | INFO | Progress: 91% (2341/2572) | date=2024-07-30 00:00:00 nav=297.90772015 opt_status=no_rebalance
+2025-12-31 08:13:08,992 | INFO | Progress: 92% (2367/2572) | date=2024-09-05 00:00:00 nav=276.87630089 opt_status=no_rebalance
+2025-12-31 08:13:09,774 | INFO | Progress: 93% (2392/2572) | date=2024-10-11 00:00:00 nav=285.37761782 opt_status=no_rebalance
+2025-12-31 08:13:10,692 | INFO | Progress: 94% (2418/2572) | date=2024-11-21 00:00:00 nav=269.3258368 opt_status=no_rebalance
+2025-12-31 08:13:11,586 | INFO | Progress: 95% (2444/2572) | date=2024-12-30 00:00:00 nav=274.38223483 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:13:12,325 | INFO | Progress: 96% (2470/2572) | date=2025-02-03 00:00:00 nav=226.42924613 opt_status=ok_ema_online_mv_reg
+2025-12-31 08:13:13,160 | INFO | Progress: 97% (2495/2572) | date=2025-03-11 00:00:00 nav=212.90423404 opt_status=no_rebalance
+2025-12-31 08:13:14,025 | INFO | Progress: 98% (2521/2572) | date=2025-04-23 00:00:00 nav=231.22446578 opt_status=no_rebalance
+2025-12-31 08:13:14,759 | INFO | Progress: 99% (2547/2572) | date=2025-05-30 00:00:00 nav=249.81946029 opt_status=no_rebalance
+2025-12-31 08:13:15,504 | INFO | Progress: 100% (2572/2572) | date=2025-07-04 00:00:00 nav=246.46104139 opt_status=no_rebalance
+2025-12-31 08:13:15,809 | INFO | Experiment saved to: experiments\nifty500_ema_online_1D_greedy_weekly_20251231_024200
+2025-12-31 08:13:15,875 | INFO | Saved performance artifacts to experiments\nifty500_ema_online_1D_greedy_weekly_20251231_024200\outputs\performance
+2025-12-31 08:13:17,863 | INFO | Saved figures to: experiments\nifty500_ema_online_1D_greedy_weekly_20251231_024200\artifacts\figures
+2025-12-31 08:13:17,863 | INFO | Run complete

@@ -1,0 +1,9 @@
+{
+  "config_path": "experiments\\nifty500_risk_parity_ema_online_replay_1m_weekly_20260101_155842\\params.yaml",
+  "experiments_dir": "experiments",
+  "experiment_folder": "experiments\\nifty500_risk_parity_ema_online_replay_1m_weekly_20260101_155842",
+  "name_override": null,
+  "tag": null,
+  "cwd": "E:\\Python\\GIT-Hermis\\Hermis",
+  "updated_utc": "2026-01-01T15:58:42.991992"
+}

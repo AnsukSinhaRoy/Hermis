@@ -1,0 +1,13 @@
+{
+  "run_dir": "experiments\\nifty500_ema_online_1D_risk_parity_weekly_20251230_171547",
+  "pid": 18044,
+  "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "start_time_unix": 1767114948.4790184,
+  "config_path": "experiments\\nifty500_ema_online_1D_risk_parity_weekly_20251230_171547\\params.yaml",
+  "experiments_dir": "experiments",
+  "experiment_folder": "experiments\\nifty500_ema_online_1D_risk_parity_weekly_20251230_171547",
+  "name_override": null,
+  "tag": null,
+  "cwd": "E:\\Python\\GIT-Hermis\\Hermis"
+}

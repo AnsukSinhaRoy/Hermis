@@ -1,0 +1,75 @@
+experiment:
+  name: "nifty500_ema_online_1min_GREEDY_weekly"
+  start_date: "2011-01-01"
+  end_date: "2024-07-31"
+  rebalance: "weekly"
+  seed: 42
+
+data:
+  mode: processed
+  processed:
+    dataset: nifty500
+    base_dir: data/processed
+    freq: "1min"
+    n_symbols: 250          # start 250; try 400 later if it runs fast enough
+
+risk_model:
+  type: sample_cov
+  lookback: 60
+  lookback_unit: trading_days
+  scale_to_rebalance_horizon: true
+
+cash:
+  enabled: true
+  max_gross_exposure: 1.0
+  drawdown_brake:
+    enabled: false          # return-greedy: remove brake
+
+optimizer:
+  type: ema_online
+  long_only: true
+  box:
+    min: 0.0
+    max: 0.60              # allow concentration in winners
+
+  ema_online:
+    rank_return_lookback: 5
+    rank_vol_lookback: 15
+    rank_drawdown_lookback: 30
+    windows_unit: days      # "days" here means trading days; 1.0 ~= 1 session (~390 mins)
+    windows:
+      - {fast_span: 0.005, slow_span: 0.02, weight: 0.6}   # ~2m vs ~8m
+      - {fast_span: 0.02,  slow_span: 0.08, weight: 1.0}   # ~8m vs ~31m
+      - {fast_span: 0.08,  slow_span: 0.25, weight: 1.1}   # ~31m vs ~98m
+      - {fast_span: 0.25,  slow_span: 1.00, weight: 1.2}   # ~98m vs ~1 day
+      - {fast_span: 1.00,  slow_span: 3.00, weight: 1.0}   # 1d vs 3d
+      - {fast_span: 3.00,  slow_span: 10.0, weight: 0.9}   # 3d vs 10d
+      - {fast_span: 10.0,  slow_span: 25.0, weight: 0.7}   # 10d vs 25d
+
+    score_smooth_span: 120  # 120 minutes smoothing (reduces noise)
+
+    bullish_threshold: -0.01
+    min_assets: 12
+    max_assets: 30
+    fallback_k: 20
+
+    rank_mode: composite
+    rank_unit: days
+    rank_return_lookback: 3        # 3 trading days
+    rank_vol_lookback: 10          # 10 trading days
+    rank_drawdown_lookback: 20     # 20 trading days
+    rank_weights:
+      ema: 0.4
+      ret: 2.8
+      vol: 0.15
+      dd: 0.05
+
+    # key: make optimizer return-aware, then optionally stabilize with RP
+    base_optimizer: sharpe         # switch this freely (see list below)
+    mu_source: blend
+    mu_blend_alpha: 0.15
+    mu_scale: 0.50
+    risk_blend: 0.75               # 75% base_optimizer, 25% risk_parity
+
+transaction_costs:
+  proportional: 0.0005

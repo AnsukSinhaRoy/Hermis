@@ -1,0 +1,116 @@
+2025-12-30 20:27:37,006 | INFO | Run initialized
+2025-12-30 20:27:37,006 | INFO | Run folder: experiments\nifty500_ema_online_1D_risk_parity_daily_20251230_145735
+2025-12-30 20:27:37,007 | INFO | Config used: experiments\nifty500_ema_online_1D_risk_parity_daily_20251230_145735\params.yaml
+2025-12-30 20:27:37,007 | INFO | Experiments dir: experiments
+2025-12-30 20:27:37,007 | INFO | Running experiment from config
+2025-12-30 20:27:37,014 | INFO | Runner starting | data.mode=processed | use_gpu=False
+2025-12-30 20:27:37,133 | INFO | Loaded prices | rows=2324 cols=486 | start=2015-02-02 00:00:00 end=2024-07-04 00:00:00
+2025-12-30 20:27:37,138 | INFO | Optimizer configured | raw_type=ema_online resolved=ema_online | k=None | long_only=True | box={'min': 0.005, 'max': 0.45}
+2025-12-30 20:27:37,138 | INFO | Planned total steps: 2324
+2025-12-30 20:27:37,139 | INFO | Progress logging every 1%
+2025-12-30 20:27:37,142 | INFO | Backtest starting | steps=2324 | rebalance=daily | tc(proportional)=0.0005 | record_non_rebalance=False | cash=True(CASH)
+2025-12-30 20:27:37,142 | INFO | Date range: 2015-02-02 00:00:00 -> 2024-07-04 00:00:00 | assets=487
+2025-12-30 20:27:37,559 | INFO | Progress: 1% (24/2324) | date=2015-03-05 00:00:00 nav=1.02346026 opt_status=ema_insufficient_window
+2025-12-30 20:27:39,655 | INFO | Progress: 2% (47/2324) | date=2015-04-10 00:00:00 nav=1.01838453 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:40,835 | INFO | Progress: 3% (70/2324) | date=2015-05-15 00:00:00 nav=0.9950717 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:42,080 | INFO | Progress: 4% (93/2324) | date=2015-06-17 00:00:00 nav=1.08118454 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:43,529 | INFO | Progress: 5% (117/2324) | date=2015-07-21 00:00:00 nav=1.36759621 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:44,820 | INFO | Progress: 6% (140/2324) | date=2015-08-21 00:00:00 nav=1.61237961 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:46,323 | INFO | Progress: 7% (163/2324) | date=2015-09-24 00:00:00 nav=1.46017909 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:48,009 | INFO | Progress: 8% (186/2324) | date=2015-10-30 00:00:00 nav=1.33042954 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:49,837 | INFO | Progress: 9% (210/2324) | date=2015-12-08 00:00:00 nav=1.51709552 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:51,593 | INFO | Progress: 10% (233/2324) | date=2016-01-12 00:00:00 nav=1.45234736 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:53,495 | INFO | Progress: 11% (256/2324) | date=2016-02-15 00:00:00 nav=1.2465354 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:55,364 | INFO | Progress: 12% (279/2324) | date=2016-03-18 00:00:00 nav=1.30976021 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:57,308 | INFO | Progress: 13% (303/2324) | date=2016-04-28 00:00:00 nav=1.33897163 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:27:59,322 | INFO | Progress: 14% (326/2324) | date=2016-05-31 00:00:00 nav=1.41933661 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:01,342 | INFO | Progress: 15% (349/2324) | date=2016-07-01 00:00:00 nav=1.46860896 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:03,350 | INFO | Progress: 16% (372/2324) | date=2016-08-04 00:00:00 nav=1.51251983 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:05,449 | INFO | Progress: 17% (396/2324) | date=2016-09-09 00:00:00 nav=1.56774634 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:07,453 | INFO | Progress: 18% (419/2324) | date=2016-10-17 00:00:00 nav=1.60669529 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:09,491 | INFO | Progress: 19% (442/2324) | date=2016-11-21 00:00:00 nav=1.50505883 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:11,388 | INFO | Progress: 20% (465/2324) | date=2016-12-22 00:00:00 nav=1.55716123 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:13,539 | INFO | Progress: 21% (489/2324) | date=2017-01-25 00:00:00 nav=1.60056713 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:15,652 | INFO | Progress: 22% (512/2324) | date=2017-03-01 00:00:00 nav=1.54845423 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:17,719 | INFO | Progress: 23% (535/2324) | date=2017-04-05 00:00:00 nav=1.68635706 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:19,804 | INFO | Progress: 24% (558/2324) | date=2017-05-10 00:00:00 nav=1.77505769 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:22,120 | INFO | Progress: 25% (581/2324) | date=2017-06-12 00:00:00 nav=1.62324536 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:24,109 | INFO | Progress: 26% (605/2324) | date=2017-07-17 00:00:00 nav=1.51393435 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:26,172 | INFO | Progress: 27% (628/2324) | date=2017-08-18 00:00:00 nav=1.3926792 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:28,533 | INFO | Progress: 28% (651/2324) | date=2017-09-21 00:00:00 nav=1.45624478 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:30,820 | INFO | Progress: 29% (674/2324) | date=2017-10-27 00:00:00 nav=1.45458314 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:33,043 | INFO | Progress: 30% (698/2324) | date=2017-11-30 00:00:00 nav=1.46315371 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:35,054 | INFO | Progress: 31% (721/2324) | date=2018-01-03 00:00:00 nav=1.45110675 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:37,082 | INFO | Progress: 32% (744/2324) | date=2018-02-06 00:00:00 nav=1.26783036 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:39,300 | INFO | Progress: 33% (767/2324) | date=2018-03-13 00:00:00 nav=1.31032924 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:41,965 | INFO | Progress: 34% (791/2324) | date=2018-04-18 00:00:00 nav=1.84923157 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:44,375 | INFO | Progress: 35% (814/2324) | date=2018-05-22 00:00:00 nav=2.28345822 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:46,450 | INFO | Progress: 36% (837/2324) | date=2018-06-22 00:00:00 nav=2.45200759 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:48,547 | INFO | Progress: 37% (860/2324) | date=2018-07-25 00:00:00 nav=2.49848374 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:50,645 | INFO | Progress: 38% (884/2324) | date=2018-08-30 00:00:00 nav=2.69314281 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:52,606 | INFO | Progress: 39% (907/2324) | date=2018-10-05 00:00:00 nav=2.27544974 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:54,640 | INFO | Progress: 40% (930/2324) | date=2018-11-12 00:00:00 nav=2.38789196 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:56,794 | INFO | Progress: 41% (953/2324) | date=2018-12-14 00:00:00 nav=2.38349031 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:28:59,171 | INFO | Progress: 42% (977/2324) | date=2019-01-18 00:00:00 nav=2.36134463 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:01,448 | INFO | Progress: 43% (1000/2324) | date=2019-02-20 00:00:00 nav=2.4800204 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:04,030 | INFO | Progress: 44% (1023/2324) | date=2019-03-27 00:00:00 nav=2.6608258 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:06,090 | INFO | Progress: 45% (1046/2324) | date=2019-05-03 00:00:00 nav=2.97343433 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:08,249 | INFO | Progress: 46% (1070/2324) | date=2019-06-07 00:00:00 nav=3.03346688 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:11,078 | INFO | Progress: 47% (1093/2324) | date=2019-07-10 00:00:00 nav=2.94518605 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:13,271 | INFO | Progress: 48% (1116/2324) | date=2019-08-13 00:00:00 nav=2.85038805 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:15,463 | INFO | Progress: 49% (1139/2324) | date=2019-09-18 00:00:00 nav=3.03294877 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:17,642 | INFO | Progress: 50% (1162/2324) | date=2019-10-24 00:00:00 nav=3.49726291 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:19,895 | INFO | Progress: 51% (1186/2324) | date=2019-11-29 00:00:00 nav=3.72349021 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:22,093 | INFO | Progress: 52% (1209/2324) | date=2020-01-02 00:00:00 nav=3.74116763 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:24,292 | INFO | Progress: 53% (1232/2324) | date=2020-02-03 00:00:00 nav=3.66071071 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:26,557 | INFO | Progress: 54% (1255/2324) | date=2020-03-06 00:00:00 nav=4.70453789 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:28,856 | INFO | Progress: 55% (1279/2324) | date=2020-04-16 00:00:00 nav=4.60213372 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:31,030 | INFO | Progress: 56% (1302/2324) | date=2020-05-20 00:00:00 nav=7.54059309 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:33,220 | INFO | Progress: 57% (1325/2324) | date=2020-06-23 00:00:00 nav=14.13080951 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:35,439 | INFO | Progress: 58% (1348/2324) | date=2020-07-24 00:00:00 nav=12.91085587 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:37,726 | INFO | Progress: 59% (1372/2324) | date=2020-08-27 00:00:00 nav=18.74507792 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:39,936 | INFO | Progress: 60% (1395/2324) | date=2020-09-29 00:00:00 nav=14.72253931 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:42,441 | INFO | Progress: 61% (1418/2324) | date=2020-11-02 00:00:00 nav=14.77941952 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:44,719 | INFO | Progress: 62% (1441/2324) | date=2020-12-07 00:00:00 nav=15.72557461 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:47,168 | INFO | Progress: 63% (1465/2324) | date=2021-01-11 00:00:00 nav=16.31141539 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:49,559 | INFO | Progress: 64% (1488/2324) | date=2021-02-12 00:00:00 nav=16.4453839 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:51,899 | INFO | Progress: 65% (1511/2324) | date=2021-03-18 00:00:00 nav=15.21369909 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:54,261 | INFO | Progress: 66% (1534/2324) | date=2021-04-26 00:00:00 nav=15.77155583 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:56,663 | INFO | Progress: 67% (1558/2324) | date=2021-05-31 00:00:00 nav=17.4246846 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:29:59,231 | INFO | Progress: 68% (1581/2324) | date=2021-07-01 00:00:00 nav=18.66362652 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:02,264 | INFO | Progress: 69% (1604/2324) | date=2021-08-04 00:00:00 nav=22.8695158 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:04,889 | INFO | Progress: 70% (1627/2324) | date=2021-09-07 00:00:00 nav=22.34981858 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:07,585 | INFO | Progress: 71% (1651/2324) | date=2021-10-12 00:00:00 nav=21.64683014 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:10,189 | INFO | Progress: 72% (1674/2324) | date=2021-11-17 00:00:00 nav=20.66194549 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:12,748 | INFO | Progress: 73% (1697/2324) | date=2021-12-21 00:00:00 nav=19.31843991 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:15,287 | INFO | Progress: 74% (1720/2324) | date=2022-01-21 00:00:00 nav=19.43127851 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:17,815 | INFO | Progress: 75% (1743/2324) | date=2022-02-24 00:00:00 nav=17.25406278 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:20,368 | INFO | Progress: 76% (1767/2324) | date=2022-04-01 00:00:00 nav=21.78951755 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:22,871 | INFO | Progress: 77% (1790/2324) | date=2022-05-09 00:00:00 nav=23.84391661 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:25,478 | INFO | Progress: 78% (1813/2324) | date=2022-06-09 00:00:00 nav=24.64739137 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:27,960 | INFO | Progress: 79% (1836/2324) | date=2022-07-12 00:00:00 nav=23.8614482 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:30,377 | INFO | Progress: 80% (1860/2324) | date=2022-08-17 00:00:00 nav=25.37937108 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:32,712 | INFO | Progress: 81% (1883/2324) | date=2022-09-20 00:00:00 nav=26.21647768 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:35,091 | INFO | Progress: 82% (1906/2324) | date=2022-10-25 00:00:00 nav=26.24632882 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:37,519 | INFO | Progress: 83% (1929/2324) | date=2022-11-29 00:00:00 nav=25.31532216 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:40,290 | INFO | Progress: 84% (1953/2324) | date=2023-01-02 00:00:00 nav=25.6967347 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:42,740 | INFO | Progress: 85% (1976/2324) | date=2023-02-03 00:00:00 nav=25.08548436 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:45,478 | INFO | Progress: 86% (1999/2324) | date=2023-03-09 00:00:00 nav=25.11095403 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:48,312 | INFO | Progress: 87% (2022/2324) | date=2023-04-17 00:00:00 nav=25.10613255 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:50,965 | INFO | Progress: 88% (2046/2324) | date=2023-05-22 00:00:00 nav=26.92085293 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:53,570 | INFO | Progress: 89% (2069/2324) | date=2023-06-22 00:00:00 nav=32.52716151 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:30:57,636 | INFO | Progress: 90% (2092/2324) | date=2023-07-26 00:00:00 nav=37.42315851 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:31:00,578 | INFO | Progress: 91% (2115/2324) | date=2023-08-29 00:00:00 nav=38.59554731 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:31:03,942 | INFO | Progress: 92% (2139/2324) | date=2023-10-04 00:00:00 nav=41.05545388 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:31:06,568 | INFO | Progress: 93% (2162/2324) | date=2023-11-07 00:00:00 nav=40.28561169 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:31:09,082 | INFO | Progress: 94% (2185/2324) | date=2023-12-12 00:00:00 nav=46.55254811 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:31:11,710 | INFO | Progress: 95% (2208/2324) | date=2024-01-15 00:00:00 nav=54.49239116 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:31:14,479 | INFO | Progress: 96% (2232/2324) | date=2024-02-19 00:00:00 nav=71.10731221 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:31:16,995 | INFO | Progress: 97% (2255/2324) | date=2024-03-21 00:00:00 nav=61.61322636 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:31:19,498 | INFO | Progress: 98% (2278/2324) | date=2024-04-29 00:00:00 nav=64.2921642 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:31:22,489 | INFO | Progress: 99% (2301/2324) | date=2024-05-31 00:00:00 nav=70.74022368 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:31:24,981 | INFO | Progress: 100% (2324/2324) | date=2024-07-04 00:00:00 nav=85.92512863 opt_status=ok_ema_online_risk_parity
+2025-12-30 20:31:25,305 | INFO | Experiment saved to: experiments\nifty500_ema_online_1D_risk_parity_daily_20251230_145735
+2025-12-30 20:31:25,432 | INFO | Saved performance artifacts to experiments\nifty500_ema_online_1D_risk_parity_daily_20251230_145735\outputs\performance
+2025-12-30 20:31:28,239 | INFO | Saved figures to: experiments\nifty500_ema_online_1D_risk_parity_daily_20251230_145735\artifacts\figures
+2025-12-30 20:31:28,239 | INFO | Run complete

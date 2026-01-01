@@ -1,0 +1,22 @@
+2025-12-30 23:25:52.198 | INFO | simulation | Launched detached simulation. PID=9688
+2025-12-30 23:25:53.162 | INFO | simulation | Run initialized
+2025-12-30 23:25:53.163 | INFO | simulation | Run folder: experiments\nifty500_ema_online_1min_GREEDY_weekly_20251230_175552
+2025-12-30 23:25:53.163 | INFO | simulation | Config used: experiments\nifty500_ema_online_1min_GREEDY_weekly_20251230_175552\params.yaml
+2025-12-30 23:25:53.163 | INFO | simulation | Experiments dir: experiments
+2025-12-30 23:25:53.163 | INFO | simulation | Running experiment from config
+2025-12-30 23:25:53.169 | INFO | simulation | Runner starting | data.mode=processed | use_gpu=False
+2025-12-30 23:28:10.511 | INFO | simulation | Loaded prices | rows=879535 cols=250 | start=2015-02-02 09:15:00 end=2024-07-30 15:29:00
+2025-12-30 23:28:11.104 | INFO | simulation | Optimizer configured | raw_type=ema_online resolved=ema_online | k=None | long_only=True | box={'min': 0.0, 'max': 0.6}
+2025-12-30 23:28:11.107 | INFO | simulation | Planned total steps: 879535
+2025-12-30 23:28:11.107 | INFO | simulation | Progress logging every 1%
+2025-12-30 23:28:11.210 | INFO | simulation | Backtest starting | steps=879535 | rebalance=weekly | tc(proportional)=0.0005 | record_non_rebalance=False | cash=True(CASH)
+2025-12-30 23:28:11.211 | INFO | simulation | Date range: 2015-02-02 09:15:00 -> 2024-07-30 15:29:00 | assets=251
+2025-12-30 23:28:25.176 | INFO | simulation | Progress: 1% (8796/879535) | date=2015-03-05 12:05:00 nav=1.01561126 opt_status=no_rebalance
+2025-12-30 23:28:42.673 | INFO | simulation | Progress: 2% (17591/879535) | date=2015-04-13 09:17:00 nav=0.97028188 opt_status=no_rebalance
+2025-12-30 23:29:01.598 | INFO | simulation | Progress: 3% (26387/879535) | date=2015-05-18 12:08:00 nav=0.82467677 opt_status=no_rebalance
+2025-12-30 23:29:18.906 | INFO | simulation | Progress: 4% (35182/879535) | date=2015-06-18 14:58:00 nav=0.73588771 opt_status=no_rebalance
+2025-12-30 23:29:38.063 | INFO | simulation | Progress: 5% (43977/879535) | date=2015-07-21 11:34:00 nav=0.95340023 opt_status=no_rebalance
+2025-12-30 23:29:55.391 | INFO | simulation | Progress: 6% (52773/879535) | date=2015-08-20 09:46:00 nav=0.93358446 opt_status=no_rebalance
+2025-12-30 23:30:15.745 | INFO | simulation | Progress: 7% (61568/879535) | date=2015-09-21 14:45:00 nav=0.86878902 opt_status=no_rebalance
+2025-12-30 23:30:37.326 | INFO | simulation | Progress: 8% (70363/879535) | date=2015-10-26 11:03:00 nav=0.90302806 opt_status=no_rebalance
+2025-12-30 23:30:58.923 | INFO | simulation | Progress: 9% (79159/879535) | date=2015-11-30 13:09:00 nav=0.86638148 opt_status=no_rebalance

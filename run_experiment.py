@@ -46,6 +46,7 @@ from portfolio_sim.data import (
     generate_synthetic_prices,
     load_prices_from_csv,
     load_prices_from_parquet,
+    load_prices_from_partitioned_minute_store,
     apply_date_range,
     compute_returns,
     cov_matrix,
@@ -79,8 +80,36 @@ from utils.run_logging import (
 )
 
 
+def _infer_bars_per_day(idx: pd.DatetimeIndex) -> int:
+    """Infer typical bars-per-day from an index.
+
+    - For daily data, returns 1.
+    - For intraday minute-ish data, returns the median number of rows per calendar day.
+    """
+    try:
+        if idx is None or len(idx) < 3:
+            return 1
+        if not isinstance(idx, pd.DatetimeIndex):
+            idx = pd.to_datetime(idx)
+        idx = pd.DatetimeIndex(idx).dropna().sort_values()
+        # Detect daily vs intraday by median spacing
+        dt = np.median(np.diff(idx.view('i8')))
+        if not np.isfinite(dt):
+            return 1
+        # 23h in ns
+        if dt >= (23 * 3600 * 1_000_000_000):
+            return 1
+        counts = pd.Series(1, index=idx).groupby(idx.normalize()).sum()
+        if len(counts) == 0:
+            return 1
+        bpd = int(max(1, round(float(counts.median()))))
+        return bpd
+    except Exception:
+        return 1
+
+
 def expected_return_estimator(prices_window: pd.DataFrame):
-    """Simple estimator: mean of log returns (in-sample)."""
+    """Legacy estimator (kept for backwards-compat): mean of log returns per bar."""
     rets = compute_returns(prices_window, method='log')
     if rets is None or rets.shape[0] == 0:
         return pd.Series(dtype=float)
@@ -137,6 +166,10 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
         'ema_filter': 'ema_hybrid',
         'ema_hybrid': 'ema_hybrid',
         'ema_mv_reg': 'ema_hybrid',
+        'ema_online': 'ema_online',
+        'ema_multi': 'ema_online',
+        'ema_multiwindow': 'ema_online',
+        'ema_online_opt': 'ema_online',
         'eg': 'omd',
     }
     opt_type = aliases.get(raw_type, raw_type)
@@ -207,6 +240,78 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
     except Exception:
         ema_max_assets = None
 
+    # EMA-online (multi-window) configuration (separate key; falls back to ema.* if absent)
+    emao_cfg = opt_cfg.get('ema_online', ema_cfg) if isinstance(opt_cfg.get('ema_online', ema_cfg), dict) else ema_cfg
+    # windows: list of {fast_span, slow_span, weight}
+    emao_windows = emao_cfg.get('windows', emao_cfg.get('window_pairs', None))
+    if not isinstance(emao_windows, list) or len(emao_windows) == 0:
+        # sensible defaults across time-scales
+        emao_windows = [
+            {"fast_span": 8, "slow_span": 21, "weight": 1.0},
+            {"fast_span": 21, "slow_span": 55, "weight": 1.0},
+            {"fast_span": 55, "slow_span": 144, "weight": 0.7},
+        ]
+
+    # Units: bars (default), minutes, hours, days
+    emao_windows_unit = str(emao_cfg.get('windows_unit', emao_cfg.get('unit', 'bars'))).strip().lower()
+    emao_score_smooth_span = emao_cfg.get('score_smooth_span', emao_cfg.get('score_smoothing', None))
+    try:
+        emao_score_smooth_span = int(emao_score_smooth_span) if emao_score_smooth_span is not None else None
+    except Exception:
+        emao_score_smooth_span = None
+
+    emao_bullish_threshold = float(emao_cfg.get('bullish_threshold', ema_bullish_threshold))
+    emao_min_assets = emao_cfg.get('min_assets', ema_min_assets)
+    emao_max_assets = emao_cfg.get('max_assets', ema_max_assets)
+    emao_fallback_k = int(emao_cfg.get('fallback_k', ema_fallback_k))
+
+    emao_base_optimizer = str(emao_cfg.get('base_optimizer', emao_cfg.get('post_optimizer', ema_post_optimizer))).strip().lower()
+    emao_mu_source = str(emao_cfg.get('mu_source', ema_mu_source)).strip().lower()
+    emao_mu_blend_alpha = float(emao_cfg.get('mu_blend_alpha', ema_mu_blend_alpha))
+    emao_mu_scale = float(emao_cfg.get('mu_scale', ema_mu_scale))
+    emao_risk_blend = emao_cfg.get('risk_blend', emao_cfg.get('risk_parity_blend', None))
+
+    # Ranking: optionally blend EMA score with recent return/volatility to bias selection toward high-return assets.
+    emao_rank_mode = str(emao_cfg.get('rank_mode', emao_cfg.get('selection', 'score'))).strip().lower()
+    emao_rank_unit = str(emao_cfg.get('rank_unit', 'bars')).strip().lower()
+    emao_rank_ret_lb = emao_cfg.get('rank_return_lookback', emao_cfg.get('rank_ret_lookback', None))
+    emao_rank_vol_lb = emao_cfg.get('rank_vol_lookback', emao_cfg.get('rank_volatility_lookback', None))
+    emao_rank_dd_lb = emao_cfg.get('rank_dd_lookback', emao_cfg.get('rank_drawdown_lookback', None))
+    try:
+        emao_rank_ret_lb = int(emao_rank_ret_lb) if emao_rank_ret_lb is not None else None
+    except Exception:
+        emao_rank_ret_lb = None
+    try:
+        emao_rank_vol_lb = int(emao_rank_vol_lb) if emao_rank_vol_lb is not None else None
+    except Exception:
+        emao_rank_vol_lb = None
+    try:
+        emao_rank_dd_lb = int(emao_rank_dd_lb) if emao_rank_dd_lb is not None else None
+    except Exception:
+        emao_rank_dd_lb = None
+
+    w_rank = emao_cfg.get('rank_weights', {}) if isinstance(emao_cfg.get('rank_weights', {}), dict) else {}
+    emao_rank_w_ema = float(w_rank.get('ema', w_rank.get('score', 1.0)))
+    emao_rank_w_ret = float(w_rank.get('ret', w_rank.get('return', 0.0)))
+    emao_rank_w_vol = float(w_rank.get('vol', w_rank.get('volatility', 0.0)))
+    emao_rank_w_dd = float(w_rank.get('dd', w_rank.get('drawdown', 0.0)))
+    try:
+        emao_risk_blend = float(emao_risk_blend) if emao_risk_blend is not None else None
+    except Exception:
+        emao_risk_blend = None
+
+    try:
+        emao_min_assets = int(emao_min_assets) if emao_min_assets is not None else None
+    except Exception:
+        emao_min_assets = None
+    try:
+        emao_max_assets = int(emao_max_assets) if emao_max_assets is not None else None
+    except Exception:
+        emao_max_assets = None
+
+    if emao_risk_blend is not None:
+        emao_risk_blend = max(0.0, min(1.0, float(emao_risk_blend)))
+
     if logger:
         try:
             logger.info(
@@ -224,6 +329,14 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
         'v': None,       # np.ndarray
     }
 
+    # Separate state for EMA-online when it uses online base optimizers (OMD/FTRL)
+    emao_online_state = {
+        'assets': None,
+        'w': None,
+        'B': None,
+        'v': None,
+    }
+
     def _select_topk_assets(mu: pd.Series, cov: pd.DataFrame, k_: int):
         assets = mu.dropna().index.tolist()
         if not assets:
@@ -232,11 +345,17 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
         score = mu.reindex(assets) / (sigma_diag + 1e-8)
         return list(score.sort_values(ascending=False).head(k_).index)
 
-    def _prices_to_relatives(prices_window: pd.DataFrame, assets: list[str]):
-        if prices_window is None or not isinstance(prices_window, pd.DataFrame) or len(prices_window) < 2:
+    def _prices_to_relatives(prices_window: pd.DataFrame, assets: list[str], period_window: pd.DataFrame | None = None):
+        """Compute price relatives for online updates.
+
+        - If `period_window` is provided (and has >=2 rows), return last/first (full holding-period).
+        - Otherwise, return last/prev (single-step).
+        """
+        base = period_window if (period_window is not None and isinstance(period_window, pd.DataFrame) and len(period_window) >= 2) else prices_window
+        if base is None or not isinstance(base, pd.DataFrame) or len(base) < 2:
             return None
-        p_t = prices_window.iloc[-1].astype(float).reindex(assets)
-        p_prev = prices_window.iloc[-2].astype(float).reindex(assets)
+        p_t = base.iloc[-1].astype(float).reindex(assets)
+        p_prev = base.iloc[0].astype(float).reindex(assets) if base is period_window else base.iloc[-2].astype(float).reindex(assets)
         with np.errstate(divide='ignore', invalid='ignore'):
             r = p_t / p_prev
         r = r.replace([np.inf, -np.inf], 1.0).fillna(1.0).clip(lower=1e-12)
@@ -263,7 +382,8 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
         # ------------------
         if opt_type in {"ftrl", "omd"}:
             prices_window = ctx.get('prices_window', None)
-            r_t = _prices_to_relatives(prices_window, assets)
+            period_window = ctx.get('period_prices_window', None)
+            r_t = _prices_to_relatives(prices_window, assets, period_window=period_window)
             if r_t is None:
                 # cannot update without at least 2 price rows
                 w_ew = pd.Series(1.0 / len(assets), index=assets)
@@ -311,7 +431,7 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
         # ------------------
         # k-cardinality wrapper (subset selection)
         # ------------------
-        if k is not None and int(k) > 0 and opt_type not in {'ema_trend','ema_hybrid'}:
+        if k is not None and int(k) > 0 and opt_type not in {'ema_trend','ema_hybrid','ema_online'}:
             if opt_type == "entropy_newton":
                 # manual subset selection then entropy solve
                 topk = _select_topk_assets(expected, cov, int(k))
@@ -373,11 +493,13 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
             except Exception as e:
                 return {"weights": None, "status": f"error_entropy_opt:{e}"}
 
-        if opt_type in {"ema_trend", "ema_hybrid"}:
+        if opt_type in {"ema_trend", "ema_hybrid", "ema_online"}:
             prices_window = ctx.get("prices_window", None)
 
-            # Current datasets are close-only. Keep the config fields for forward-compat,
-            # but fall back to close when callers set other fields.
+            if prices_window is None or not isinstance(prices_window, pd.DataFrame) or len(prices_window) < 3:
+                return {"weights": None, "status": "ema_insufficient_window"}
+
+            # Close-only assumption (we keep the field config for forward-compat).
             if (ema_fast_field != "close") or (ema_slow_field != "close"):
                 if logger:
                     logger.warning(
@@ -385,96 +507,267 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
                         str(ema_fast_field), str(ema_slow_field)
                     )
 
-            scores = None
-            try:
-                if prices_window is not None:
-                    scores = ema_trend_score(
-                        prices_window,
-                        fast_span=ema_fast_span,
-                        slow_span=ema_slow_span,
-                    )
-            except Exception as e:
-                if logger:
-                    logger.exception("EMA score computation failed: %s", repr(e))
-                scores = None
+            pw = prices_window.reindex(columns=assets)
+            # avoid nonsense / log issues
+            pw = pw.where(pw > 0)
+
+            def _trend_score_single(df: pd.DataFrame, fast: int, slow: int, smooth_span: int | None = None) -> Optional[pd.Series]:
+                if df is None or not isinstance(df, pd.DataFrame):
+                    return None
+                if len(df) < max(int(fast), int(slow)) + 2:
+                    return None
+                x = df.astype(float)
+                ema_f = x.ewm(span=int(fast), adjust=False).mean()
+                ema_s = x.ewm(span=int(slow), adjust=False).mean()
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    score_ts = (ema_f - ema_s) / x
+                if smooth_span is not None and int(smooth_span) > 1:
+                    score_ts = score_ts.ewm(span=int(smooth_span), adjust=False).mean()
+                s_last = score_ts.iloc[-1]
+                return pd.Series(s_last).replace([np.inf, -np.inf], np.nan)
+
+            def _trend_score_multi(df: pd.DataFrame, windows: list[dict], smooth_span: int | None = None) -> Optional[pd.Series]:
+                total_w = 0.0
+                out = None
+                for wcfg in windows:
+                    try:
+                        f = int(wcfg.get("fast_span", wcfg.get("fast", wcfg.get("f", 12))))
+                        s = int(wcfg.get("slow_span", wcfg.get("slow", wcfg.get("s", 26))))
+                        w = float(wcfg.get("weight", 1.0))
+                    except Exception:
+                        continue
+                    if f <= 0 or s <= 0:
+                        continue
+                    sc = _trend_score_single(df, f, s, smooth_span=smooth_span)
+                    if sc is None:
+                        continue
+                    if out is None:
+                        out = (w * sc)
+                    else:
+                        out = out.add(w * sc, fill_value=0.0)
+                    total_w += abs(w)
+                if out is None:
+                    return None
+                if total_w > 0:
+                    out = out / total_w
+                return out.replace([np.inf, -np.inf], np.nan)
+
+            # choose score config
+            if opt_type == "ema_online":
+                # Convert configured window spans to bars based on the data frequency.
+                # For 1-minute data: minutes == bars, hours == 60 bars, days == bars_per_day.
+                bpd = _infer_bars_per_day(pw.index)
+
+                def _to_bars(val: float, unit: str) -> int:
+                    try:
+                        v = float(val)
+                    except Exception:
+                        return 0
+                    u = (unit or "bars").strip().lower()
+                    if u in {"bar", "bars", "step", "steps"}:
+                        return int(max(1, round(v)))
+                    if u in {"min", "mins", "minute", "minutes"}:
+                        return int(max(1, round(v)))
+                    if u in {"h", "hr", "hrs", "hour", "hours"}:
+                        return int(max(1, round(v * 60.0)))
+                    if u in {"d", "day", "days", "trading_day", "trading_days"}:
+                        return int(max(1, round(v * float(max(1, bpd)))))
+                    # fallback: treat as bars
+                    return int(max(1, round(v)))
+
+                windows_bars: list[dict] = []
+                for wcfg in emao_windows:
+                    if not isinstance(wcfg, dict):
+                        continue
+                    f_raw = wcfg.get("fast_span", wcfg.get("fast", wcfg.get("f", 12)))
+                    s_raw = wcfg.get("slow_span", wcfg.get("slow", wcfg.get("s", 26)))
+                    wgt = float(wcfg.get("weight", 1.0))
+                    f_b = _to_bars(float(f_raw), emao_windows_unit)
+                    s_b = _to_bars(float(s_raw), emao_windows_unit)
+                    if f_b <= 0 or s_b <= 0:
+                        continue
+                    windows_bars.append({"fast_span": f_b, "slow_span": s_b, "weight": wgt})
+
+                if len(windows_bars) == 0:
+                    windows_bars = [
+                        {"fast_span": 15, "slow_span": 60, "weight": 1.0},
+                        {"fast_span": 60, "slow_span": 240, "weight": 1.0},
+                        {"fast_span": max(1, bpd), "slow_span": max(2, 5 * bpd), "weight": 0.7},
+                    ]
+
+                scores = _trend_score_multi(pw, windows_bars, smooth_span=emao_score_smooth_span)
+                thr = float(emao_bullish_threshold)
+                min_assets_cfg = emao_min_assets
+                max_assets_cfg = emao_max_assets
+                fb_k = int(emao_fallback_k)
+                base_mode = str(emao_base_optimizer).strip().lower()
+                mu_source = str(emao_mu_source).strip().lower()
+                mu_alpha = float(emao_mu_blend_alpha)
+                mu_scale = float(emao_mu_scale)
+                risk_blend = emao_risk_blend
+            else:
+                # single window
+                scores = _trend_score_multi(pw, [{"fast_span": ema_fast_span, "slow_span": ema_slow_span, "weight": 1.0}], smooth_span=None)
+                thr = float(ema_bullish_threshold)
+                min_assets_cfg = ema_min_assets
+                max_assets_cfg = ema_max_assets
+                fb_k = int(ema_fallback_k)
+                base_mode = str(ema_post_optimizer).strip().lower()
+                mu_source = str(ema_mu_source).strip().lower()
+                mu_alpha = float(ema_mu_blend_alpha)
+                mu_scale = float(ema_mu_scale)
+                risk_blend = None
 
             if scores is None or len(scores) == 0:
                 return {"weights": None, "status": "ema_insufficient_window"}
 
-            # Align to current asset universe for this rebalance.
             scores = pd.Series(scores).replace([np.inf, -np.inf], np.nan).reindex(assets)
             scores_clean = scores.dropna()
             if scores_clean.empty:
                 return {"weights": None, "status": "ema_no_scores"}
 
-            thr = float(ema_bullish_threshold)
-            bullish = scores_clean[scores_clean > thr].sort_values(ascending=False)
+            # --- Selection / ranking ---
+            # By default we filter on EMA trend (scores > thr). For "greedy returns", you can
+            # set ema_online.rank_mode: composite and include return/vol/dd in rank_weights.
+            eligible = scores_clean[scores_clean > thr]
 
-            selected = bullish
-            if ema_max_assets is not None and len(selected) > 0:
-                selected = selected.head(min(int(ema_max_assets), len(selected)))
+            def _z(x: pd.Series) -> pd.Series:
+                x = x.astype(float)
+                m = float(x.mean())
+                s = float(x.std())
+                return (x - m) / (s + 1e-8)
 
-            # ensure minimum diversification by filling with next-best (least bearish) scores
-            min_assets = ema_min_assets if ema_min_assets is not None else max(1, min(ema_fallback_k, len(scores_clean)))
-            if len(selected) < min_assets:
-                remaining = scores_clean.drop(index=selected.index, errors="ignore").sort_values(ascending=False)
-                need = min_assets - len(selected)
+            rank = None
+            if opt_type == "ema_online" and emao_rank_mode in {"composite", "rank", "mix", "blend"}:
+                # Convert rank lookbacks if configured in days/hours.
+                bpd = _infer_bars_per_day(pw.index)
+                def _lb_to_bars(lb: int | None, unit: str) -> int | None:
+                    if lb is None:
+                        return None
+                    try:
+                        v = float(lb)
+                    except Exception:
+                        return None
+                    u = (unit or "bars").strip().lower()
+                    if u in {"bars", "bar", "steps"}:
+                        return int(max(1, round(v)))
+                    if u in {"minute", "minutes", "min", "mins"}:
+                        return int(max(1, round(v)))
+                    if u in {"hour", "hours", "h", "hr", "hrs"}:
+                        return int(max(1, round(v * 60.0)))
+                    if u in {"day", "days", "d", "trading_days", "trading_day"}:
+                        return int(max(1, round(v * float(max(1, bpd)))))
+                    return int(max(1, round(v)))
+
+                ret_lb = _lb_to_bars(emao_rank_ret_lb, emao_rank_unit) or int(max(1, bpd))
+                vol_lb = _lb_to_bars(emao_rank_vol_lb, emao_rank_unit) or int(max(5, 2 * bpd))
+                dd_lb = _lb_to_bars(emao_rank_dd_lb, emao_rank_unit) or 0
+
+                # Recent return (log) over ret_lb
+                if len(pw) >= ret_lb + 1:
+                    p_last = pw.iloc[-1].astype(float)
+                    p_prev = pw.iloc[-1 - ret_lb].astype(float)
+                    with np.errstate(divide='ignore', invalid='ignore'):
+                        ret = np.log(p_last / p_prev)
+                    ret = pd.Series(ret, index=pw.columns).replace([np.inf, -np.inf], np.nan)
+                else:
+                    ret = pd.Series(index=pw.columns, dtype=float)
+
+                # Recent vol (std of log returns) over vol_lb
+                if len(pw) >= vol_lb + 2:
+                    r_win = compute_returns(pw.tail(vol_lb + 1), method='log')
+                    vol = r_win.std() if r_win is not None and not r_win.empty else pd.Series(index=pw.columns, dtype=float)
+                else:
+                    vol = pd.Series(index=pw.columns, dtype=float)
+
+                # Recent drawdown magnitude over dd_lb (optional)
+                dd_mag = pd.Series(index=pw.columns, dtype=float)
+                if dd_lb and len(pw) >= dd_lb + 2:
+                    x = pw.tail(dd_lb + 1).astype(float).values
+                    # rolling max
+                    roll_max = np.maximum.accumulate(x, axis=0)
+                    with np.errstate(divide='ignore', invalid='ignore'):
+                        dd = (x / roll_max) - 1.0
+                    dd_min = np.nanmin(dd, axis=0)
+                    dd_mag = pd.Series(np.abs(dd_min), index=pw.columns).replace([np.inf, -np.inf], np.nan)
+
+                # Cross-sectional z-score blend
+                rank = (
+                    float(emao_rank_w_ema) * _z(scores_clean.reindex(pw.columns))
+                    + float(emao_rank_w_ret) * _z(ret)
+                    - float(emao_rank_w_vol) * _z(vol)
+                    - float(emao_rank_w_dd) * _z(dd_mag)
+                )
+                rank = rank.replace([np.inf, -np.inf], np.nan)
+
+            # Default rank is the EMA score itself
+            if rank is None:
+                rank = scores_clean
+
+            # Filter on bullish trend but rank by composite
+            selected = rank.reindex(eligible.index).dropna().sort_values(ascending=False)
+            if max_assets_cfg is not None and len(selected) > 0:
+                try:
+                    selected = selected.head(min(int(max_assets_cfg), len(selected)))
+                except Exception:
+                    pass
+
+            # minimum diversification fill
+            min_assets_use = min_assets_cfg if (min_assets_cfg is not None) else max(1, min(fb_k, len(scores_clean)))
+            try:
+                min_assets_use = int(min_assets_use)
+            except Exception:
+                min_assets_use = max(1, min(fb_k, len(scores_clean)))
+
+            if len(selected) < min_assets_use:
+                remaining = rank.drop(index=selected.index, errors="ignore").dropna().sort_values(ascending=False)
+                need = min_assets_use - len(selected)
                 if need > 0:
                     selected = pd.concat([selected, remaining.head(need)])
 
             if selected.empty:
-                selected = scores_clean.sort_values(ascending=False).head(min(ema_fallback_k, len(scores_clean)))
+                selected = rank.dropna().sort_values(ascending=False).head(min(fb_k, len(scores_clean)))
 
             selected_assets = list(selected.index)
 
-            mode = str(ema_post_optimizer).strip().lower()
-
-            # -------------
-            # Greedy mode (original EMA implementation)
-            # -------------
-            if mode in {"greedy", "trend_greedy"}:
+            # Greedy mode: score-proportional weights
+            if base_mode in {"greedy", "trend_greedy"}:
                 w = ema_trend_optimize(
                     scores=scores,
                     box=box,
                     long_only=long_only,
-                    fallback_k=ema_fallback_k,
+                    fallback_k=fb_k,
                     weight_power=ema_weight_power,
                     epsilon=ema_epsilon,
                 )
-                return {"weights": w, "status": "ok_ema_greedy", "selected_n": int(len(selected_assets))}
+                return {"weights": w, "status": f"ok_{opt_type}_greedy", "selected_n": int(len(selected_assets))}
 
-            # -------------
-            # Build mu for the base optimizer
-            # -------------
+            # Build mu for the base optimizer on the selected subset
             mu_returns = expected.reindex(selected_assets).astype(float)
-            mu_score = (scores.reindex(selected_assets).astype(float) * float(ema_mu_scale))
-
-            mu_source = str(ema_mu_source).strip().lower()
+            mu_score = (scores.reindex(selected_assets).astype(float) * float(mu_scale))
             if mu_source in {"ema", "ema_score", "score"}:
                 mu_sub = mu_score
             elif mu_source in {"returns", "mean_returns", "er"}:
                 mu_sub = mu_returns
             elif mu_source in {"blend", "mix", "hybrid"}:
-                a = float(ema_mu_blend_alpha)
-                a = max(0.0, min(1.0, a))
+                a = max(0.0, min(1.0, float(mu_alpha)))
                 mu_sub = (a * mu_score) + ((1.0 - a) * mu_returns)
             else:
                 mu_sub = mu_score
 
             cov_sub = cov.reindex(index=selected_assets, columns=selected_assets).fillna(0.0)
 
-            # -------------
-            # Run the chosen base optimizer on the EMA-filtered universe
-            # -------------
-            if mode in {"mv_reg", "mv", "mean_variance", "mean-variance"}:
+            # Run base optimizer
+            res = None
+            if base_mode in {"mv_reg", "mv", "mean_variance", "mean-variance"}:
                 res = mv_reg_optimize(mu_sub, cov_sub, box=box, long_only=long_only, lambda_reg=lambda_reg, lambdas=lambdas, solver=solver)
-            elif mode in {"minvar", "min_variance", "gmv"}:
+            elif base_mode in {"minvar", "min_variance", "gmv"}:
                 res = min_variance_optimize(cov_sub, box=box, long_only=long_only, solver=solver)
-            elif mode in {"risk_parity", "erc"}:
+            elif base_mode in {"risk_parity", "erc"}:
                 res = risk_parity_optimize(cov_sub, box=box, long_only=long_only, tol=rp_tol, max_iter=rp_max_iter)
-            elif mode in {"sharpe", "max_sharpe"}:
+            elif base_mode in {"sharpe", "max_sharpe"}:
                 res = sharpe_optimize(mu_sub, cov_sub, box=box, long_only=long_only, solver=solver)
-            elif mode in {"entropy_newton", "entropy"}:
+            elif base_mode in {"entropy_newton", "entropy"}:
                 try:
                     Sigma = cov_sub.values.astype(float)
                     mu_np = mu_sub.reindex(selected_assets).fillna(0.0).values.astype(float)
@@ -493,6 +786,49 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
                     res = {"weights": pd.Series(w_opt, index=selected_assets), "status": "success"}
                 except Exception as e:
                     res = {"weights": None, "status": f"error_entropy_opt:{e}"}
+            elif base_mode in {"omd", "ftrl"}:
+                r_t = _prices_to_relatives(prices_window, selected_assets, period_window=ctx.get('period_prices_window', None))
+                if r_t is None:
+                    w_ew = pd.Series(1.0 / len(selected_assets), index=selected_assets)
+                    return {"weights": w_ew, "status": "ema_online_fallback_equal_insufficient_prices"}
+
+                # reset state if universe changes
+                if emao_online_state['assets'] != tuple(selected_assets) or emao_online_state['w'] is None:
+                    n = len(selected_assets)
+                    emao_online_state['assets'] = tuple(selected_assets)
+                    emao_online_state['w'] = (np.ones(n) / n)
+                    emao_online_state['B'] = np.zeros((n, n), dtype=float)
+                    emao_online_state['v'] = np.zeros(n, dtype=float)
+
+                if base_mode == "omd":
+                    w_new, info = omd_step(
+                        emao_online_state['w'],
+                        r_t,
+                        eta=eta,
+                        v_target=v_target,
+                        k_cardinality=None,
+                        **common_args,
+                    )
+                    emao_online_state['w'] = w_new
+                    res = {"weights": pd.Series(w_new, index=selected_assets), "status": "ok", **info}
+                else:
+                    w_new, B_t, v_t, info, st = ftrl_step(
+                        emao_online_state['w'],
+                        r_t,
+                        emao_online_state['B'],
+                        emao_online_state['v'],
+                        lambda_2=lambda_2,
+                        gamma=gamma,
+                        v_target=v_target,
+                        k_cardinality=None,
+                        **common_args,
+                        max_iter=ftrl_max_iter,
+                        tol=ftrl_tol,
+                    )
+                    emao_online_state['w'] = w_new
+                    emao_online_state['B'] = B_t
+                    emao_online_state['v'] = v_t
+                    res = {"weights": pd.Series(w_new, index=selected_assets), "status": st, **info}
             else:
                 # default fallback
                 res = mv_reg_optimize(mu_sub, cov_sub, box=box, long_only=long_only, lambda_reg=lambda_reg, lambdas=lambdas, solver=solver)
@@ -500,7 +836,7 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
             w = res.get("weights") if isinstance(res, dict) else res
             st = res.get("status", "ok") if isinstance(res, dict) else "ok"
             if w is None:
-                return {"weights": None, "status": f"ema_base_opt_failed:{mode}"}
+                return {"weights": None, "status": f"{opt_type}_base_opt_failed:{base_mode}"}
 
             if isinstance(w, np.ndarray):
                 w = pd.Series(w, index=selected_assets)
@@ -510,16 +846,50 @@ def optimizer_wrapper_factory_from_cfg(cfg, logger=None):
                 try:
                     w = pd.Series(w, index=selected_assets)
                 except Exception:
-                    return {"weights": None, "status": "ema_bad_weights"}
+                    return {"weights": None, "status": f"{opt_type}_bad_weights"}
 
             w = w.replace([np.inf, -np.inf], 0.0).fillna(0.0)
+
+            # Optional risk parity blend (stabilize vol/DD while prioritizing return)
+            if opt_type == "ema_online" and risk_blend is not None:
+                try:
+                    rp_res = risk_parity_optimize(cov_sub, box=box, long_only=long_only, tol=rp_tol, max_iter=rp_max_iter)
+                    w_rp = rp_res.get("weights") if isinstance(rp_res, dict) else rp_res
+                    if isinstance(w_rp, np.ndarray):
+                        w_rp = pd.Series(w_rp, index=selected_assets)
+                    elif isinstance(w_rp, pd.Series):
+                        w_rp = w_rp.reindex(selected_assets)
+                    else:
+                        w_rp = pd.Series(w_rp, index=selected_assets)
+                    w_rp = w_rp.replace([np.inf, -np.inf], 0.0).fillna(0.0)
+                    a = float(risk_blend)
+                    w = (a * w) + ((1.0 - a) * w_rp)
+                except Exception:
+                    pass
+
+            if long_only:
+                w = w.clip(lower=0.0)
+            if box is not None:
+                try:
+                    if isinstance(box, dict):
+                        lo = box.get("min", None)
+                        hi = box.get("max", None)
+                    else:
+                        lo, hi = box  # type: ignore
+                    if lo is not None:
+                        w = w.clip(lower=float(lo))
+                    if hi is not None:
+                        w = w.clip(upper=float(hi))
+                except Exception:
+                    pass
+
             s = float(w.sum())
             if (not np.isfinite(s)) or s <= 0:
                 w = pd.Series(1.0 / len(selected_assets), index=selected_assets)
             else:
                 w = w / s
 
-            return {"weights": w, "status": f"ok_ema_{mode}", "selected_n": int(len(selected_assets)), "base_status": st}
+            return {"weights": w, "status": f"ok_{opt_type}_{base_mode}", "selected_n": int(len(selected_assets)), "base_status": st}
         return mv_reg_optimize(expected_use, cov_use, **common_args, lambda_reg=lambda_reg, lambdas=lambdas, solver=solver)
 
     return optimizer_func
@@ -548,6 +918,11 @@ def runner_func(cfg: dict, logger=None):
 
     # 1) load prices
     mode = dcfg.get('mode', 'synthetic')
+    # Replay mode: stream minute store -> derive daily bars -> simulate open-exec with latency
+    if str(mode).strip().lower() in {'replay_minute', 'minute_replay', 'replay'}:
+        from hermis.replay.replay_runner import run_minute_replay_from_cfg
+        return run_minute_replay_from_cfg(cfg, logger=logger)
+
     prices = None
 
     if mode == 'synthetic':
@@ -572,7 +947,50 @@ def runner_func(cfg: dict, logger=None):
             freq = str(pcfg.get('freq', '1D'))
             base_dir = str(pcfg.get('base_dir', 'data/processed'))
 
-            if dataset == 'both':
+            # Special dataset: Nifty 500 (daily matrix + partitioned minute store)
+            ds_aliases = {"nifty_500": "nifty500", "nifty": "nifty500"}
+            dataset = ds_aliases.get(dataset, dataset)
+
+            freq_norm = str(freq).strip().lower()
+            if freq_norm in {"1min", "1m", "minute", "min", "1t", "1"}:
+                freq_norm = "1min"
+            if freq_norm in {"1d", "d", "day", "daily"}:
+                freq_norm = "1d"
+
+            if dataset == "nifty500":
+                if freq_norm == "1d":
+                    processed_path = os.path.join(base_dir, "nifty500", "prices_1D_nifty500.parquet")
+                else:
+                    # minute store is loaded via load_prices_from_partitioned_minute_store
+                    processed_path = None
+                    minute_store_dir = os.path.join(base_dir, "nifty500", "1min_store")
+                    symbols = pcfg.get("symbols", pcfg.get("tickers", pcfg.get("universe", None)))
+                    if symbols is None:
+                        # default: first N symbols from universe_symbols.json if present
+                        n_default = int(pcfg.get("n_symbols", pcfg.get("n_assets", 50)))
+                        try:
+                            import json
+                            u_path = os.path.join(base_dir, "nifty500", "universe_symbols.json")
+                            with open(u_path, "r", encoding="utf-8") as f:
+                                u = json.load(f)
+                            symbols = list(u)[: max(1, n_default)]
+                        except Exception:
+                            raise ValueError(
+                                "For Nifty500 minute data, set data.processed.symbols (list of tickers) "
+                                "or ensure universe_symbols.json exists in the processed folder."
+                            )
+                    if isinstance(symbols, str):
+                        # allow comma-separated
+                        symbols = [s.strip() for s in symbols.split(",") if s.strip()]
+
+                    prices = load_prices_from_partitioned_minute_store(
+                        minute_store_dir,
+                        symbols=list(symbols),
+                        start_date=exp_cfg.get('start_date'),
+                        end_date=exp_cfg.get('end_date'),
+                        field=str(pcfg.get("field", "close")),
+                    )
+            elif dataset == 'both':
                 processed_path = os.path.join(base_dir, f"prices_{freq}.parquet")
             elif dataset == 'india':
                 processed_path = os.path.join(base_dir, f"prices_{freq}_india.parquet")
@@ -581,13 +999,17 @@ def runner_func(cfg: dict, logger=None):
             else:
                 raise ValueError(
                     "data.mode == 'processed' but neither data.processed_path is set nor "
-                    "data.processed.dataset is one of: india|us|both"
+                    "data.processed.dataset is one of: india|us|both|nifty500"
                 )
-        prices = load_prices_from_parquet(
-            processed_path,
-            start_date=exp_cfg.get('start_date'),
-            end_date=exp_cfg.get('end_date'),
-        )
+
+        if prices is None:
+            if not processed_path:
+                raise ValueError("Processed mode requires data.processed_path or a resolved dataset path")
+            prices = load_prices_from_parquet(
+                processed_path,
+                start_date=exp_cfg.get('start_date'),
+                end_date=exp_cfg.get('end_date'),
+            )
     elif mode == 'csv':
         csv_path = dcfg.get('csv_path')
         if not csv_path:
@@ -622,21 +1044,86 @@ def runner_func(cfg: dict, logger=None):
             prices = prices.copy()
             prices[cash_name] = 1.0
 
-    # 2) estimators
-    expected_return_estimator_callable = expected_return_estimator
-    cov_estimator_callable = cov_estimator_factory(use_gpu=use_gpu)
+    # 2) estimators (frequency-aware)
+    # For intraday data, it is often useful to scale per-bar log-return moments
+    # to the rebalance horizon (e.g., daily rebalance => ~bars_per_day multiplier).
+    risk_cfg = (cfg.get('risk_model', {}) or {}) if isinstance(cfg.get('risk_model', {}), dict) else {}
+    bpd = _infer_bars_per_day(prices.index)
+    is_intraday = bpd > 1
+    rebalance_freq = str(exp_cfg.get('rebalance', 'monthly')).strip().lower()
+
+    # Lookback: allow units so the same config works for 1D and 1min data.
+    # Backtest expects lookback in BARS.
+    lookback_bars = None
+    lb_days = risk_cfg.get('lookback_days', None)
+    lb_unit = str(risk_cfg.get('lookback_unit', '')).strip().lower()
+    lb_raw = risk_cfg.get('lookback', None)
+    if lb_days is not None:
+        try:
+            lookback_bars = int(max(2, round(float(lb_days) * float(max(1, bpd)))))
+        except Exception:
+            lookback_bars = None
+    elif lb_raw is not None:
+        if not lb_unit:
+            lb_unit = 'trading_days' if is_intraday else 'bars'
+        try:
+            v = float(lb_raw)
+            if lb_unit in {'bars', 'bar', 'steps'}:
+                lookback_bars = int(max(2, round(v)))
+            elif lb_unit in {'minutes', 'minute', 'min', 'mins'}:
+                lookback_bars = int(max(2, round(v)))  # 1min bars
+            elif lb_unit in {'hours', 'hour', 'h', 'hr', 'hrs'}:
+                lookback_bars = int(max(2, round(v * 60.0)))
+            elif lb_unit in {'days', 'day', 'd', 'trading_days', 'trading_day'}:
+                lookback_bars = int(max(2, round(v * float(max(1, bpd)))))
+            elif lb_unit in {'weeks', 'week', 'w'}:
+                lookback_bars = int(max(2, round(v * 5.0 * float(max(1, bpd)))))
+            else:
+                lookback_bars = int(max(2, round(v)))
+        except Exception:
+            lookback_bars = None
+
+    # Horizon scaling (log-return approximation: mean and cov scale linearly with time)
+    scale_to_horizon = risk_cfg.get('scale_to_rebalance_horizon', None)
+    if scale_to_horizon is None:
+        scale_to_horizon = bool(is_intraday)
+    horizon_mult = 1.0
+    if bool(scale_to_horizon):
+        days_map = {'daily': 1, 'weekly': 5, 'monthly': 21, 'quarterly': 63, 'yearly': 252}
+        d_mult = float(days_map.get(rebalance_freq, 1))
+        horizon_mult = d_mult * float(max(1, bpd)) if is_intraday else d_mult
+
+    def expected_return_estimator_scaled(prices_window: pd.DataFrame) -> pd.Series:
+        mu = expected_return_estimator(prices_window)
+        try:
+            return mu.astype(float) * float(horizon_mult)
+        except Exception:
+            return mu
+
+    base_cov_est = cov_estimator_factory(use_gpu=use_gpu)
+
+    def cov_estimator_scaled(prices_window: pd.DataFrame) -> pd.DataFrame:
+        c = base_cov_est(prices_window)
+        try:
+            return c.astype(float) * float(horizon_mult)
+        except Exception:
+            return c
+
+    expected_return_estimator_callable = expected_return_estimator_scaled
+    cov_estimator_callable = cov_estimator_scaled
 
     # 3) optimizer wrapper from cfg
     optimizer_func = optimizer_wrapper_factory_from_cfg(cfg, logger=logger)
 
     # 4) backtest config
     backtest_cfg = {
-        "rebalance": exp_cfg.get("rebalance", "monthly"),
+        "rebalance": rebalance_freq,
         "transaction_costs": cfg.get("transaction_costs", {}),
-        "lookback": (cfg.get('risk_model', {}) or {}).get('lookback', None),
+        "lookback": lookback_bars,
         # optional debug setting:
         "record_non_rebalance": bool(exp_cfg.get("record_non_rebalance", False)),
         "cash": cash_cfg,
+        "optimizer": cfg.get("optimizer", {}),
     }
 
     # 5) progress (log every 1%)

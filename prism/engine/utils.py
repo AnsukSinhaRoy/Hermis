@@ -56,8 +56,15 @@ def create_calendar_heatmap(nav_s: pd.Series) -> pd.DataFrame:
     returns = nav.pct_change().dropna()
     returns.name = 'returns'
     res = returns.reset_index()
-    res['year'] = res['index'].dt.year
-    res['month'] = res['index'].dt.month
+    # Pandas uses the index name (if present) as the column name after reset_index().
+    # Prism historically assumed the name would always be 'index', but many writers
+    # (including Hermis replay) use a named DatetimeIndex (e.g. 'date').
+    dt_col = 'index' if 'index' in res.columns else res.columns[0]
+    dt = pd.to_datetime(res[dt_col], errors='coerce')
+    res = res.loc[dt.notna()].copy()
+    dt = pd.to_datetime(res[dt_col])
+    res['year'] = dt.dt.year
+    res['month'] = dt.dt.month
     monthly_returns = res.groupby(['year', 'month'])['returns'].apply(lambda x: (1 + x).prod() - 1)
     heatmap = monthly_returns.unstack(level='month')
     yearly_returns = res.groupby('year')['returns'].apply(lambda x: (1 + x).prod() - 1)

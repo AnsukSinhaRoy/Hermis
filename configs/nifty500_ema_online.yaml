@@ -1,0 +1,68 @@
+experiment:
+  name: "nifty500_ema_online_1D_rp_greedy"
+  start_date: "2011-01-01"
+  end_date: "2024-07-31"
+  rebalance: "weekly"   # try weekly first; daily can be noisy/overtrading
+  seed: 42
+  use_gpu: false
+
+data:
+  mode: "processed"
+  processed:
+    dataset: "nifty500"
+    base_dir: "data/processed"
+    freq: "1D"
+
+risk_model:
+  type: "sample_cov"
+  lookback: 252
+  lookback_unit: bars
+  scale_to_rebalance_horizon: false
+
+cash:
+  enabled: true
+  asset_name: CASH
+  max_gross_exposure: 1.0
+  drawdown_brake:
+    enabled: false   # turn off if you’re chasing returns
+
+optimizer:
+  type: ema_online
+  long_only: true
+  box:
+    min: 0.0
+    max: 0.65        # allow concentration in winners
+
+  ema_online:
+    windows_unit: bars
+    windows:
+      - {fast_span: 5,  slow_span: 20,  weight: 1.2}
+      - {fast_span: 10, slow_span: 30,  weight: 1.1}
+      - {fast_span: 20, slow_span: 60,  weight: 1.0}
+      - {fast_span: 60, slow_span: 150, weight: 0.8}
+      - {fast_span: 120, slow_span: 300, weight: 0.6}
+    score_smooth_span: 5
+
+    bullish_threshold: -0.01   # slightly permissive; avoids “too few assets” regimes
+    min_assets: 15
+    max_assets: 45
+    fallback_k: 25
+
+    # THE KEY FIX: rank by return-heavy composite, not just EMA score
+    rank_mode: composite
+    rank_unit: bars
+    rank_return_lookback: 20      # ~1 month
+    rank_vol_lookback: 60         # ~3 months
+    rank_drawdown_lookback: 126   # ~6 months
+    rank_weights:
+      ema: 0.8
+      ret: 1.8
+      vol: 0.25
+      dd: 0.10
+
+    base_optimizer: risk_parity
+    mu_source: returns    # ignored by risk_parity, ok
+    risk_blend: null      # no need; base is already rp
+
+transaction_costs:
+  proportional: 0.0005

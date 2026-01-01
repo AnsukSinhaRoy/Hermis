@@ -1,0 +1,30 @@
+# Core
+numpy>=2.2       # modern numpy with Python 3.13+ wheels
+pandas>=2.2      # pandas recent series; pick latest in 2.x line for 3.13 compatibility
+PyYAML>=6.0
+
+# Web / UI
+streamlit>=1.20  # any recent Streamlit; Streamlit Cloud will install latest compatible
+
+# Plotting
+plotly>=5.9
+matplotlib>=3.7
+
+# Data formats
+pyarrow>=11.0    # pyarrow has wheels for newer Python versions; use a recent release
+openpyxl>=3.1    # needed to read .xlsx raw stock files
+
+# Scientific / optimization (optional - heavy / compiled)
+scipy>=1.11
+cvxpy>=1.6       # only include if your app actually uses it; large compiled deps may increase build time
+
+# Typing & utilities
+typing-extensions>=4.5
+tqdm>=4.65
+
+# Dev or optional helpers
+python-dateutil>=2.8
+
+# Benchmarks / market data
+yfinance>=0.2.40
+requests>=2.31

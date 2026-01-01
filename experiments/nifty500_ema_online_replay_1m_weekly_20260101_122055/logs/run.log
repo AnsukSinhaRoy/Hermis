@@ -1,0 +1,239 @@
+2026-01-01 17:50:55 | INFO | hermis | Run initialized
+2026-01-01 17:50:55 | INFO | hermis | Run folder: experiments\nifty500_ema_online_replay_1m_weekly_20260101_122055
+2026-01-01 17:50:55 | INFO | hermis | Config used: experiments\nifty500_ema_online_replay_1m_weekly_20260101_122055\params.yaml
+2026-01-01 17:50:55 | INFO | hermis | Experiments dir: experiments
+2026-01-01 17:50:55 | INFO | hermis | Running experiment from config
+2026-01-01 17:50:55 | INFO | hermis | Runner starting | data.mode=replay_minute | use_gpu=True
+2026-01-01 17:50:55 | INFO | hermis | Replay: minute stream | store_dir=data\processed\nifty500\1min_store | symbols=486 | prefetch=1 | use_gpu=True
+2026-01-01 17:50:55 | INFO | hermis | Replay: processing month 2015-02
+2026-01-01 17:51:01 | INFO | hermis | Replay: 2015-02 ready | days=20 | symbols=339
+2026-01-01 17:51:01 | INFO | hermis | Replay: processing month 2015-03
+2026-01-01 17:51:08 | INFO | hermis | Replay: 2015-03 ready | days=21 | symbols=339
+2026-01-01 17:51:08 | INFO | hermis | Replay: processing month 2015-04
+2026-01-01 17:51:14 | INFO | hermis | Replay: 2015-04 ready | days=19 | symbols=339
+2026-01-01 17:51:14 | INFO | hermis | Replay: processing month 2015-05
+2026-01-01 17:51:20 | INFO | hermis | Replay: 2015-05 ready | days=20 | symbols=339
+2026-01-01 17:51:20 | INFO | hermis | Replay: processing month 2015-06
+2026-01-01 17:51:27 | INFO | hermis | Replay: 2015-06 ready | days=22 | symbols=340
+2026-01-01 17:51:27 | INFO | hermis | Replay: processing month 2015-07
+2026-01-01 17:51:33 | INFO | hermis | Replay: 2015-07 ready | days=23 | symbols=342
+2026-01-01 17:51:33 | INFO | hermis | Replay: processing month 2015-08
+2026-01-01 17:51:39 | INFO | hermis | Replay: 2015-08 ready | days=21 | symbols=343
+2026-01-01 17:51:39 | INFO | hermis | Replay: processing month 2015-09
+2026-01-01 17:51:46 | INFO | hermis | Replay: 2015-09 ready | days=20 | symbols=342
+2026-01-01 17:51:46 | INFO | hermis | Replay: processing month 2015-10
+2026-01-01 17:51:52 | INFO | hermis | Replay: 2015-10 ready | days=20 | symbols=342
+2026-01-01 17:51:52 | INFO | hermis | Replay: processing month 2015-11
+2026-01-01 17:51:58 | INFO | hermis | Replay: 2015-11 ready | days=18 | symbols=346
+2026-01-01 17:51:58 | INFO | hermis | Replay: processing month 2015-12
+2026-01-01 17:52:04 | INFO | hermis | Replay: 2015-12 ready | days=22 | symbols=349
+2026-01-01 17:52:04 | INFO | hermis | Replay: processing month 2016-01
+2026-01-01 17:52:11 | INFO | hermis | Replay: 2016-01 ready | days=19 | symbols=349
+2026-01-01 17:52:11 | INFO | hermis | Replay: processing month 2016-02
+2026-01-01 17:52:17 | INFO | hermis | Replay: 2016-02 ready | days=21 | symbols=346
+2026-01-01 17:52:17 | INFO | hermis | Replay: processing month 2016-03
+2026-01-01 17:52:23 | INFO | hermis | Replay: 2016-03 ready | days=20 | symbols=347
+2026-01-01 17:52:23 | INFO | hermis | Replay: processing month 2016-04
+2026-01-01 17:52:30 | INFO | hermis | Replay: 2016-04 ready | days=18 | symbols=347
+2026-01-01 17:52:30 | INFO | hermis | Replay: processing month 2016-05
+2026-01-01 17:52:36 | INFO | hermis | Replay: 2016-05 ready | days=22 | symbols=347
+2026-01-01 17:52:36 | INFO | hermis | Replay: processing month 2016-06
+2026-01-01 17:52:43 | INFO | hermis | Replay: 2016-06 ready | days=22 | symbols=348
+2026-01-01 17:52:43 | INFO | hermis | Replay: processing month 2016-07
+2026-01-01 17:52:49 | INFO | hermis | Replay: 2016-07 ready | days=20 | symbols=349
+2026-01-01 17:52:49 | INFO | hermis | Replay: processing month 2016-08
+2026-01-01 17:52:56 | INFO | hermis | Replay: 2016-08 ready | days=22 | symbols=351
+2026-01-01 17:52:56 | INFO | hermis | Replay: processing month 2016-09
+2026-01-01 17:53:02 | INFO | hermis | Replay: 2016-09 ready | days=20 | symbols=353
+2026-01-01 17:53:02 | INFO | hermis | Replay: processing month 2016-10
+2026-01-01 17:53:08 | INFO | hermis | Replay: 2016-10 ready | days=18 | symbols=354
+2026-01-01 17:53:08 | INFO | hermis | Replay: processing month 2016-11
+2026-01-01 17:53:14 | INFO | hermis | Replay: 2016-11 ready | days=21 | symbols=356
+2026-01-01 17:53:14 | INFO | hermis | Replay: processing month 2016-12
+2026-01-01 17:53:21 | INFO | hermis | Replay: 2016-12 ready | days=22 | symbols=357
+2026-01-01 17:53:21 | INFO | hermis | Replay: processing month 2017-01
+2026-01-01 17:53:27 | INFO | hermis | Replay: 2017-01 ready | days=21 | symbols=356
+2026-01-01 17:53:27 | INFO | hermis | Replay: processing month 2017-02
+2026-01-01 17:53:34 | INFO | hermis | Replay: 2017-02 ready | days=19 | symbols=358
+2026-01-01 17:53:34 | INFO | hermis | Replay: processing month 2017-03
+2026-01-01 17:53:40 | INFO | hermis | Replay: 2017-03 ready | days=22 | symbols=359
+2026-01-01 17:53:40 | INFO | hermis | Replay: processing month 2017-04
+2026-01-01 17:53:46 | INFO | hermis | Replay: 2017-04 ready | days=18 | symbols=359
+2026-01-01 17:53:46 | INFO | hermis | Replay: processing month 2017-05
+2026-01-01 17:53:53 | INFO | hermis | Replay: 2017-05 ready | days=22 | symbols=360
+2026-01-01 17:53:53 | INFO | hermis | Replay: processing month 2017-06
+2026-01-01 17:53:59 | INFO | hermis | Replay: 2017-06 ready | days=21 | symbols=362
+2026-01-01 17:53:59 | INFO | hermis | Replay: processing month 2017-07
+2026-01-01 17:54:05 | INFO | hermis | Replay: 2017-07 ready | days=21 | symbols=363
+2026-01-01 17:54:05 | INFO | hermis | Replay: processing month 2017-08
+2026-01-01 17:54:12 | INFO | hermis | Replay: 2017-08 ready | days=21 | symbols=363
+2026-01-01 17:54:12 | INFO | hermis | Replay: processing month 2017-09
+2026-01-01 17:54:18 | INFO | hermis | Replay: 2017-09 ready | days=21 | symbols=367
+2026-01-01 17:54:18 | INFO | hermis | Replay: processing month 2017-10
+2026-01-01 17:54:24 | INFO | hermis | Replay: 2017-10 ready | days=19 | symbols=371
+2026-01-01 17:54:24 | INFO | hermis | Replay: processing month 2017-11
+2026-01-01 17:54:31 | INFO | hermis | Replay: 2017-11 ready | days=22 | symbols=374
+2026-01-01 17:54:31 | INFO | hermis | Replay: processing month 2017-12
+2026-01-01 17:54:37 | INFO | hermis | Replay: 2017-12 ready | days=20 | symbols=375
+2026-01-01 17:54:37 | INFO | hermis | Replay: processing month 2018-01
+2026-01-01 17:54:44 | INFO | hermis | Replay: 2018-01 ready | days=22 | symbols=377
+2026-01-01 17:54:44 | INFO | hermis | Replay: processing month 2018-02
+2026-01-01 17:54:50 | INFO | hermis | Replay: 2018-02 ready | days=19 | symbols=378
+2026-01-01 17:54:50 | INFO | hermis | Replay: processing month 2018-03
+2026-01-01 17:54:56 | INFO | hermis | Replay: 2018-03 ready | days=19 | symbols=382
+2026-01-01 17:54:56 | INFO | hermis | Replay: processing month 2018-04
+2026-01-01 17:55:03 | INFO | hermis | Replay: 2018-04 ready | days=21 | symbols=383
+2026-01-01 17:55:03 | INFO | hermis | Replay: processing month 2018-05
+2026-01-01 17:55:10 | INFO | hermis | Replay: 2018-05 ready | days=22 | symbols=384
+2026-01-01 17:55:10 | INFO | hermis | Replay: processing month 2018-06
+2026-01-01 17:55:16 | INFO | hermis | Replay: 2018-06 ready | days=21 | symbols=384
+2026-01-01 17:55:16 | INFO | hermis | Replay: processing month 2018-07
+2026-01-01 17:55:23 | INFO | hermis | Replay: 2018-07 ready | days=22 | symbols=386
+2026-01-01 17:55:23 | INFO | hermis | Replay: processing month 2018-08
+2026-01-01 17:55:29 | INFO | hermis | Replay: 2018-08 ready | days=21 | symbols=388
+2026-01-01 17:55:29 | INFO | hermis | Replay: processing month 2018-09
+2026-01-01 17:55:35 | INFO | hermis | Replay: 2018-09 ready | days=18 | symbols=389
+2026-01-01 17:55:35 | INFO | hermis | Replay: processing month 2018-10
+2026-01-01 17:55:42 | INFO | hermis | Replay: 2018-10 ready | days=21 | symbols=390
+2026-01-01 17:55:42 | INFO | hermis | Replay: processing month 2018-11
+2026-01-01 17:55:48 | INFO | hermis | Replay: 2018-11 ready | days=19 | symbols=392
+2026-01-01 17:55:48 | INFO | hermis | Replay: processing month 2018-12
+2026-01-01 17:55:54 | INFO | hermis | Replay: 2018-12 ready | days=20 | symbols=393
+2026-01-01 17:55:54 | INFO | hermis | Replay: processing month 2019-01
+2026-01-01 17:56:01 | INFO | hermis | Replay: 2019-01 ready | days=23 | symbols=394
+2026-01-01 17:56:01 | INFO | hermis | Replay: processing month 2019-02
+2026-01-01 17:56:08 | INFO | hermis | Replay: 2019-02 ready | days=20 | symbols=395
+2026-01-01 17:56:08 | INFO | hermis | Replay: processing month 2019-03
+2026-01-01 17:56:14 | INFO | hermis | Replay: 2019-03 ready | days=19 | symbols=394
+2026-01-01 17:56:14 | INFO | hermis | Replay: processing month 2019-04
+2026-01-01 17:56:20 | INFO | hermis | Replay: 2019-04 ready | days=19 | symbols=399
+2026-01-01 17:56:20 | INFO | hermis | Replay: processing month 2019-05
+2026-01-01 17:56:27 | INFO | hermis | Replay: 2019-05 ready | days=22 | symbols=399
+2026-01-01 17:56:27 | INFO | hermis | Replay: processing month 2019-06
+2026-01-01 17:56:33 | INFO | hermis | Replay: 2019-06 ready | days=19 | symbols=398
+2026-01-01 17:56:33 | INFO | hermis | Replay: processing month 2019-07
+2026-01-01 17:56:40 | INFO | hermis | Replay: 2019-07 ready | days=23 | symbols=399
+2026-01-01 17:56:40 | INFO | hermis | Replay: processing month 2019-08
+2026-01-01 17:56:46 | INFO | hermis | Replay: 2019-08 ready | days=20 | symbols=402
+2026-01-01 17:56:46 | INFO | hermis | Replay: processing month 2019-09
+2026-01-01 17:56:52 | INFO | hermis | Replay: 2019-09 ready | days=19 | symbols=402
+2026-01-01 17:56:52 | INFO | hermis | Replay: processing month 2019-10
+2026-01-01 17:56:59 | INFO | hermis | Replay: 2019-10 ready | days=19 | symbols=404
+2026-01-01 17:56:59 | INFO | hermis | Replay: processing month 2019-11
+2026-01-01 17:57:05 | INFO | hermis | Replay: 2019-11 ready | days=20 | symbols=404
+2026-01-01 17:57:05 | INFO | hermis | Replay: processing month 2019-12
+2026-01-01 17:57:12 | INFO | hermis | Replay: 2019-12 ready | days=21 | symbols=405
+2026-01-01 17:57:12 | INFO | hermis | Replay: processing month 2020-01
+2026-01-01 17:57:18 | INFO | hermis | Replay: 2020-01 ready | days=23 | symbols=407
+2026-01-01 17:57:18 | INFO | hermis | Replay: processing month 2020-02
+2026-01-01 17:57:25 | INFO | hermis | Replay: 2020-02 ready | days=20 | symbols=408
+2026-01-01 17:57:25 | INFO | hermis | Replay: processing month 2020-03
+2026-01-01 17:57:31 | INFO | hermis | Replay: 2020-03 ready | days=21 | symbols=409
+2026-01-01 17:57:31 | INFO | hermis | Replay: processing month 2020-04
+2026-01-01 17:57:37 | INFO | hermis | Replay: 2020-04 ready | days=18 | symbols=409
+2026-01-01 17:57:37 | INFO | hermis | Replay: processing month 2020-05
+2026-01-01 17:57:44 | INFO | hermis | Replay: 2020-05 ready | days=19 | symbols=409
+2026-01-01 17:57:44 | INFO | hermis | Replay: processing month 2020-06
+2026-01-01 17:57:50 | INFO | hermis | Replay: 2020-06 ready | days=22 | symbols=409
+2026-01-01 17:57:50 | INFO | hermis | Replay: processing month 2020-07
+2026-01-01 17:57:57 | INFO | hermis | Replay: 2020-07 ready | days=23 | symbols=409
+2026-01-01 17:57:57 | INFO | hermis | Replay: processing month 2020-08
+2026-01-01 17:58:04 | INFO | hermis | Replay: 2020-08 ready | days=21 | symbols=410
+2026-01-01 17:58:04 | INFO | hermis | Replay: processing month 2020-09
+2026-01-01 17:58:11 | INFO | hermis | Replay: 2020-09 ready | days=22 | symbols=412
+2026-01-01 17:58:11 | INFO | hermis | Replay: processing month 2020-10
+2026-01-01 17:58:17 | INFO | hermis | Replay: 2020-10 ready | days=21 | symbols=416
+2026-01-01 17:58:17 | INFO | hermis | Replay: processing month 2020-11
+2026-01-01 17:58:24 | INFO | hermis | Replay: 2020-11 ready | days=19 | symbols=418
+2026-01-01 17:58:24 | INFO | hermis | Replay: processing month 2020-12
+2026-01-01 17:58:30 | INFO | hermis | Replay: 2020-12 ready | days=22 | symbols=418
+2026-01-01 17:58:30 | INFO | hermis | Replay: processing month 2021-01
+2026-01-01 17:58:37 | INFO | hermis | Replay: 2021-01 ready | days=20 | symbols=419
+2026-01-01 17:58:37 | INFO | hermis | Replay: processing month 2021-02
+2026-01-01 17:58:43 | INFO | hermis | Replay: 2021-02 ready | days=20 | symbols=421
+2026-01-01 17:58:43 | INFO | hermis | Replay: processing month 2021-03
+2026-01-01 17:58:50 | INFO | hermis | Replay: 2021-03 ready | days=21 | symbols=425
+2026-01-01 17:58:50 | INFO | hermis | Replay: processing month 2021-04
+2026-01-01 17:58:57 | INFO | hermis | Replay: 2021-04 ready | days=19 | symbols=426
+2026-01-01 17:58:57 | INFO | hermis | Replay: processing month 2021-05
+2026-01-01 17:59:03 | INFO | hermis | Replay: 2021-05 ready | days=20 | symbols=426
+2026-01-01 17:59:03 | INFO | hermis | Replay: processing month 2021-06
+2026-01-01 17:59:10 | INFO | hermis | Replay: 2021-06 ready | days=22 | symbols=429
+2026-01-01 17:59:10 | INFO | hermis | Replay: processing month 2021-07
+2026-01-01 17:59:17 | INFO | hermis | Replay: 2021-07 ready | days=21 | symbols=431
+2026-01-01 17:59:17 | INFO | hermis | Replay: processing month 2021-08
+2026-01-01 17:59:23 | INFO | hermis | Replay: 2021-08 ready | days=21 | symbols=435
+2026-01-01 17:59:23 | INFO | hermis | Replay: processing month 2021-09
+2026-01-01 17:59:30 | INFO | hermis | Replay: 2021-09 ready | days=21 | symbols=436
+2026-01-01 17:59:30 | INFO | hermis | Replay: processing month 2021-10
+2026-01-01 17:59:37 | INFO | hermis | Replay: 2021-10 ready | days=20 | symbols=437
+2026-01-01 17:59:37 | INFO | hermis | Replay: processing month 2021-11
+2026-01-01 17:59:43 | INFO | hermis | Replay: 2021-11 ready | days=19 | symbols=442
+2026-01-01 17:59:43 | INFO | hermis | Replay: processing month 2021-12
+2026-01-01 17:59:50 | INFO | hermis | Replay: 2021-12 ready | days=23 | symbols=447
+2026-01-01 17:59:50 | INFO | hermis | Replay: processing month 2022-01
+2026-01-01 17:59:57 | INFO | hermis | Replay: 2022-01 ready | days=20 | symbols=447
+2026-01-01 17:59:57 | INFO | hermis | Replay: processing month 2022-02
+2026-01-01 18:00:04 | INFO | hermis | Replay: 2022-02 ready | days=20 | symbols=449
+2026-01-01 18:00:04 | INFO | hermis | Replay: processing month 2022-03
+2026-01-01 18:00:11 | INFO | hermis | Replay: 2022-03 ready | days=21 | symbols=450
+2026-01-01 18:00:11 | INFO | hermis | Replay: processing month 2022-04
+2026-01-01 18:00:17 | INFO | hermis | Replay: 2022-04 ready | days=19 | symbols=450
+2026-01-01 18:00:17 | INFO | hermis | Replay: processing month 2022-05
+2026-01-01 18:00:24 | INFO | hermis | Replay: 2022-05 ready | days=21 | symbols=454
+2026-01-01 18:00:24 | INFO | hermis | Replay: processing month 2022-06
+2026-01-01 18:00:31 | INFO | hermis | Replay: 2022-06 ready | days=22 | symbols=454
+2026-01-01 18:00:31 | INFO | hermis | Replay: processing month 2022-07
+2026-01-01 18:00:38 | INFO | hermis | Replay: 2022-07 ready | days=21 | symbols=454
+2026-01-01 18:00:38 | INFO | hermis | Replay: processing month 2022-08
+2026-01-01 18:00:44 | INFO | hermis | Replay: 2022-08 ready | days=20 | symbols=455
+2026-01-01 18:00:44 | INFO | hermis | Replay: processing month 2022-09
+2026-01-01 18:00:51 | INFO | hermis | Replay: 2022-09 ready | days=22 | symbols=455
+2026-01-01 18:00:51 | INFO | hermis | Replay: processing month 2022-10
+2026-01-01 18:00:58 | INFO | hermis | Replay: 2022-10 ready | days=18 | symbols=456
+2026-01-01 18:00:58 | INFO | hermis | Replay: processing month 2022-11
+2026-01-01 18:01:05 | INFO | hermis | Replay: 2022-11 ready | days=21 | symbols=461
+2026-01-01 18:01:05 | INFO | hermis | Replay: processing month 2022-12
+2026-01-01 18:01:12 | INFO | hermis | Replay: 2022-12 ready | days=22 | symbols=462
+2026-01-01 18:01:12 | INFO | hermis | Replay: processing month 2023-01
+2026-01-01 18:01:19 | INFO | hermis | Replay: 2023-01 ready | days=21 | symbols=462
+2026-01-01 18:01:19 | INFO | hermis | Replay: processing month 2023-02
+2026-01-01 18:01:25 | INFO | hermis | Replay: 2023-02 ready | days=20 | symbols=463
+2026-01-01 18:01:25 | INFO | hermis | Replay: processing month 2023-03
+2026-01-01 18:01:32 | INFO | hermis | Replay: 2023-03 ready | days=21 | symbols=463
+2026-01-01 18:01:32 | INFO | hermis | Replay: processing month 2023-04
+2026-01-01 18:01:39 | INFO | hermis | Replay: 2023-04 ready | days=17 | symbols=463
+2026-01-01 18:01:39 | INFO | hermis | Replay: processing month 2023-05
+2026-01-01 18:01:45 | INFO | hermis | Replay: 2023-05 ready | days=22 | symbols=464
+2026-01-01 18:01:45 | INFO | hermis | Replay: processing month 2023-06
+2026-01-01 18:01:52 | INFO | hermis | Replay: 2023-06 ready | days=21 | symbols=464
+2026-01-01 18:01:52 | INFO | hermis | Replay: processing month 2023-07
+2026-01-01 18:01:59 | INFO | hermis | Replay: 2023-07 ready | days=21 | symbols=466
+2026-01-01 18:01:59 | INFO | hermis | Replay: processing month 2023-08
+2026-01-01 18:02:06 | INFO | hermis | Replay: 2023-08 ready | days=22 | symbols=470
+2026-01-01 18:02:06 | INFO | hermis | Replay: processing month 2023-09
+2026-01-01 18:02:13 | INFO | hermis | Replay: 2023-09 ready | days=20 | symbols=473
+2026-01-01 18:02:13 | INFO | hermis | Replay: processing month 2023-10
+2026-01-01 18:02:20 | INFO | hermis | Replay: 2023-10 ready | days=20 | symbols=474
+2026-01-01 18:02:20 | INFO | hermis | Replay: processing month 2023-11
+2026-01-01 18:02:27 | INFO | hermis | Replay: 2023-11 ready | days=20 | symbols=478
+2026-01-01 18:02:27 | INFO | hermis | Replay: processing month 2023-12
+2026-01-01 18:02:34 | INFO | hermis | Replay: 2023-12 ready | days=20 | symbols=480
+2026-01-01 18:02:34 | INFO | hermis | Replay: processing month 2024-01
+2026-01-01 18:02:41 | INFO | hermis | Replay: 2024-01 ready | days=22 | symbols=481
+2026-01-01 18:02:41 | INFO | hermis | Replay: processing month 2024-02
+2026-01-01 18:02:48 | INFO | hermis | Replay: 2024-02 ready | days=21 | symbols=481
+2026-01-01 18:02:48 | INFO | hermis | Replay: processing month 2024-03
+2026-01-01 18:02:54 | INFO | hermis | Replay: 2024-03 ready | days=19 | symbols=481
+2026-01-01 18:02:54 | INFO | hermis | Replay: processing month 2024-04
+2026-01-01 18:03:01 | INFO | hermis | Replay: 2024-04 ready | days=20 | symbols=482
+2026-01-01 18:03:01 | INFO | hermis | Replay: processing month 2024-05
+2026-01-01 18:03:08 | INFO | hermis | Replay: 2024-05 ready | days=22 | symbols=486
+2026-01-01 18:03:08 | INFO | hermis | Replay: processing month 2024-06
+2026-01-01 18:03:15 | INFO | hermis | Replay: 2024-06 ready | days=19 | symbols=486
+2026-01-01 18:03:15 | INFO | hermis | Replay: processing month 2024-07
+2026-01-01 18:03:21 | INFO | hermis | Replay: 2024-07 ready | days=4 | symbols=486
+2026-01-01 18:03:22 | INFO | hermis | Experiment saved to: experiments\nifty500_ema_online_replay_1m_weekly_20260101_122055
+2026-01-01 18:03:22 | INFO | hermis | Saved performance artifacts to experiments\nifty500_ema_online_replay_1m_weekly_20260101_122055\outputs\performance
+2026-01-01 18:03:24 | INFO | hermis | Saved figures to: experiments\nifty500_ema_online_replay_1m_weekly_20260101_122055\artifacts\figures
+2026-01-01 18:03:24 | INFO | hermis | Run complete

@@ -1,0 +1,57 @@
+experiment:
+  name: "nifty500_ema_online_1D_risk_parity_weekly"
+  start_date: "2011-01-01"
+  end_date: "2024-07-04"
+  rebalance: "weekly"   # daily | weekly | monthly
+  seed: 42
+  use_gpu: false
+
+data:
+  mode: "processed"
+  processed:
+    dataset: "nifty500"
+    base_dir: "data/processed"
+    freq: "1D"
+
+risk_model:
+  type: "sample_cov"
+  lookback: 252
+  lookback_unit: bars
+  scale_to_rebalance_horizon: false
+
+cash:
+  enabled: true
+  asset_name: CASH
+  max_gross_exposure: 1.0
+  drawdown_brake:
+    enabled: true
+    threshold: 0.08
+    reduced_exposure: 0.65
+
+optimizer:
+  type: ema_online
+  long_only: true
+  box:
+    min: 0.005
+    max: 0.45
+
+  ema_online:
+    windows_unit: bars
+    windows:
+      - {fast_span: 10, slow_span: 30,  weight: 1.0}
+      - {fast_span: 20, slow_span: 60,  weight: 1.0}
+      - {fast_span: 60, slow_span: 150, weight: 0.7}
+
+    bullish_threshold: 0.0
+    min_assets: 6
+    max_assets: 20
+    fallback_k: 8
+
+    base_optimizer: risk_parity
+    mu_source: blend
+    mu_blend_alpha: 0.75
+    mu_scale: 1.0
+    risk_blend: 0.80
+
+transaction_costs:
+  proportional: 0.0005

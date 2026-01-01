@@ -131,6 +131,14 @@ def run_experiment_from_config(params_path: str,
     # Always snapshot params into the experiment folder for reproducibility.
     save_params_yaml(params_path, exp_folder_path)
 
+    # Inject experiment paths so runners can optionally stream partial outputs
+    # (useful for live plotting / live Prism viewing during long runs).
+    try:
+        cfg["_exp_folder"] = str(exp_folder_path)
+        cfg["_exp_outputs_folder"] = str(exp_folder_path / "outputs")
+    except Exception:
+        pass
+
     start = time.time()
     outputs = runner_func(cfg)
     end = time.time()

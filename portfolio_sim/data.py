@@ -222,6 +222,67 @@ def load_prices_from_parquet(
     wide, _, _ = apply_date_range(wide, start_date, end_date)
     return wide
 
+
+def load_prices_from_partitioned_minute_store(
+    store_dir: str,
+    symbols: list[str],
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    field: str = "close",
+    datetime_col: str = "datetime",
+) -> pd.DataFrame:
+    """Load *minute* prices from a partitioned parquet store.
+
+    Intended for large universes (e.g., Nifty 500) where a full wide minute matrix is
+    impractical. The preprocessing step writes a hive-partitioned store like:
+
+      1min_store/
+        symbol=RELIANCE/year=2016/month=3/part-00000.parquet
+
+    This loader uses pyarrow.dataset predicate pushdown on:
+      - symbol partition column
+      - datetime column inside files
+
+    Returns
+    -------
+    DataFrame
+      Index: datetime
+      Columns: symbols
+      Values: requested `field` (default: close)
+    """
+    if symbols is None or len(symbols) == 0:
+        raise ValueError("symbols must be a non-empty list")
+
+    try:
+        import pyarrow.dataset as ds
+    except Exception as e:
+        raise ImportError(
+            "pyarrow is required to load partitioned minute stores. Install pyarrow."
+        ) from e
+
+    s = _to_timestamp(start_date)
+    e = _to_timestamp(end_date)
+
+    dataset = ds.dataset(str(store_dir), format="parquet", partitioning="hive")
+
+    filt = ds.field("symbol").isin([str(x) for x in symbols])
+    if s is not None:
+        filt = filt & (ds.field(datetime_col) >= s.to_datetime64())
+    if e is not None:
+        filt = filt & (ds.field(datetime_col) <= e.to_datetime64())
+
+    cols = [datetime_col, "symbol", field]
+    table = dataset.to_table(filter=filt, columns=cols)
+    df = table.to_pandas()
+    if df.empty:
+        return pd.DataFrame(index=pd.DatetimeIndex([], name=datetime_col))
+
+    df[datetime_col] = pd.to_datetime(df[datetime_col], errors="coerce")
+    df = df.dropna(subset=[datetime_col])
+    wide = df.pivot(index=datetime_col, columns="symbol", values=field).sort_index()
+    wide, _, _ = apply_date_range(wide, start_date, end_date)
+    return wide
+
 def generate_synthetic_prices(n_assets: int = 100,
                               start: str = "2018-01-01",
                               end: str = "2022-12-31",
@@ -328,9 +389,29 @@ def cov_matrix(prices: pd.DataFrame, method: str='log', use_gpu: bool=False, min
         eps = 1e-8
         cov_np = np.eye(len(cols)) * eps
         return pd.DataFrame(cov_np, index=cols, columns=cols)
-
-    cov_np = (arr.T @ arr) / float(T - 1)
-
+    # compute covariance
+    if use_gpu:
+        try:
+            import torch
+            if torch.cuda.is_available():
+                device = torch.device("cuda")
+                # Keep it light on VRAM; float32 is fine for covariance estimation
+                X = torch.tensor(arr, device=device, dtype=torch.float32)
+                # nan-robust column means
+                mask = torch.isfinite(X)
+                denom = mask.sum(dim=0, keepdim=True).clamp(min=1)
+                mean = torch.where(mask, X, torch.zeros_like(X)).sum(dim=0, keepdim=True) / denom
+                X = X - mean
+                cov_t = (X.t() @ X) / float(T - 1)
+                cov_t = 0.5 * (cov_t + cov_t.t())
+                cov_t = torch.nan_to_num(cov_t, nan=0.0, posinf=0.0, neginf=0.0)
+                cov_np = cov_t.detach().cpu().numpy().astype(float)
+            else:
+                cov_np = (arr.T @ arr) / float(T - 1)
+        except Exception:
+            cov_np = (arr.T @ arr) / float(T - 1)
+    else:
+        cov_np = (arr.T @ arr) / float(T - 1)
     # force symmetry numerically
     cov_np = 0.5 * (cov_np + cov_np.T)
 
